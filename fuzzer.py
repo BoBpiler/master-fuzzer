@@ -11,6 +11,8 @@ import os
 # 함수: 결과를 비교하고 이상이 있다면 catch 디렉토리에 저장
 def compare_results(id, compilers, optimization_levels, comparison_strategy):
     results = {}  # 결과를 저장하는 딕셔너리  {'compiler_opt': result_content}
+    
+    #하나의 소스코드에 대해서 만들어진 모든 바이너리의 실행 결과를 저장
     for compiler in compilers:
         for opt_level in optimization_levels:
             filepath = f"results/{compiler}/{id}_{compiler}_O{opt_level}.txt"
@@ -22,7 +24,8 @@ def compare_results(id, compilers, optimization_levels, comparison_strategy):
                 continue
 
             results[f"{compiler}_O{opt_level}"] = result_content
-
+    
+    # 해당 결과들을 대상으로 비교
     if comparison_strategy(results, id):
         print(f"Different results detected for source code ID: {id}")
         shutil.copy(f"RandomCodes/random_program_{id}.c", f"catch/random_program_{id}.c")
@@ -54,9 +57,11 @@ def main():
         os.mkdir('catch')
     
     for id in range(0, 10000):  # 일단 요 정도만..
+        # 소스코드 생성
         filename = generate_c_code(id)
         with ThreadPoolExecutor() as executor:
             futures = []
+            # 컴파일 및 실행 (gcc, clang으로 -O0 ~ -O3 옵션 주어서 컴파일 하고 실행 결과 저장)
             for compiler in compilers:
                 for opt_level in optimization_levels:
                     futures.append(executor.submit(compile_and_run, filename, id, compiler, opt_level))
