@@ -24,7 +24,11 @@ def compare_results(id, compilers, optimization_levels, comparison_strategy):
                 continue
 
             results[f"{compiler}_O{opt_level}"] = result_content
-    
+    # 타임 아웃 처리
+    if not results:
+        print(f"No results to compare for source code ID: {id}")
+        return
+
     # 해당 결과들을 대상으로 비교
     if comparison_strategy(results, id):
         print(f"Different results detected for source code ID: {id}")
