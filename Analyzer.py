@@ -13,7 +13,7 @@ def compile_and_run(filename, id, compiler, optimization_level):
     csmith_include = f"{os.path.expanduser('~')}/csmith/include"
     
     # 컴파일 과정
-    subprocess.run([compiler, filename, '-o', binary_name, f'-O{optimization_level}', f'-I{csmith_include}'], stderr=subprocess.DEVNULL, timeout=60)
+    subprocess.run([compiler, filename, '-o', binary_name, f'-O{optimization_level}', f'-I{csmith_include}'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=60)
 
     try:
         # 실행 결과
