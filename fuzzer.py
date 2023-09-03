@@ -51,11 +51,16 @@ def main():
         os.mkdir('results')
         for compiler in compilers:
             os.mkdir(f'results/{compiler}')
-
+    
     if not os.path.exists('temp'):
         os.mkdir('temp')
         for compiler in compilers:
             os.mkdir(f'temp/{compiler}')
+
+    if not os.path.exists('binaries'):
+        os.mkdir('binaries')
+        for compiler in compilers:
+            os.mkdir(f'binaries/{compiler}')
     
     if not os.path.exists('catch'):
         os.mkdir('catch')

@@ -7,7 +7,7 @@ import subprocess
 def compile_and_run(filename, id, compiler, optimization_level):
     # 출력 파일과 바이너리 파일의 이름을 설정
     output_filename = f"results/{compiler}/{id}_{compiler}_O{optimization_level}.txt"
-    binary_name = f"temp/{compiler}/{id}_{compiler}_O{optimization_level}"
+    binary_name = f"binaries/{compiler}/{id}_{compiler}_O{optimization_level}"
 
     # csmith의 include 경로
     csmith_include = f"{os.path.expanduser('~')}/csmith/include"
