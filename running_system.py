@@ -43,12 +43,36 @@ def run_binary(binary_name):
     #with open(output_filename, 'w') as f:
     #    f.write(result)
     try:
-        # 실행 결과
         result = subprocess.run([f'./{binary_name}'], capture_output=True, text=True, timeout=30).stdout
     except subprocess.TimeoutExpired:
-        # 타임아웃이 발생한 경우
+        # TimeoutExpired: 프로세스가 지정된 시간 내에 완료되지 않았을 때 발생
         print(f"TimeoutExpired occurred in {binary_name}")
-        result = "Timeout"  # 이 값을 어떻게 할까
+        result = "Timeout"
+    except subprocess.CalledProcessError:
+        # CalledProcessError: 명령어가 0이 아닌 상태 코드를 반환했을 때 발생
+        print(f"CalledProcessError occurred in {binary_name}")
+        result = "Error"
+    except FileNotFoundError:
+        # FileNotFoundError: 바이너리 파일을 찾을 수 없을 때 발생
+        print(f"FileNotFoundError occurred for {binary_name}")
+        result = "File not found"
+    except PermissionError:
+        # PermissionError: 바이너리 파일을 실행할 권한이 없을 때 발생
+        print(f"PermissionError occurred for {binary_name}")
+        result = "Permission denied"
+    except UnicodeDecodeError:
+        # UnicodeDecodeError: 출력을 UTF-8 텍스트로 디코딩할 수 없을 때 발생
+        print(f"UnicodeDecodeError occurred for {binary_name}")
+        result = "Decode Error"
+    except OSError as e:
+        # OSError: 운영체제 수준에서 발생하는 일반적인 오류를 처리
+        print(f"OSError occurred for {binary_name}: {e}")
+        result = "OS Error"
+    except subprocess.SubprocessError:
+        # SubprocessError: subprocess 모듈에서 발생할 수 있는 모든 예외의 상위 클래스로
+        # 이 핸들러는 TimeoutExpired나 CalledProcessError와 같은 구체적인 예외가 먼저 처리되지 않은 경우에
+        # 다른 모든 subprocess 관련 예외를 처리하기 위해서 추가했습니다.
+        print(f"Unknown subprocess error occurred for {binary_name}: {e}")
+        result = f"Unknown Error: {e}"
     return result
-    
     
