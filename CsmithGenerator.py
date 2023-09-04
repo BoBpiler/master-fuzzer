@@ -16,4 +16,3 @@ def generate_c_code(id):
     # C 코드 생성
     subprocess.run(['csmith', '-o', filepath], env=csmith_env, timeout=60)
     return filepath
-
