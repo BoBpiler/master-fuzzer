@@ -8,8 +8,9 @@ generators = ['csmith', 'yarpgen']
 compilers = ['gcc', 'clang']
 # 최적화 옵션
 optimization_levels = ['0', '1', '2', '3']
-# 수행 횟수
+# 수행 횟수 및 타임아웃
 total_tasks = 10000  
+time_out = 30
 # csmith include 경로
 csmith_include = "/usr/local/include/csmith"
 
@@ -25,13 +26,22 @@ CATCH_SUB_DIRS = ['source', 'binary', 'result']
 # argv: dir_name - 생성할 디렉토리의 이름 / sub_dirs - 생성할 하위 디렉토리의 이름 목록
 # return: None
 def create_directory(dir_name, sub_dirs=None):
-    if not os.path.exists(dir_name):
-        os.mkdir(dir_name)
+    try:
+        if not os.path.exists(dir_name):
+            os.mkdir(dir_name)
+            #print(f"Directory {dir_name} created successfully.")
+    except (FileExistsError, PermissionError, FileNotFoundError) as e:
+        print(f"An error occurred while creating {dir_name}: {e}")
+        
     if sub_dirs:
         for sub_dir in sub_dirs:
             sub_dir_path = os.path.join(dir_name, sub_dir)
-            if not os.path.exists(sub_dir_path):
-                os.mkdir(sub_dir_path)
+            try:
+                if not os.path.exists(sub_dir_path):
+                    os.mkdir(sub_dir_path)
+                    #print(f"Sub-directory {sub_dir_path} created successfully.")
+            except (FileExistsError, PermissionError, FileNotFoundError) as e:
+                print(f"An error occurred while creating sub-directory {sub_dir_path}: {e}")
 
 # setup_output_dirs 함수: 전체 디렉토리 구조 생성
 # argv: compilers - 사용할 컴파일러의 목록 
@@ -48,6 +58,10 @@ def setup_output_dirs(generators):
 # argv: generator - 어떤 생성기의 temp 폴더일지 판단하기 위함
 # return: None
 def cleanup_temp(generator):
-    for filename in os.listdir(TEMP_DIRS[generator]):
-        full_path = os.path.join(TEMP_DIRS[generator], filename)
-        os.remove(full_path)
+    try:
+        for filename in os.listdir(TEMP_DIRS[generator]):
+            full_path = os.path.join(TEMP_DIRS[generator], filename)
+            os.remove(full_path)
+            #print(f"Successfully deleted {full_path}.")
+    except (FileNotFoundError, PermissionError, OSError) as e:
+        print(f"An error occurred while deleting {full_path}: {e}")
