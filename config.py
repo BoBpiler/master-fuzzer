@@ -12,7 +12,7 @@ optimization_levels = ['0', '1', '2', '3']
 total_tasks = 10000  
 time_out = 30
 # csmith include 경로
-csmith_include = "/usr/local/include/csmith"
+csmith_include = "/usr/local/include/"
 
 # 디렉토리 설정 (상수로 경로 설정)
 BASE_DIR = 'output'
