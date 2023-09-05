@@ -1,12 +1,31 @@
 # Analyzer.py
 
-from config import RANDOM_CODES_DIR, CATCH_DIR
+from config import TEMP_DIRS, CATCH_DIRS, CATCH_SUB_DIRS
 import shutil
+import os
 
 # compare_results 함수: 실행 결과를 비교 로직에 따라서 분석하는 함수
-# argv: id - 소스코드 번호/ results - 바이너리 실행 결과들/ comparison_strategy - 비교 로직
-def compare_results(id, results, comparison_strategy):
+# argv: generator - 코드 생성기 종류/ id - 소스코드 번호/ results - 바이너리 실행 결과들/ comparison_strategy - 비교 로직
+def compare_results(generator, id, results, comparison_strategy):
     # 해당 결과들을 대상으로 비교
     if comparison_strategy(results, id):
-        print(f"Different results detected for source code ID: {id}")
-        shutil.copy(f"{RANDOM_CODES_DIR}/random_program_{id}.c", f"{CATCH_DIR}/random_program_{id}.c")
+        print(f"Different results detected for generator {generator}, source code ID: {id}")
+        if generator == 'csmith':
+            shutil.move(f"{TEMP_DIRS[generator]}/random_program_{id}.c", f"{CATCH_DIRS[generator]}/{CATCH_SUB_DIRS[0]}/random_program_{id}.c")
+        elif generator == 'yarpgen':
+            for filename in ['driver.c', 'func.c', 'init.h']:
+                source_path = os.path.join(TEMP_DIRS[generator], filename)
+                dest_path = os.path.join(CATCH_DIRS[generator], CATCH_SUB_DIRS[0], filename)
+                shutil.move(source_path, dest_path)     
+        
+        # 바이너리들 저장 
+        for key in results.keys():  
+            binary_filename = os.path.basename(key)  # Assuming key contains the binary path
+            shutil.move(
+                key,
+                os.path.join(CATCH_DIRS[generator], CATCH_SUB_DIRS[1], binary_filename)
+            )
+        # 결과 저장
+        with open(os.path.join(CATCH_DIRS[generator], CATCH_SUB_DIRS[2], f"{id}_result.txt"), 'w') as f:
+            for key, value in results.items():
+                f.write(f"{key}: {value}\n")
