@@ -23,7 +23,7 @@ def compile_and_run(filepath, generator, id, compiler, optimization_level, resul
             return
         
         #map 방식으로 해당 바이너리 이름과 실행 결과를 results에 저장
-        result = run_binary(binary_name)
+        result = run_binary(binary_name, compiler)
         
         # 큐에 결과를 저장
         result_queue.put((binary_name, result))
@@ -68,40 +68,45 @@ def compile(path, generator, id, compiler, optimization_level):
 
 
 # run_binary 함수: 바이너리를 실행하고, 실행 결과를 반환
-# argv: binary_name - 바이너리 파일 이름 및 경로
+# argv: binary_name - 바이너리 파일 이름 및 경로/ compiler - 크로스 컴파일 확인을 위함
 # return: result - 실행 결과(ex. checksum 값)
-def run_binary(binary_name):
+def run_binary(binary_name, compiler):
     #output_filename = f"results/{compiler}/{id}_{compiler}_O{optimization_level}.txt"
     try:
-        #logging.info(f"Starting run_binary for {binary_name}")
-        result = subprocess.run([f'./{binary_name}'], capture_output=True, timeout=time_out)
-        print(f"{binary_name} Result obtained: {result.stdout.decode('utf-8')}")
-        result = result.stdout.decode('utf-8')
+        #logging.info(f"Starting run_binary for {binary_name}") 
+        if compiler == 'aarch64-linux-gnu-gcc':
+            result = subprocess.run(['qemu-aarch64-static', '-L', '/usr/aarch64-linux-gnu', f'./{binary_name}'], capture_output=True, timeout=time_out)
+            print(f"{binary_name} Result obtained: {result.stdout.decode('utf-8')}")
+            result = result.stdout.decode('utf-8')
+        else:
+            result = subprocess.run([f'./{binary_name}'], capture_output=True, timeout=time_out)
+            print(f"{binary_name} Result obtained: {result.stdout.decode('utf-8')}")
+            result = result.stdout.decode('utf-8')
     except subprocess.TimeoutExpired:
         # TimeoutExpired: 프로세스가 지정된 시간 내에 완료되지 않았을 때 발생
         logging.warning(f"TimeoutExpired occurred in {binary_name}")
         result = "Timeout"
-    except subprocess.CalledProcessError:
+    except subprocess.CalledProcessError as e:
         # CalledProcessError: 명령어가 0이 아닌 상태 코드를 반환했을 때 발생
-        logging.error(f"CalledProcessError occurred in {binary_name}")
+        logging.error(f"CalledProcessError occurred in {binary_name}: {e}")
         result = "Error"
-    except FileNotFoundError:
+    except FileNotFoundError as e:
         # FileNotFoundError: 바이너리 파일을 찾을 수 없을 때 발생
-        logging.error(f"FileNotFoundError occurred for {binary_name}")
+        logging.error(f"FileNotFoundError occurred for {binary_name}: {e}")
         result = "File not found"
-    except PermissionError:
+    except PermissionError as e:
         # PermissionError: 바이너리 파일을 실행할 권한이 없을 때 발생
-        logging.error(f"PermissionError occurred for {binary_name}")
+        logging.error(f"PermissionError occurred for {binary_name}: {e}")
         result = "Permission denied"
-    except UnicodeDecodeError:
+    except UnicodeDecodeError as e:
         # UnicodeDecodeError: 출력을 UTF-8 텍스트로 디코딩할 수 없을 때 발생
-        logging.error(f"UnicodeDecodeError occurred for {binary_name}")
+        logging.error(f"UnicodeDecodeError occurred for {binary_name}: {e}")
         result = "Decode Error"
     except OSError as e:
         # OSError: 운영체제 수준에서 발생하는 일반적인 오류를 처리
         logging.error(f"OSError occurred for {binary_name}: {e}")
         result = "OS Error"
-    except subprocess.SubprocessError:
+    except subprocess.SubprocessError as e:
         # SubprocessError: subprocess 모듈에서 발생할 수 있는 모든 예외의 상위 클래스로
         # 이 핸들러는 TimeoutExpired나 CalledProcessError와 같은 구체적인 예외가 먼저 처리되지 않은 경우에
         # 다른 모든 subprocess 관련 예외를 처리하기 위해서 추가했습니다.

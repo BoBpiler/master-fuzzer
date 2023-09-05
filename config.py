@@ -5,7 +5,7 @@ import os
 # 코드 생성기 종류
 generators = ['csmith', 'yarpgen']
 # 컴파일러 종류
-compilers = ['gcc', 'clang']
+compilers = ['gcc', 'clang', 'aarch64-linux-gnu-gcc']
 # 최적화 옵션
 optimization_levels = ['0', '1', '2', '3']
 # 수행 횟수 및 타임아웃

@@ -44,7 +44,7 @@ def process_generator(generator):
                     results[key] = result
                 compare_results(generator, id, results, basic_comparison)
             else:
-                # 큐가 비어 있는 경우에 대한 처리 (예: 로깅)
+                # 큐가 비어 있는 경우에 대한 처리 - 모든 컴파일이 실패 되었음
                 logging.warning(f"All compilation failed for task {id} using {generator}")
             
             # Temp 폴더 청소
