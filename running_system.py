@@ -44,16 +44,16 @@ def compile(path, generator, id, compiler, optimization_level):
         binary_name = f"{TEMP_DIRS[generator]}/{id}_{compiler}_O{optimization_level}"
 
         if generator == 'yarpgen':
-            # yarpgen 경우, 디렉터리 내의 모든 .c 파일을 컴파일
+            # yarpgen 경우, 디렉터리 내의 모든 .c 파일을 컴파일 [compiler, *c_files, '-o', binary_name, f'-O{optimization_level}', f'-I{path}']
             c_files = [os.path.join(path, f) for f in ['driver.c', 'func.c']]
-            result = subprocess.run([compiler, *c_files, '-o', binary_name, f'-O{optimization_level}', f'-I{path}'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=time_out)
+            result = subprocess.run( f'{compiler} {c_files[0]} {c_files[1]} -o {binary_name} -O{optimization_level} -I{path}', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=time_out)
             # 컴파일 실패시 넘어가기 
             if result.returncode != 0:
                 logging.warning(f"Compilation failed for {path} with return code {result.returncode}")
                 return None
         elif generator == 'csmith':
-            # csmith의 경우
-            result = subprocess.run([compiler, path, '-o', binary_name, f'-O{optimization_level}', f'-I{csmith_include}'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=time_out)
+            # csmith의 경우 [compiler, path, '-o', binary_name, f'-O{optimization_level}', f'-I{csmith_include}']
+            result = subprocess.run( f'{compiler} {path} -o {binary_name} -O{optimization_level} -I{csmith_include}', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=time_out)
             # 컴파일 실패시 넘어가기 
             if result.returncode != 0:
                 logging.warning(f"Compilation failed for {path} with return code {result.returncode}")
@@ -73,13 +73,13 @@ def compile(path, generator, id, compiler, optimization_level):
 def run_binary(binary_name, compiler):
     #output_filename = f"results/{compiler}/{id}_{compiler}_O{optimization_level}.txt"
     try:
-        #logging.info(f"Starting run_binary for {binary_name}") 
+        #logging.info(f"Starting run_binary for {binary_name}")  ['qemu-aarch64-static', '-L', '/usr/aarch64-linux-gnu', f'./{binary_name}']
         if compiler == 'aarch64-linux-gnu-gcc':
-            result = subprocess.run(['qemu-aarch64-static', '-L', '/usr/aarch64-linux-gnu', f'./{binary_name}'], capture_output=True, timeout=time_out)
+            result = subprocess.run(f'qemu-aarch64-static -L /usr/aarch64-linux-gnu ./{binary_name}', shell=True, capture_output=True, timeout=time_out)
             print(f"{binary_name} Result obtained: {result.stdout.decode('utf-8')}")
             result = result.stdout.decode('utf-8')
         else:
-            result = subprocess.run([f'./{binary_name}'], capture_output=True, timeout=time_out)
+            result = subprocess.run(f'./{binary_name}', shell=True, capture_output=True, timeout=time_out)
             print(f"{binary_name} Result obtained: {result.stdout.decode('utf-8')}")
             result = result.stdout.decode('utf-8')
     except subprocess.TimeoutExpired:
