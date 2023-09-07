@@ -1,31 +1,31 @@
 # Analyzer.py
-# 함수: 파일을 컴파일하고 실행 결과를 저장하는 함수
 
+from config import TEMP_DIRS, CATCH_DIRS, CATCH_SUB_DIRS
+import shutil
 import os
-import subprocess
 
-def compile_and_run(filename, id, compiler, optimization_level):
-    # 출력 파일과 바이너리 파일의 이름을 설정
-    output_filename = f"results/{compiler}/{id}_{compiler}_O{optimization_level}.txt"
-    binary_name = f"temp/{compiler}/{id}_{compiler}_O{optimization_level}"
-
-    # csmith의 include 경로
-    csmith_include = f"{os.path.expanduser('~')}/csmith/include"
-    
-    # 컴파일 과정
-    subprocess.run([compiler, filename, '-o', binary_name, f'-O{optimization_level}', f'-I{csmith_include}'], stderr=subprocess.DEVNULL, timeout=60)
-
-    try:
-        # 실행 결과
-        result = subprocess.run([f'./{binary_name}'], capture_output=True, text=True, timeout=60).stdout
-    except subprocess.TimeoutExpired:
-        # 타임아웃이 발생한 경우
-        print(f"TimeoutExpired occurred in {binary_name}")
-        result = "Timeout"  # 이 값을 어떻게 할까
-
-    # 실행 결과를 파일에 저장
-    with open(output_filename, 'w') as f:
-        f.write(result)
-
-    return result
-
+# compare_results 함수: 실행 결과를 비교 로직에 따라서 분석하는 함수
+# argv: generator - 코드 생성기 종류/ id - 소스코드 번호/ results - 바이너리 실행 결과들/ comparison_strategy - 비교 로직
+def compare_results(generator, id, results, comparison_strategy):
+    # 해당 결과들을 대상으로 비교
+    if comparison_strategy(results, id):
+        print(f"Different results detected for generator {generator}, source code ID: {id}")
+        if generator == 'csmith':
+            shutil.move(f"{TEMP_DIRS[generator]}/random_program_{id}.c", f"{CATCH_DIRS[generator]}/{CATCH_SUB_DIRS[0]}/random_program_{id}.c")
+        elif generator == 'yarpgen':
+            for filename in ['driver.c', 'func.c', 'init.h']:
+                source_path = os.path.join(TEMP_DIRS[generator], filename)
+                dest_path = os.path.join(CATCH_DIRS[generator], CATCH_SUB_DIRS[0], filename)
+                shutil.move(source_path, dest_path)     
+        
+        # 바이너리들 저장 
+        for key in results.keys():  
+            binary_filename = os.path.basename(key)  # Assuming key contains the binary path
+            shutil.move(
+                key,
+                os.path.join(CATCH_DIRS[generator], CATCH_SUB_DIRS[1], binary_filename)
+            )
+        # 결과 저장
+        with open(os.path.join(CATCH_DIRS[generator], CATCH_SUB_DIRS[2], f"{id}_result.txt"), 'w') as f:
+            for key, value in results.items():
+                f.write(f"{key}: {value}\n")
