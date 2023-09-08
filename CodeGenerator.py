@@ -1,6 +1,6 @@
 # CodeGenerator.py
 
-from config import TEMP_DIRS, time_out
+from config import TEMP_DIRS, generator_time_out
 import os
 import subprocess
 import logging
@@ -17,13 +17,15 @@ def generate_c_code(id, generator):
             csmith_env["PATH"] = f"{csmith_env['PATH']}:{os.path.expanduser('~')}/csmith/bin"
             #csmith_include = f"{os.path.expanduser('~')}/csmith/include"
             # C 코드 생성 ['csmith', '-o', filepath]
-            subprocess.run(f'csmith -o {filepath}', shell=True, env=csmith_env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=time_out)
+            subprocess.run(f'csmith -o {filepath}', shell=True, env=csmith_env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=generator_time_out)
             return filepath
         elif generator == 'yarpgen':
             # c 코드 생성 ['yarpgen', '--std=c', '-o', TEMP_DIRS[generator]]
-            subprocess.run(f'yarpgen --std=c -o {TEMP_DIRS[generator]}', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=time_out)
+            subprocess.run(f'yarpgen --std=c -o {TEMP_DIRS[generator]}', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=generator_time_out)
             return TEMP_DIRS[generator]  
     except subprocess.TimeoutExpired:
         logging.warning(f"Code generation timed out for generator {generator} and task {id}")
+        return None
     except Exception as e:
         logging.error(f"An unexpected error occurred in generate_c_code for generator {generator} and task {id}: {e}")
+        return None
