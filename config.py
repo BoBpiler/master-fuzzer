@@ -40,10 +40,10 @@ def analyze_returncode(returncode, stderr_output, context):
     if returncode == 0:
         return "Success"
     
-    if returncode == -11 or returncode == 139:
+    if returncode == -11 or returncode == 139 or returncode == 11 or returncode == 7 or returncode == -7 or returncode == 135:
         return SEGFAULT
     
-    if returncode == -13 or returncode == 141:
+    if returncode == -13 or returncode == 141 or returncode == 13:
         return PERMISSION_ERROR
     
     if returncode == 137:
