@@ -78,11 +78,11 @@ def save_to_folder(generator, id, results, folder_name):
 
     if generator == 'yarpgen':
         for filename in ['driver.c', 'func.c', 'init.h']:  
-            source_path = os.path.join(TEMP_DIRS[generator], filename)  
+            source_path = os.path.join(TEMP_DIRS[generator], str(id), filename)  
             dest_path = os.path.join(id_folder_path, filename)
             shutil.move(source_path, dest_path)
     elif generator == 'csmith':
-        shutil.move(f"{TEMP_DIRS[generator]}/random_program_{id}.c", os.path.join(id_folder_path, f"random_program_{id}.c"))
+        shutil.move(f"{TEMP_DIRS[generator]}/{id}/random_program_{id}.c", os.path.join(id_folder_path, f"random_program_{id}.c"))
     
     # 바이너리들 catch/binary 폴더에 저장
     for key in results.keys():

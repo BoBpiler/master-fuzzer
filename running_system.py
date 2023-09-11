@@ -16,9 +16,9 @@ def compile_and_run(filepath, generator, id, compiler, optimization_level, resul
     # key는 바이너리 경로이자 이름으로 result_dict를 구분하는 요소로 사용합니다.
     # clang의 크로스 컴파일의 경우 옵션을 주어야 해서 해당 compiler 이름으로 경로 만들면 띄어쓰기 문제가 있어서 해당 if 문 추가 
     if compiler == 'clang --target=aarch64-linux-gnu':                
-        key = f"{TEMP_DIRS[generator]}/{id}_clang--target=aarch64-linux-gnu_O{optimization_level}"
+        key = f"{TEMP_DIRS[generator]}/{id}/clang--target=aarch64-linux-gnu_O{optimization_level}"
     else:
-        key = f"{TEMP_DIRS[generator]}/{id}_{compiler}_O{optimization_level}"
+        key = f"{TEMP_DIRS[generator]}/{id}/{compiler}_O{optimization_level}"
     
     result_dict = {
         'id': id,
@@ -133,12 +133,13 @@ def run_binary(binary_name, compiler):
     #output_filename = f"results/{compiler}/{id}_{compiler}_O{optimization_level}.txt"
     try:
         #logging.info(f"Starting run_binary for {binary_name}")  ['qemu-aarch64-static', '-L', '/usr/aarch64-linux-gnu', f'./{binary_name}']
+        binary_name_only = os.path.basename(binary_name)
         if compiler == 'aarch64-linux-gnu-gcc' or compiler == 'clang --target=aarch64-linux-gnu':
             result = subprocess.run(f'qemu-aarch64-static -L /usr/aarch64-linux-gnu ./{binary_name}', shell=True, capture_output=True, timeout=binary_time_out)
-            print(f"{binary_name} Result obtained: {result.stdout.decode('utf-8')}")
+            print(f"{binary_name_only} Result obtained: {result.stdout.decode('utf-8')}")
         else:
             result = subprocess.run(f'./{binary_name}', shell=True, capture_output=True, timeout=binary_time_out)
-            print(f"{binary_name} Result obtained: {result.stdout.decode('utf-8')}")
+            print(f"{binary_name_only} Result obtained: {result.stdout.decode('utf-8')}")
         
         # return code를 확인합니다.
         run_result['return_code'] = result.returncode

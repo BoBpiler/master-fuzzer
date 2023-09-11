@@ -2,6 +2,7 @@
 # 컴파일러, 생성기, 옵션을 설정할 수 있습니다.
 
 import os
+import shutil
 
 # 코드 생성기 종류
 generators = ['csmith', 'yarpgen']
@@ -134,7 +135,13 @@ def cleanup_temp(generator):
     try:
         for filename in os.listdir(TEMP_DIRS[generator]):
             full_path = os.path.join(TEMP_DIRS[generator], filename)
-            os.remove(full_path)
+            
+            # 파일이면 os.remove, 디렉토리면 shutil.rmtree 사용
+            if os.path.isfile(full_path):
+                os.remove(full_path)
+            elif os.path.isdir(full_path):
+                shutil.rmtree(full_path)
+
             #print(f"Successfully deleted {full_path}.")
     except (FileNotFoundError, PermissionError, OSError) as e:
         print(f"An error occurred while deleting {full_path}: {e}")

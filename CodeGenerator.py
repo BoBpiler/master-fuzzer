@@ -12,7 +12,13 @@ logging.basicConfig(level=logging.INFO)
 # return: filepath - 생성된 파일 이름 및 경로
 def generate_c_code(id, generator):
     try:
-        filepath = f'{TEMP_DIRS[generator]}/random_program_{id}.c'
+        dir_path = f'{TEMP_DIRS[generator]}/{id}'   
+        filepath = f'{dir_path}/random_program_{id}.c'
+        
+        # 폴더가 없으면 생성
+        if not os.path.exists(dir_path):
+            os.makedirs(dir_path)
+        
         csmith_env= os.environ.copy()
         if generator == 'csmith':
             csmith_env["PATH"] = f"{csmith_env['PATH']}:{os.path.expanduser('~')}/csmith/bin"
@@ -22,8 +28,10 @@ def generate_c_code(id, generator):
             return filepath
         elif generator == 'yarpgen':
             # c 코드 생성 ['yarpgen', '--std=c', '-o', TEMP_DIRS[generator]]
-            subprocess.run(f'yarpgen --std=c -o {TEMP_DIRS[generator]}', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=generator_time_out)
-            return TEMP_DIRS[generator]  
+            subprocess.run(f'yarpgen --std=c -o {dir_path}', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=generator_time_out)
+            return dir_path 
+        else:
+            return None 
     except subprocess.TimeoutExpired:
         logging.warning(f"Code generation timed out for generator {generator} and task {id}")
         return None
