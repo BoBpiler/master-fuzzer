@@ -94,7 +94,7 @@ def save_to_folder(generator, id, results, folder_name):
 
 
 
-# result_dict 딕셔너리를 가독성 좋게 txt 파일에 저장하는 함수 
+# result_dict 딕셔너리를 가독성 좋게 txt 파일에 저장하는 함수입니다.
 def save_results_to_file(id_folder_path, id, results):
     with open(os.path.join(id_folder_path, f"{id}_result.txt"), 'w') as f:
         for Binary_Path, result_dict in results.items():
