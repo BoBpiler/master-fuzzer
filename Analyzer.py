@@ -85,10 +85,10 @@ def detect_abnormal_compile(results):
     for key, result_dict in results.items():
         compile_status = result_dict['compile']['status']
         return_code = result_dict['compile']['return_code']
-        
-        normalized_return_code = normalize_returncode(return_code)
-        if not compile_status and normalized_return_code not in [0, 1, 9]:
-            return True  # abnormal case 비정상 케이스 ex. 컴파일 타임아웃, 크래시 등..
+        if return_code is not None:         # None인 경우도 고려
+            normalized_return_code = normalize_returncode(return_code)
+            if not compile_status and normalized_return_code not in [0, 1, 9]:
+                return True  # abnormal case 비정상 케이스 ex. 컴파일 타임아웃, 크래시 등..
     return False  # normal case 정상 케이스
 
 # detect_partial_timeout 함수: 바이너리 실행했을 때 부분적으로만 타임아웃이 발생하는 경우를 탐지하는 함수
@@ -107,7 +107,6 @@ def detect_partial_timeout(results):
             total_count += 1
             if run_status == False and run_error_type == TIMEOUT_ERROR:
                 timeout_count += 1
-    
     return timeout_count > 0 and timeout_count < total_count    # 타임아웃이 존재하고 실행된 바이너리 수보다 타임아웃이 작아야 합니다. 즉, 부분적으로만 타임아웃 발생
 
 
@@ -176,6 +175,6 @@ def save_results_to_file(id_folder_path, id, results):
     # JSON 파일에 저장하는 부분
     try:
         with open(os.path.join(id_folder_path, f"{id}_result.json"), 'w') as f:
-            json.dump(results, f, indent=4) 
+            json.dump(results, f, indent=4, default=str)    # uuid serialized 문제 -> default = str
     except Exception as e:
         print(f"An error occurred while writing the json file: {e}")
