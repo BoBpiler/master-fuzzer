@@ -17,6 +17,29 @@ binary_time_out = 30
 # csmith include 경로
 csmith_include = "/usr/local/include/"
 
+# csmith 옵션
+csmith_options = "--max-array-dim 3 \
+--max-array-len-per-dim 10 \
+--max-block-depth 2 \
+--max-block-size 4 \
+--max-expr-complexity 4 \
+--max-funcs 10 \
+--max-pointer-depth 2 \
+--max-struct-fields 4 \
+--max-union-fields 4 \
+--muls \
+--safe-math \
+--no-packed-struct \
+--paranoid \
+--pointers \
+--structs \
+--unions \
+--volatiles \
+--volatile-pointers \
+--const-pointers \
+--global-variables \
+--no-builtins"
+
 ##################################################################################################
 # 결과 저장을 위한 configuration
 # 일반적으로 프로세스가 성공적으로 종료하면 returncode는 0, 에러로 종료하면 양의 정수, 
