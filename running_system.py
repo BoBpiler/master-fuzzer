@@ -170,12 +170,16 @@ def run_binary(binary_name, compiler):
 # 예외처리 함수 
 def handle_exception(e, error_type, result, path):
     result['status'] = False
-    result['return_code'] = e.returncode
     result['error_message'] = str(e)
 
     context = 'execution' if 'result' in result else 'compilation'
-    if error_type == CALLED_PROCESS_ERROR:
-        error_type = analyze_returncode(e.returncode, context)
+    
+    if hasattr(e, 'returncode'):
+        result['return_code'] = e.returncode
+        if error_type == CALLED_PROCESS_ERROR:
+            error_type = analyze_returncode(e.returncode, context)
+    else:
+        result['return_code'] = None
     
     result['error_type'] = error_type
     logging.error(f"{error_type} occurred for {path}: {e}")
