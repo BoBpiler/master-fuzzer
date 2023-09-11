@@ -28,9 +28,11 @@ sudo apt install -y gcc clang
 sudo apt-get install -y gcc-aarch64-linux-gnu
 sudo apt-get install -y g++-aarch64-linux-gnu
 
+####################################################
 # 크로스 컴파일러 설치 (Clang)
 #sudo apt-get install -y clang-9-aarch64-linux-gnu
 #sudo apt-get install -y clang++-9-aarch64-linux-gnu
+####################################################
 
 # QEMU 설치
 sudo apt-get install -y qemu-user-static

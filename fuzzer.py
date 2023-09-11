@@ -1,4 +1,5 @@
 # fuzzer.py
+# main 입니다.
 
 from config import*
 from CodeGenerator import generate_c_code

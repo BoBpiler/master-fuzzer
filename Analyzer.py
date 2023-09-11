@@ -1,5 +1,5 @@
 # Analyzer.py
-
+# 테스트 케이스가 분석되면 적용해서 발전시켜보겠습니다.
 from config import*
 import shutil
 import os

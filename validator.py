@@ -1,5 +1,5 @@
 # validator.py
-# 사실상 사용하지 않습니다.
+# 사실상 지금은 사용하지 않습니다.
 from config import TEMP_DIRS, compile_time_out
 import os
 import subprocess
