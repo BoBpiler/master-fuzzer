@@ -1,6 +1,6 @@
 # validator.py
-# 사실상 지금은 사용하지 않습니다.
-from config import TEMP_DIRS, compile_time_out
+
+from config import TEMP_DIRS
 import os
 import subprocess
 import logging
@@ -23,11 +23,11 @@ def validate_code(filename, generator, id, compiler):
     
     if generator == 'csmith':
         # 컴파일 과정
-        result = subprocess.run([compiler, filename, '-o', binary_name, f'-I{csmith_include}'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=compile_time_out)
+        result = subprocess.run([compiler, filename, '-o', binary_name, f'-I{csmith_include}'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=30)
     elif generator == 'yarpgen':
         # yarpgen 경우, 디렉터리 내의 모든 .c 파일을 컴파일
         c_files = [os.path.join(filename, f) for f in ['driver.c', 'func.c']]
-        result = subprocess.run([compiler, *c_files, '-o', binary_name, f'-I{filename}'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=compile_time_out)
+        result = subprocess.run([compiler, *c_files, '-o', binary_name, f'-I{filename}'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=30)
 
     # 컴파일 결과 return
     if result.returncode != 0:
