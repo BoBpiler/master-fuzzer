@@ -14,10 +14,11 @@ def analyze_results(generator, id, results):
         if compare_execution_results(results):  # 실행 결과가 다른 경우
             print(f"Different results(checksum) detected for generator {generator}, source code ID: {id}")
             save_to_folder(generator, id, results, "checksum")
-        
-        elif detect_crashes(results):  # 크래시가 있는 경우
-            print(f"Crash detected for generator {generator}, source code ID: {id}")
-            save_to_folder(generator, id, results, "crash")
+        else:
+            crash_exists, crash_type = detect_crashes(results)  
+            if crash_exists:                                    # 크래시가 있는 경우
+                print(f"{crash_type} Crash detected for generator {generator}, source code ID: {id}")
+                save_to_folder(generator, id, results, f"{crash_type.lower()}_crash")
     except Exception as e:
         logging.error(f"An unexpected error occurred in analyze_results for generator {generator} and task {id}: {e}")
 
@@ -47,6 +48,7 @@ def compare_execution_results(results):
 # return: true - crash 존재함 저장해야 함/ false: crash 없음
 def detect_crashes(results):
     check_crash = False
+    crash_type = None
 
     for key, result_dict in results.items():
         compile_status = result_dict['compile']['status']
@@ -56,13 +58,15 @@ def detect_crashes(results):
 
         if compile_status == False and compile_error_type == SEGFAULT:
             check_crash = True
+            crash_type = "Compile"
             break 
 
         if run_status == False and run_error_type == SEGFAULT:
             check_crash = True
+            crash_type = "Binary"
             break
 
-    return check_crash
+    return (check_crash, crash_type)
 
 
 
