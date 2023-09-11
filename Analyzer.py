@@ -89,8 +89,41 @@ def save_to_folder(generator, id, results, folder_name):
         if os.path.exists(key):
             binary_filename = os.path.basename(key)  
             shutil.move(key, os.path.join(id_folder_path, binary_filename))
-    
-    with open(os.path.join(id_folder_path, f"{id}_result.txt"), 'w') as f:
-        for key, value in results.items():
-            f.write(f"{key}: {value}\n")
+    # 결과를 txt 파일에 저장 - 한 눈에 보기 좋습니다.
+    save_results_to_file(id_folder_path, id, results)
 
+
+
+# result_dict 딕셔너리를 가독성 좋게 txt 파일에 저장하는 함수 
+def save_results_to_file(id_folder_path, id, results):
+    with open(os.path.join(id_folder_path, f"{id}_result.txt"), 'w') as f:
+        for Binary_Path, result_dict in results.items():
+            f.write("########################################################################################\n")
+            f.write(f"Binary_Path: {Binary_Path}\n")
+
+            f.write(f"\nID: {result_dict['id']}")
+            f.write(f"\nCompiler: {result_dict['compiler']}")
+            f.write(f"\nOptimization Level: {result_dict['optimization_level']}")
+            f.write(f"\nCode Generator: {result_dict['generator']}")
+            
+            f.write("\n\nCompile:\n")
+            for key, value in result_dict['compile'].items():
+                if key == 'error_message' and value is not None:
+                    f.write("\tError Message:\n")
+                    f.write("\t-----\n")
+                    for line in value.split('\n'):
+                        f.write(f"\t\t{line}\n")
+                    f.write("\t-----\n")
+                else:
+                    f.write(f"\t{key.capitalize()}: {value}\n")
+                
+            f.write("\nRun:\n")
+            for key, value in result_dict['run'].items():
+                if key == 'error_message' and value is not None:
+                    f.write("\tError Message:\n")
+                    f.write("\t-----\n")
+                    for line in value.split('\n'):
+                        f.write(f"\t\t{line}\n")
+                    f.write("\t-----\n")
+                else:
+                    f.write(f"\t{key.capitalize()}: {value}\n")
