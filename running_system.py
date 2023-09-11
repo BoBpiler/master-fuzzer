@@ -87,7 +87,7 @@ def compile(binary_name, path, generator, id, compiler, optimization_level):
             if result.returncode != 0:
                 compile_result['status'] = False
                 compile_result['return_code'] = result.returncode
-                compile_result['error_type'] = analyze_returncode(result.returncode, result.stderr.decode('utf-8'), "compilation")
+                compile_result['error_type'] = analyze_returncode(result.returncode, "compilation")
                 compile_result['error_message'] = result.stderr.decode('utf-8')
                 logging.warning(f"Compilation failed for {path} with return code {result.returncode}")
                 return compile_result
@@ -98,25 +98,17 @@ def compile(binary_name, path, generator, id, compiler, optimization_level):
             if result.returncode != 0:
                 compile_result['status'] = False
                 compile_result['return_code'] = result.returncode
-                compile_result['error_type'] = analyze_returncode(result.returncode, result.stderr.decode('utf-8'), "compilation")
+                compile_result['error_type'] = analyze_returncode(result.returncode, "compilation")
                 compile_result['error_message'] = result.stderr.decode('utf-8')
                 logging.warning(f"Compilation failed for {path} with return code {result.returncode}")
                 return compile_result
         compile_result['status'] = True
         compile_result['return_code'] = result.returncode
         return compile_result
-    except subprocess.TimeoutExpired:
-        compile_result['status'] = False
-        compile_result['error_type'] = TIMEOUT_ERROR
-        compile_result['error_message'] = 'Compilation timed out'
-        logging.warning(f"Compilation timed out for {path}")
-        return compile_result
+    except subprocess.TimeoutExpired as e:
+        return handle_exception(e, TIMEOUT_ERROR, compile_result, binary_name)
     except subprocess.SubprocessError as e:
-        compile_result['status'] = False
-        compile_result['error_type'] = UNKNOWN_SUBPROCESS_ERROR
-        compile_result['error_message'] = str(e)
-        logging.error(f"Unexpected error in subprocess compile for {path}: {e}")
-        return compile_result
+        return handle_exception(e, UNKNOWN_SUBPROCESS_ERROR, compile_result, binary_name)
 
 
 # run_binary 함수: 바이너리를 실행하고, 실행 결과를 반환
@@ -145,62 +137,46 @@ def run_binary(binary_name, compiler):
         run_result['return_code'] = result.returncode
         if result.returncode != 0:
             run_result['status'] = False
-            run_result['error_type'] = analyze_returncode(result.returncode, result.stdout.decode('utf-8'), "execution")
+            run_result['error_type'] = analyze_returncode(result.returncode, "execution")
             run_result['error_message'] = result.stderr.decode('utf-8')
         else:
             run_result['status'] = True
             run_result['result'] = result.stdout.decode('utf-8')
         return run_result
-    except subprocess.TimeoutExpired:
+    except subprocess.TimeoutExpired as e:
         # TimeoutExpired: 프로세스가 지정된 시간 내에 완료되지 않았을 때 발생
-        run_result['status'] = False
-        run_result['error_type'] = TIMEOUT_ERROR
-        run_result['error_message'] = "TimeoutExpired occurred in {binary_name}"
-        logging.warning(f"TimeoutExpired occurred in {binary_name}")
-        return run_result
-    #except subprocess.CalledProcessError as e:
+        return handle_exception(e, TIMEOUT_ERROR, run_result, binary_name)
+    except subprocess.CalledProcessError as e:
         # CalledProcessError: 명령어가 0이 아닌 상태 코드를 반환했을 때 발생 이 부분은 앞의 returncode랑 동일하지 않을까 싶습니다.
-        run_result['status'] = False
-        run_result['error_type'] = CALLED_PROCESS_ERROR
-        run_result['return_code'] = e.returncode
-        run_result['error_message'] = e.stderr.decode('utf-8')
-        logging.error(f"CalledProcessError occurred in {binary_name}: {e}")
-        return run_result
+        return handle_exception(e, CALLED_PROCESS_ERROR, run_result, binary_name)
     except FileNotFoundError as e:
         # FileNotFoundError: 바이너리 파일을 찾을 수 없을 때 발생
-        run_result['status'] = False
-        run_result['error_type'] = FILE_NOT_FOUND_ERROR
-        run_result['error_message'] = str(e)
-        logging.error(f"FileNotFoundError occurred for {binary_name}: {e}")
-        return run_result
+        return handle_exception(e, FILE_NOT_FOUND_ERROR, run_result, binary_name)
     except PermissionError as e:
         # PermissionError: 바이너리 파일을 실행할 권한이 없을 때 발생
-        run_result['status'] = False
-        run_result['error_type'] = PERMISSION_ERROR
-        run_result['error_message'] = str(e)
-        logging.error(f"PermissionError occurred for {binary_name}: {e}")
-        return run_result
+        return handle_exception(e, PERMISSION_ERROR, run_result, binary_name)
     except UnicodeDecodeError as e:
         # UnicodeDecodeError: 출력을 UTF-8 텍스트로 디코딩할 수 없을 때 발생
-        run_result['status'] = False
-        run_result['error_type'] = UNICODE_DECODE_ERROR
-        run_result['error_message'] = str(e)
-        logging.error(f"UnicodeDecodeError occurred for {binary_name}: {e}")
-        return run_result
+        return handle_exception(e, UNICODE_DECODE_ERROR, run_result, binary_name)
     except OSError as e:
         # OSError: 운영체제 수준에서 발생하는 일반적인 오류를 처리
-        run_result['status'] = False
-        run_result['error_type'] = OS_ERROR
-        run_result['error_message'] = str(e)
-        logging.error(f"OSError occurred for {binary_name}: {e}")
-        return run_result
+        return handle_exception(e, OS_ERROR, run_result, binary_name)
     except subprocess.SubprocessError as e:
         # SubprocessError: subprocess 모듈에서 발생할 수 있는 모든 예외의 상위 클래스로
         # 이 핸들러는 TimeoutExpired나 CalledProcessError와 같은 구체적인 예외가 먼저 처리되지 않은 경우에
         # 다른 모든 subprocess 관련 예외를 처리하기 위해서 추가했습니다.
-        run_result['status'] = False
-        run_result['error_type'] = UNKNOWN_SUBPROCESS_ERROR
-        run_result['error_message'] = str(e)
-        logging.error(f"Unknown subprocess error occurred for {binary_name}: {e}")
-        return run_result
+        return handle_exception(e, UNKNOWN_SUBPROCESS_ERROR, run_result, binary_name)
     
+# 예외처리 함수 
+def handle_exception(e, error_type, result, path):
+    result['status'] = False
+    result['return_code'] = e.returncode
+    result['error_message'] = str(e)
+
+    context = 'execution' if 'result' in result else 'compilation'
+    if error_type == CALLED_PROCESS_ERROR:
+        error_type = analyze_returncode(e.returncode, context)
+    
+    result['error_type'] = error_type
+    logging.error(f"{error_type} occurred for {path}: {e}")
+    return result

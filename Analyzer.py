@@ -3,6 +3,7 @@
 from config import*
 import shutil
 import os
+import json
 import logging
 logging.basicConfig(level=logging.INFO)
 
@@ -19,6 +20,14 @@ def analyze_results(generator, id, results):
             if crash_exists:                                    # 크래시가 있는 경우
                 print(f"{crash_type} Crash detected for generator {generator}, source code ID: {id}")
                 save_to_folder(generator, id, results, f"{crash_type.lower()}_crash")
+                
+            elif detect_partial_timeout(results):               # 부분적으로 타임아웃이 있는 경우 (어떻게 보면 결과가 다르다고 볼 수 있습니다.)
+                print(f"Binary Execution Partial timeout detected for generator {generator}, source code ID: {id}")
+                save_to_folder(generator, id, results, "partial_timeout")
+            
+            elif detect_abnormal_compile(results):              # 비정상적으로 컴파일이 수행되는 경우 (컴파일 타임아웃, 크래시 등...)
+                print(f"Abnormal compile detected for generator {generator}, source code ID: {id}")
+                save_to_folder(generator, id, results, "abnormal_compile")
     except Exception as e:
         logging.error(f"An unexpected error occurred in analyze_results for generator {generator} and task {id}: {e}")
 
@@ -56,12 +65,12 @@ def detect_crashes(results):
         run_status = result_dict['run']['status']
         run_error_type = result_dict['run']['error_type']
 
-        if compile_status == False and compile_error_type == SEGFAULT:
+        if compile_status == False and compile_error_type == CRASH:
             check_crash = True
             crash_type = "Compile"
             break 
 
-        if run_status == False and run_error_type == SEGFAULT:
+        if run_status == False and run_error_type == CRASH:
             check_crash = True
             crash_type = "Binary"
             break
@@ -69,8 +78,41 @@ def detect_crashes(results):
     return (check_crash, crash_type)
 
 
+# detect_abnormal_compile 함수: 컴파일 과정에서 발생하는 에러를 탐지하는 함수 (프로세스 kill과 일반적인 컴파일 에러는 제외했습니다.)
+# argv: results - 모든 결과가 담겨 있는 리스트
+# return: true - 비정상 케이스가 존재함 저장해야 함/ false: 비정상 케이스 없음
+def detect_abnormal_compile(results):
+    for key, result_dict in results.items():
+        compile_status = result_dict['compile']['status']
+        return_code = result_dict['compile']['return_code']
+        
+        normalized_return_code = normalize_returncode(return_code)
+        if not compile_status and normalized_return_code not in [0, 1, 9]:
+            return True  # abnormal case 비정상 케이스 ex. 컴파일 타임아웃, 크래시 등..
+    return False  # normal case 정상 케이스
 
-# 체크섬이나 크래시 폴더에 파일을 저장하는 함수
+# detect_partial_timeout 함수: 바이너리 실행했을 때 부분적으로만 타임아웃이 발생하는 경우를 탐지하는 함수
+# argv: results - 모든 결과가 담겨 있는 리스트
+# return: true - 부분적으로만 타임아웃이 발생함 저장해야 함/ false: 부분적으로만 타임아웃 발생하지 않음 저장 안해도 됨
+def detect_partial_timeout(results):
+    timeout_count = 0
+    total_count = 0
+
+    for key, result_dict in results.items():
+        compile_status = result_dict['compile']['status']
+        run_status = result_dict['run']['status']
+        run_error_type = result_dict['run']['error_type']
+
+        if compile_status:  # 컴파일이 성공한 경우만 카운트
+            total_count += 1
+            if run_status == False and run_error_type == TIMEOUT_ERROR:
+                timeout_count += 1
+    
+    return timeout_count > 0 and timeout_count < total_count    # 타임아웃이 존재하고 실행된 바이너리 수보다 타임아웃이 작아야 합니다. 즉, 부분적으로만 타임아웃 발생
+
+
+
+# Analyzer 로직에 따라서 탐지된 파일을 저장하는 함수
 def save_to_folder(generator, id, results, folder_name):
     id_folder_path = os.path.join(f"{CATCH_DIRS[generator]}", folder_name, str(id))
     if not os.path.exists(id_folder_path):
@@ -96,6 +138,7 @@ def save_to_folder(generator, id, results, folder_name):
 
 # result_dict 딕셔너리를 가독성 좋게 txt 파일에 저장하는 함수입니다.
 def save_results_to_file(id_folder_path, id, results):
+    # txt 파일에 저장하는 부분
     with open(os.path.join(id_folder_path, f"{id}_result.txt"), 'w') as f:
         for Binary_Path, result_dict in results.items():
             f.write("########################################################################################\n")
@@ -127,3 +170,6 @@ def save_results_to_file(id_folder_path, id, results):
                     f.write("\t-----\n")
                 else:
                     f.write(f"\t{key.capitalize()}: {value}\n")
+    # JSON 파일에 저장하는 부분
+    with open(os.path.join(id_folder_path, f"{id}_result.json"), 'w') as f:
+        json.dump(results, f, indent=4)

@@ -47,10 +47,11 @@ csmith_options = "--max-array-dim 3 \
 # 시그널에 의해 종료되면 해당 시그널 번호의 음의 정수를 출력한다고 합니다.
 
 # Error Type
+CRASH = "Crash"
+COMPILE_ERROR = "CompileError"
 SEGFAULT = "Segmentation Fault"
 SYNTAX_ERROR = "Syntax Error"
 LINKER_ERROR = "Linker Error"
-#PERMISSION_DENIED = "Permission Denied"
 UNKNOWN_ERROR = "Unknown Error"
 TIMEOUT_ERROR = 'Timeout'
 CALLED_PROCESS_ERROR = 'CalledProcessError'
@@ -60,32 +61,45 @@ UNICODE_DECODE_ERROR = 'UnicodeDecodeError'
 OS_ERROR = 'OSError'
 UNKNOWN_SUBPROCESS_ERROR = 'UnknownSubprocessError'
 PROCESS_KILLED = "ProcessKilled"
+
+
+# 정의한 크래시 시그널들
+CRASH_SIGNALS = {4, 6, 7, 8, 11}  # SIGILL, SIGABRT, SIGBUS, SIGFPE, SIGSEGV
+
+# returncode를 정규화하는 함수
+def normalize_returncode(returncode):
+    if returncode < 0:
+        return -returncode
+    elif returncode >= 128:
+        return returncode - 128
+    else:
+        return returncode
+    
 # return code 분석 함수
 def analyze_returncode(returncode, stderr_output, context):
-    if returncode == 0:
+    # 신호값이 음수로 들어오거나 128이 더해진 경우를 처리
+    code = normalize_returncode(returncode)
+    
+    if code == 0:
         return "Success"
-    
-    if returncode == -11 or returncode == 139 or returncode == 11 or returncode == 7 or returncode == -7 or returncode == 135:
-        return SEGFAULT
-    
-    if returncode == -13 or returncode == 141 or returncode == 13:
-        return PERMISSION_ERROR
-    
-    if returncode == 137:
-        return PROCESS_KILLED
 
-    if context == "compilation":
-        if returncode == 1:  
-            if "syntax error" in stderr_output.lower():
-                return SYNTAX_ERROR
-            elif "undefined reference" in stderr_output.lower():
-                return LINKER_ERROR
-    # 추가해야 함...
-    if context == "execution":
-        if returncode == 124:  
-            return TIMEOUT_ERROR
+    if code in CRASH_SIGNALS:
+        return CRASH
+
+    if code == 13:
+        return PERMISSION_ERROR
+
+    if code == 9:  # SIGKILL
+        return PROCESS_KILLED
     
+    if code == 124:
+        return TIMEOUT_ERROR
+    
+    if context == "compilation":
+        if code == 1:
+            return COMPILE_ERROR
     return UNKNOWN_ERROR
+
 
 ##################################################################################################
 # 디렉토리 설정 (상수로 경로 설정)
@@ -135,7 +149,7 @@ def cleanup_temp(generator):
     try:
         for filename in os.listdir(TEMP_DIRS[generator]):
             full_path = os.path.join(TEMP_DIRS[generator], filename)
-            
+
             # 파일이면 os.remove, 디렉토리면 shutil.rmtree 사용
             if os.path.isfile(full_path):
                 os.remove(full_path)
