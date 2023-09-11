@@ -162,7 +162,7 @@ def run_binary(binary_name, compiler):
         run_result['status'] = False
         run_result['error_type'] = CALLED_PROCESS_ERROR
         run_result['return_code'] = e.returncode
-        run_result['result'] = e.stderr.decode('utf-8')
+        run_result['error_message'] = e.stderr.decode('utf-8')
         logging.error(f"CalledProcessError occurred in {binary_name}: {e}")
         return run_result
     except FileNotFoundError as e:
