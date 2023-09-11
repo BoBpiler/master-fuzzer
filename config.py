@@ -76,7 +76,7 @@ def normalize_returncode(returncode):
         return returncode
     
 # return code 분석 함수
-def analyze_returncode(returncode, stderr_output, context):
+def analyze_returncode(returncode, context):
     # 신호값이 음수로 들어오거나 128이 더해진 경우를 처리
     code = normalize_returncode(returncode)
     
