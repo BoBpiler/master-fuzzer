@@ -21,13 +21,13 @@ csmith_include = "/usr/local/include/"
 # csmith 옵션
 csmith_options = "--max-array-dim 3 \
 --max-array-len-per-dim 10 \
---max-block-depth 2 \
---max-block-size 4 \
---max-expr-complexity 4 \
---max-funcs 10 \
---max-pointer-depth 2 \
---max-struct-fields 4 \
---max-union-fields 4 \
+--max-block-depth 3 \
+--max-block-size 5 \
+--max-expr-complexity 10 \
+--max-funcs 3 \
+--max-pointer-depth 3 \
+--max-struct-fields 10 \
+--max-union-fields 10 \
 --muls \
 --safe-math \
 --no-packed-struct \
@@ -39,7 +39,9 @@ csmith_options = "--max-array-dim 3 \
 --volatile-pointers \
 --const-pointers \
 --global-variables \
---no-builtins"
+--no-builtins \
+--inline-function \
+--inline-function-prob 50"
 
 ##################################################################################################
 # 결과 저장을 위한 configuration
