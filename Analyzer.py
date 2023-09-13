@@ -28,6 +28,9 @@ def analyze_results(generator, id, results):
             elif detect_abnormal_compile(results):              # 비정상적으로 컴파일이 수행되는 경우 (컴파일 타임아웃, 크래시 등...)
                 print(f"Abnormal compile detected for generator {generator}, source code ID: {id}")
                 save_to_folder(generator, id, results, "abnormal_compile")
+            elif detect_abnormal_binary(results):  # 바이너리 returncode가 0이 아닌 경우가 하나라도 있는 경우 
+                print(f"Abnormal binary detected for generator {generator}, source code ID: {id}")
+                save_to_folder(generator, id, results, "abnormal_binary")
     except Exception as e:
         logging.error(f"An unexpected error occurred in analyze_results for generator {generator} and task {id}: {e}")
 
@@ -90,6 +93,29 @@ def detect_abnormal_compile(results):
             if not compile_status and normalized_return_code not in [0, 1, 9]:
                 return True  # abnormal case 비정상 케이스 ex. 컴파일 타임아웃, 크래시 등..
     return False  # normal case 정상 케이스
+
+
+# detect_abnormal_binary 함수: 바이너리 실행이 실패했으나 returncode가 0이 아닌 경우를 탐지하는 함수
+# argv: results - 모든 결과가 담겨 있는 리스트
+# return: true - 조건에 맞는 경우가 하나라도 있음 저장해야 함 / false: 조건에 맞는 경우가 없음 저장 안해도 됨
+def detect_abnormal_binary(results):
+    abnormal_count = 0
+    total_count = 0
+
+    for key, result_dict in results.items():
+        compile_status = result_dict['compile']['status']
+        run_status = result_dict['run']['status']
+        run_return_code = result_dict['run']['return_code']
+
+        if compile_status:  # 컴파일이 성공한 경우만 카운트
+            total_count += 1
+            if run_status == False:
+                if run_return_code != 0 or run_return_code is None:  # None도 고려 (time out)
+                    abnormal_count += 1
+
+    return abnormal_count > 0 and abnormal_count < total_count  # abnormal_count가 0보다 크고, 나머지 바이너리 수보다 작아야 합니다.
+
+
 
 # detect_partial_timeout 함수: 바이너리 실행했을 때 부분적으로만 타임아웃이 발생하는 경우를 탐지하는 함수
 # argv: results - 모든 결과가 담겨 있는 리스트
