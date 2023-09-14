@@ -3,6 +3,8 @@ output
 csmith
 yarpgen
 gcc
+gcc-trunk
 llvm-project
+clang-18
 BoBpiler
 BoBpiler.pub
