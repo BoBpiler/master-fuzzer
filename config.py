@@ -3,6 +3,11 @@
 
 import os
 import shutil
+import platform
+import hashlib
+import socket
+import subprocess
+import sys
 
 # 코드 생성기 종류
 generators = ['csmith', 'yarpgen']
@@ -161,3 +166,52 @@ def cleanup_temp(generator):
             #print(f"Successfully deleted {full_path}.")
     except (FileNotFoundError, PermissionError, OSError) as e:
         print(f"An error occurred while deleting {full_path}: {e}")
+
+
+# get_machine_info 함수: 해당 머신의 정보를 가져오는 함수
+# argv: None
+# return: info_dict - OS, hostname, IP, whoami, ssh pub key hash 값을 담고 있음
+def get_machine_info():
+    info_dict = {}
+    
+    # os, hostname 저장
+    try:
+        info_dict['os'] = platform.system()
+        info_dict['hostname'] = socket.gethostname()
+    except Exception as e:
+        print(f"Error getting OS or hostname: {e}")
+        sys.exit(1)
+    
+    # IP 주소 저장
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(('8.8.8.8', 80))
+        info_dict['ip'] = s.getsockname()[0]
+        s.close()
+    except Exception as e:
+        print(f"Error getting IP address: {e}")
+        sys.exit(1)  # IP 주소를 가져오는 데 실패하면 프로그램을 종료합니다.
+
+    if platform.system() == 'Linux':
+        # Linux
+        try:
+            info_dict['whoami'] = subprocess.getoutput("whoami")
+            with open("BoBpiler.pub", "r") as f:
+                ssh_key = f.read().strip()
+            info_dict['ssh_pub_key_hash'] = hashlib.sha256(ssh_key.encode()).hexdigest()    # 해싱
+
+        except Exception as e:
+            print(f"Error in Linux: {e}")
+
+    elif platform.system() == 'Windows':
+        # Windows
+        try:
+            info_dict['whoami'] = subprocess.getoutput("whoami")
+            # ssh pub key 위치는 ../ 라고 가정
+            with open("../BoBpiler.pub", "r") as f:
+                ssh_key = f.read().strip()
+            info_dict['ssh_pub_key_hash'] = hashlib.sha256(ssh_key.encode()).hexdigest()    # 해싱
+        except Exception as e:
+            print(f"Error in Windows: {e}")
+
+    return info_dict
