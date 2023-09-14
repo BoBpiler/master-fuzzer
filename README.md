@@ -51,30 +51,30 @@ python3 fuzzer.py
 
 ```plaintext
 .
-├── yarpgen
-│   ├── temp
+├── **yarpgen**
+│   ├── **temp**  (작업 중인 데이터 저장)
 │   │   └── {UUID}
 │   │       ├── init.h
 │   │       ├── func.c
 │   │       └── driver.c
-│   └── catch
+│   └── **catch**  (버그를 포착한 데이터 저장)
 │       ├── partial_timeout
 │       │   └── {UUID}
-│       │       ├── ... (여러 버전의 컴파일 결과)
+│       │       ├── ... (GCC, Clang 등 다양한 컴파일러 결과)
 │       │       ├── {UUID}_result.txt
 │       │       └── {UUID}_result.json
 │       └── abnormal_compile
 │           └── {UUID}
-│               ├── ... (여러 버전의 컴파일 결과)
+│               ├── ... (GCC, Clang 등 다양한 컴파일러 결과)
 │               ├── {UUID}_result.txt
 │               └── {UUID}_result.json
-└── csmith
-    ├── temp
+└── **csmith**
+    ├── **temp**  (작업 중인 데이터 저장)
     │   └── {UUID}
     │       └── random_program_{UUID}.c
-    └── catch
+    └── **catch**  (버그를 포착한 데이터 저장)
         └── {UUID}
-            ├── ... (여러 버전의 컴파일 결과)
+            ├── ... (GCC, Clang 등 다양한 컴파일러 결과)
             ├── {UUID}_result.txt
             └── {UUID}_result.json
 ```
