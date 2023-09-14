@@ -12,13 +12,13 @@ logging.basicConfig(level=logging.INFO)
 # compile_and_run 함수: compile 함수와  run_binary 함수를 통해서 특정 컴파일러와 옵션으로 컴파일 후에 실행 결과를 저장
 # argv: filepath - 소스 코드 경로/ id - 소스코드 번호/ compiler - 컴파일러/ optimization_level - 최적화 옵션/ results - 실행 결과 저장할 딕셔너리(map)
 # return: 사실상 results_queue에 저장됩니다.
-def compile_and_run(filepath, generator, id, compiler, optimization_level, result_queue):
+def compile_and_run(filepath, generator, id, compiler_info, optimization_level, result_queue):
     # key는 바이너리 경로이자 이름으로 result_dict를 구분하는 요소로 사용합니다.
-    # clang의 크로스 컴파일의 경우 옵션을 주어야 해서 해당 compiler 이름으로 경로 만들면 띄어쓰기 문제가 있어서 해당 if 문 추가 
-    if compiler == 'clang --target=aarch64-linux-gnu':                
-        key = f"{TEMP_DIRS[generator]}/{id}/clang--target=aarch64-linux-gnu_O{optimization_level}"
-    else:
-        key = f"{TEMP_DIRS[generator]}/{id}/{compiler}_O{optimization_level}"
+    compiler = compiler_info['name']
+    compiler_type = compiler_info['type']
+    folder_name = compiler_info['folder_name']
+    
+    key = f"{TEMP_DIRS[generator]}/{id}/{folder_name}_O{optimization_level}"
     
     result_dict = {
         'id': id,
@@ -53,7 +53,7 @@ def compile_and_run(filepath, generator, id, compiler, optimization_level, resul
         result_dict['compile'] = compile_result
         
         #map 방식으로 해당 바이너리 이름과 실행 결과를 result_queue에 저장
-        run_result = run_binary(key, compiler)
+        run_result = run_binary(key, compiler_info)
         result_dict['run'] = run_result
 
         # 큐에 결과를 저장
@@ -114,7 +114,7 @@ def compile(binary_name, path, generator, id, compiler, optimization_level):
 # run_binary 함수: 바이너리를 실행하고, 실행 결과를 반환
 # argv: binary_name - 바이너리 파일 이름 및 경로/ compiler - 크로스 컴파일 확인을 위함
 # return: run_result - 바이너리 실행 결과를 담은 딕셔너리 반환
-def run_binary(binary_name, compiler):
+def run_binary(binary_name, compiler_info):
     run_result = {
         'status': None,
         'return_code': None,
@@ -122,11 +122,13 @@ def run_binary(binary_name, compiler):
         'error_message': None,
         'result': None
     }
+    
+    compiler_type = compiler_info['type']
     #output_filename = f"results/{compiler}/{id}_{compiler}_O{optimization_level}.txt"
     try:
         #logging.info(f"Starting run_binary for {binary_name}")  ['qemu-aarch64-static', '-L', '/usr/aarch64-linux-gnu', f'./{binary_name}']
         binary_name_only = os.path.basename(binary_name)
-        if compiler == 'aarch64-linux-gnu-gcc' or compiler == 'clang --target=aarch64-linux-gnu':
+        if compiler_type == 'cross':
             result = subprocess.run(f'qemu-aarch64-static -L /usr/aarch64-linux-gnu ./{binary_name}', shell=True, capture_output=True, timeout=binary_time_out)
             print(f"{binary_name_only} Result obtained: {result.stdout.decode('utf-8')}")
         else:

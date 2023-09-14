@@ -9,6 +9,7 @@ import socket
 import subprocess
 import sys
 import requests
+from datetime import datetime
 
 # 텔레그램 Chat ID 와 Token 값으로 직접 넣어주어야 합니다!
 CHAT_ID = ""
@@ -44,7 +45,12 @@ Bug Info:
 # 코드 생성기 종류
 generators = ['csmith', 'yarpgen']
 # 컴파일러 종류
-compilers = ['gcc', 'clang', 'aarch64-linux-gnu-gcc', 'clang --target=aarch64-linux-gnu']
+compilers = [
+    {'name': './gcc-trunk', 'type': 'base', 'folder_name': 'gcc'},
+    {'name': './clang-18', 'type': 'base', 'folder_name': 'clang'},
+    {'name': 'aarch64-linux-gnu-gcc', 'type': 'cross', 'folder_name': 'gcc-aarch64'},
+    {'name': './clang-18 --target=aarch64-linux-gnu', 'type': 'cross', 'folder_name': 'clang-aarch64'}
+]
 # 최적화 옵션
 optimization_levels = ['0', '1', '2', '3']
 # 수행 횟수 및 타임아웃
@@ -142,7 +148,7 @@ def analyze_returncode(returncode, context):
 
 ##################################################################################################
 # 디렉토리 설정 (상수로 경로 설정)
-BASE_DIR = 'output'
+BASE_DIR = f'output_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}'
 GENERATOR_DIRS = {gen: os.path.join(BASE_DIR, gen) for gen in generators}
 CATCH_DIRS = {gen: os.path.join(GENERATOR_DIRS[gen], 'catch') for gen in generators}
 TEMP_DIRS = {gen: os.path.join(GENERATOR_DIRS[gen], 'temp') for gen in generators}
