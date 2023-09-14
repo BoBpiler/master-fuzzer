@@ -15,6 +15,7 @@ logging.basicConfig(level=logging.WARNING)
 # argv: generator - 생성기 종류 (현재 csmith와 yarpgen)
 # return: None 
 def process_generator(generator):
+    machine_info = get_machine_info()
     completed_tasks = 0
     skipped_tasks = 0
     result_queue = Queue()  # 스레드 안전한 큐 생성
@@ -48,7 +49,7 @@ def process_generator(generator):
                 while not result_queue.empty():
                     key, result = result_queue.get()
                     results[key] = result
-                analyze_results(generator, id, results)
+                analyze_results(generator, id, results, machine_info)
             else:
                 # 큐가 비어 있는 경우에 심각한 오류임
                 skipped_tasks += 1

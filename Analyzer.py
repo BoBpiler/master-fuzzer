@@ -9,16 +9,20 @@ logging.basicConfig(level=logging.INFO)
 
 # compare_results 함수: 실행 결과를 비교 로직에 따라서 분석하는 함수
 # argv: generator - 코드 생성기 종류/ id - 소스코드 번호/ results - 바이너리 실행 결과들/ comparison_strategy - 비교 로직
-def analyze_results(generator, id, results):
+def analyze_results(generator, id, results, machine_info):
     # 해당 결과들을 대상으로 비교
     try:
         if compare_execution_results(results):  # 실행 결과가 다른 경우
-            print(f"Different results(checksum) detected for generator {generator}, source code ID: {id}")
+            msg = f"Different results(checksum) detected for generator {generator}, source code ID: {id}"
+            print(msg)
+            send_telegram_message(machine_info, generator, id, "Different Checksum", msg)
             save_to_folder(generator, id, results, "checksum")
         else:
             crash_exists, crash_type = detect_crashes(results)  
             if crash_exists:                                    # 크래시가 있는 경우
-                print(f"{crash_type} Crash detected for generator {generator}, source code ID: {id}")
+                msg = f"{crash_type} Crash detected for generator {generator}, source code ID: {id}"
+                print(msg)
+                send_telegram_message(machine_info, generator, id, f"{crash_type} Crash", msg)
                 save_to_folder(generator, id, results, f"{crash_type.lower()}_crash")
                 
             elif detect_partial_timeout(results):               # 부분적으로 타임아웃이 있는 경우 (어떻게 보면 결과가 다르다고 볼 수 있습니다.)
@@ -26,11 +30,17 @@ def analyze_results(generator, id, results):
                 save_to_folder(generator, id, results, "partial_timeout")
             
             elif detect_abnormal_compile(results):              # 비정상적으로 컴파일이 수행되는 경우 (컴파일 타임아웃, 크래시 등...)
-                print(f"Abnormal compile detected for generator {generator}, source code ID: {id}")
+                msg = f"Abnormal compile detected for generator {generator}, source code ID: {id}"
+                print(msg)
+                send_telegram_message(machine_info, generator, id, "Abnormal Compile", msg)
                 save_to_folder(generator, id, results, "abnormal_compile")
+            
             elif detect_abnormal_binary(results):  # 바이너리 returncode가 0이 아닌 경우가 하나라도 있는 경우 
-                print(f"Abnormal binary detected for generator {generator}, source code ID: {id}")
+                msg = f"Abnormal binary detected for generator {generator}, source code ID: {id}"
+                print(msg)
+                send_telegram_message(machine_info, generator, id, "Abnormal Binary", msg)
                 save_to_folder(generator, id, results, "abnormal_binary")
+    
     except Exception as e:
         logging.error(f"An unexpected error occurred in analyze_results for generator {generator} and task {id}: {e}")
 

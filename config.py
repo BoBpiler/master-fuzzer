@@ -8,6 +8,38 @@ import hashlib
 import socket
 import subprocess
 import sys
+import requests
+
+# 텔레그램 Chat ID 와 Token 값으로 직접 넣어주어야 합니다!
+CHAT_ID = ""
+TOKEN = ""
+
+# send_telegram_message 함수: 버그를 탐지하고 텔레그램 봇에게 알림을 보내는 함수
+# argv: machine_info - 머신 정보를 담은 딕셔너리/ generator - 생성기 종류/ id - 소스코드 uuid/ bug_type - 버그 타입/ detail - 버그 상세 내용
+# return: response.json() - http post 요청 응답 정보
+def send_telegram_message(machine_info, generator, id, bug_type, detail):
+    formatted_message = f"""Fuzzing Alert 🚨:
+
+Machine Info:
+- OS: {machine_info.get('os', 'None')}
+- Hostname: {machine_info.get('hostname', 'None')}
+- IP: {machine_info.get('ip', 'None')}
+- Whoami: {machine_info.get('whoami', 'None')}
+- SSH Public Key Hash: {machine_info.get('ssh_pub_key_hash', 'None')}
+
+Bug Info:
+- Generator: {generator}
+- UUID: {id}
+- Bug Type: {bug_type}
+- Bug detail: {detail}
+"""
+    url = f"https://api.telegram.org/bot{TOKEN}/sendmessage"
+    data = {
+        "chat_id": CHAT_ID,
+        "text": formatted_message
+    }
+    response = requests.post(url, data=data)
+    return response.json()
 
 # 코드 생성기 종류
 generators = ['csmith', 'yarpgen']
