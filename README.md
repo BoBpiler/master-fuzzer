@@ -26,13 +26,13 @@ chmod +x install.sh
 
 `install.sh` 스크립트를 실행하면 필요한 모든 설정과 파일들이 자동으로 설치됩니다.
 
-### 2. 실행
+### 2. 퍼저 실행
 
 ```bash
-python3 fuzzer.py
+sh ./run.sh
 ```
 
-`python3 fuzzer.py`를 실행하면 `output` 폴더가 자동으로 생성되고, 해당 폴더에는 테스트 결과가 저장됩니다.
+퍼저를 실행하기 위해서는 run.sh 스크립트를 사용해야 합니다. 이 스크립트는 gcc와 clang을 업데이트 한 뒤 퍼저를 실행합니다.
 
 ## 3. 결과 저장 구조
 
@@ -49,7 +49,7 @@ python3 fuzzer.py
 
 ### 예시 트리 구조는 다음과 같습니다.
 
-```plaintext
+```bash
 .
 ├── **yarpgen**
 │   ├── **temp**  (작업 중인 데이터 저장)
