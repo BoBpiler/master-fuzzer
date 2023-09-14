@@ -29,6 +29,7 @@ chmod +x install.sh
 ### 2. 퍼저 실행
 
 ```bash
+chmod +x run.sh
 sh ./run.sh
 ```
 
