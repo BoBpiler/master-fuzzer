@@ -21,7 +21,7 @@ gcc, clang 등의 컴파일러 버그 탐지를 위한 퍼저입니다.
 
 ```bash
 chmod +x install.sh
-./install.sh
+sh ./install.sh
 ```
 
 `install.sh` 스크립트를 실행하면 필요한 모든 설정과 파일들이 자동으로 설치됩니다.
