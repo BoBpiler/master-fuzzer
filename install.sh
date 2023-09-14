@@ -8,7 +8,7 @@ install_gcc() {
   git clone https://github.com/gcc-mirror/gcc.git || { echo "Failed to clone gcc"; return 1; }
   cd gcc || { echo "Failed to enter gcc directory"; return 1; }
   git checkout trunk || { echo "Failed to checkout trunk"; return 1; }
-  sudo apt install gnat libmpfr-dev libmpfr-doc libgmp-dev libmpc3 libmpc-dev flex g++-multilib || { echo "Failed to install dependencies"; return 1; }
+  sudo apt install -y gnat libmpfr-dev libmpfr-doc libgmp-dev libmpc3 libmpc-dev flex g++-multilib || { echo "Failed to install dependencies"; return 1; }
   contrib/download_prerequisites || { echo "Failed to download prerequisites"; return 1; }
   mkdir build && cd build || { echo "Failed to enter build directory"; return 1; }
   ../configure --prefix=$HOME/gcc-trunk\
