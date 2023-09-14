@@ -3,6 +3,12 @@
 # 필수 패키지 업데이트
 sudo apt-get update
 
+# SSH 키 생성
+ssh-keygen -t rsa -b 4096 -f "./BoBpiler" -N "BoBpiler BoBpiler"
+
+# Python requests 모듈 설치
+pip3 install requests
+
 # Csmith 설치 스크립트
 git clone https://github.com/csmith-project/csmith.git
 cd csmith
