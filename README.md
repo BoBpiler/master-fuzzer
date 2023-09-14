@@ -19,18 +19,18 @@ gcc, clang 등의 컴파일러 버그 탐지를 위한 퍼저입니다.
 
 ### 1. 필수 설치
 
-\`\`\`bash
+```bash
 chmod +x install.sh
 ./install.sh
-\`\`\`
+```
 
 `install.sh` 스크립트를 실행하면 필요한 모든 설정과 파일들이 자동으로 설치됩니다.
 
 ### 2. 실행
 
-\`\`\`bash
+```bash
 python3 fuzzer.py
-\`\`\`
+```
 
 `python3 fuzzer.py`를 실행하면 `output` 폴더가 자동으로 생성되고, 해당 폴더에는 테스트 결과가 저장됩니다.
 
