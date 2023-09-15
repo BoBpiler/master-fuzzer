@@ -184,6 +184,8 @@ def save_results_to_file(id_folder_path, id, results):
                 f.write(f"\nCompiler: {result_dict['compiler']}")
                 f.write(f"\nOptimization Level: {result_dict['optimization_level']}")
                 f.write(f"\nCode Generator: {result_dict['generator']}")
+                f.write(f"\nFlags: {result_dict.get('flags')}")
+                f.write(f"\nNumber of Flags: {result_dict.get('num_flags', 0)}")
                 
                 f.write("\n\nCompile:\n")
                 for key, value in result_dict['compile'].items():

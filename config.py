@@ -10,6 +10,7 @@ import subprocess
 import sys
 import requests
 from datetime import datetime
+import random
 
 # 텔레그램 Chat ID 와 Token 값으로 직접 넣어주어야 합니다!
 CHAT_ID = ""
@@ -60,10 +61,21 @@ compilers = [
     {'name': 'aarch64-linux-gnu-gcc', 'type': 'cross', 'folder_name': 'gcc-aarch64'},
     {'name': './clang-18 --target=aarch64-linux-gnu', 'type': 'cross', 'folder_name': 'clang-aarch64'}
 ]
+
 # 최적화 옵션
 optimization_levels = ['0', '1', '2', '3']
+
+# gcc_O3_flags
+gcc_O3_flags = ['-fgcse-after-reload', '-fipa-cp-clone', '-floop-interchange', '-floop-unroll-and-jam', 
+                '-fpeel-loops', '-fpredictive-commoning', '-fsplit-loops', '-fsplit-paths', '-ftree-loop-distribution', 
+                '-ftree-loop-vectorize', '-ftree-partial-pre', '-ftree-slp-vectorize', '-funswitch-loops', '-fvect-cost-model', 
+                '-fvect-cost-model=dynami', '-fversion-loops-for-strides']
+
+def select_random_flags(flags, num):
+    return random.sample(flags, num)
+
 # 수행 횟수 및 타임아웃
-total_tasks = 10000  
+total_tasks = 100 
 generator_time_out = 30
 compile_time_out = 30
 binary_time_out = 30
