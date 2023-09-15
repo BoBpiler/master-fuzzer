@@ -18,7 +18,7 @@ TOKEN = ""
 # send_telegram_message 함수: 버그를 탐지하고 텔레그램 봇에게 알림을 보내는 함수
 # argv: machine_info - 머신 정보를 담은 딕셔너리/ generator - 생성기 종류/ id - 소스코드 uuid/ bug_type - 버그 타입/ detail - 버그 상세 내용
 # return: response.json() - http post 요청 응답 정보
-def send_telegram_message(machine_info, generator, id, bug_type, detail):
+def send_telegram_message(machine_info, generator, id, bug_type, detail, file_path):
     formatted_message = f"""Fuzzing Alert 🚨:
 
 Machine Info:
@@ -40,7 +40,16 @@ Bug Info:
         "text": formatted_message
     }
     response = requests.post(url, data=data)
-    return response.json()
+    
+    # 성공적으로 메시지를 보냈다면, 이제 결과 파일 보내기
+    if response.json().get("ok"):
+        url = f"https://api.telegram.org/bot{TOKEN}/sendDocument"
+        files = {'document': open(file_path, 'rb')}
+        data = {'chat_id': CHAT_ID}
+        response = requests.post(url, files=files, data=data)
+        return response.json()
+    else:
+        return {"status": "failed", "reason": "Could not send the message"}
 
 # 코드 생성기 종류
 generators = ['csmith', 'yarpgen']

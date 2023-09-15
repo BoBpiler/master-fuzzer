@@ -15,15 +15,15 @@ def analyze_results(generator, id, results, machine_info):
         if compare_execution_results(results):  # 실행 결과가 다른 경우
             msg = f"Different results(checksum) detected for generator {generator}, source code ID: {id}"
             print(msg)
-            send_telegram_message(machine_info, generator, id, "Different Checksum", msg)
-            save_to_folder(generator, id, results, "checksum")
+            id_folder_path = save_to_folder(generator, id, results, "checksum")
+            send_telegram_message(machine_info, generator, id, "Different Checksum", msg, os.path.join(id_folder_path, f"{id}_result.txt"))
         else:
             crash_exists, crash_type = detect_crashes(results)  
             if crash_exists:                                    # 크래시가 있는 경우
                 msg = f"{crash_type} Crash detected for generator {generator}, source code ID: {id}"
                 print(msg)
-                send_telegram_message(machine_info, generator, id, f"{crash_type} Crash", msg)
-                save_to_folder(generator, id, results, f"{crash_type.lower()}_crash")
+                id_folder_path = save_to_folder(generator, id, results, f"{crash_type.lower()}_crash")
+                send_telegram_message(machine_info, generator, id, f"{crash_type} Crash", msg, os.path.join(id_folder_path, f"{id}_result.txt"))
                 
             elif detect_partial_timeout(results):               # 부분적으로 타임아웃이 있는 경우 (어떻게 보면 결과가 다르다고 볼 수 있습니다.)
                 print(f"Binary Execution Partial timeout detected for generator {generator}, source code ID: {id}")
@@ -32,14 +32,14 @@ def analyze_results(generator, id, results, machine_info):
             elif detect_abnormal_compile(results):              # 비정상적으로 컴파일이 수행되는 경우 (컴파일 타임아웃, 크래시 등...)
                 msg = f"Abnormal compile detected for generator {generator}, source code ID: {id}"
                 print(msg)
-                send_telegram_message(machine_info, generator, id, "Abnormal Compile", msg)
-                save_to_folder(generator, id, results, "abnormal_compile")
+                id_folder_path = save_to_folder(generator, id, results, "abnormal_compile")
+                send_telegram_message(machine_info, generator, id, "Abnormal Compile", msg, os.path.join(id_folder_path, f"{id}_result.txt"))
             
             elif detect_abnormal_binary(results):  # 바이너리 returncode가 0이 아닌 경우가 하나라도 있는 경우 
                 msg = f"Abnormal binary detected for generator {generator}, source code ID: {id}"
                 print(msg)
-                send_telegram_message(machine_info, generator, id, "Abnormal Binary", msg)
-                save_to_folder(generator, id, results, "abnormal_binary")
+                id_folder_path = save_to_folder(generator, id, results, "abnormal_binary")
+                send_telegram_message(machine_info, generator, id, "Abnormal Binary", msg, os.path.join(id_folder_path, f"{id}_result.txt"))
     
     except Exception as e:
         logging.error(f"An unexpected error occurred in analyze_results for generator {generator} and task {id}: {e}")
@@ -168,7 +168,7 @@ def save_to_folder(generator, id, results, folder_name):
             shutil.move(key, os.path.join(id_folder_path, binary_filename))
     # 결과를 txt 파일에 저장 - 한 눈에 보기 좋습니다.
     save_results_to_file(id_folder_path, id, results)
-
+    return id_folder_path
 
 
 # result_dict 딕셔너리를 가독성 좋게 txt 파일에 저장하는 함수입니다.
