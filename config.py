@@ -17,7 +17,7 @@ CHAT_ID = ""
 TOKEN = ""
 
 # send_telegram_message 함수: 버그를 탐지하고 텔레그램 봇에게 알림을 보내는 함수
-# argv: machine_info - 머신 정보를 담은 딕셔너리/ generator - 생성기 종류/ id - 소스코드 uuid/ bug_type - 버그 타입/ detail - 버그 상세 내용/ file_path - 결과 txt 경로
+# argv: machine_info - 머신 정보를 담은 딕셔너리/ generator - 생성기 종류/ id - 소스코드 uuid/ bug_type - 버그 타입/ detail - 버그 상세 내용/ file_path - 결과 txt 경로/ severity - 중요도 정보
 # return: response.json() - http post 요청 응답 정보
 def send_telegram_message(machine_info, generator, id, bug_type, detail, file_path, severity="low"):
     # 중요도에 따른 이모지 선택
