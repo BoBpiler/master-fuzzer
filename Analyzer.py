@@ -16,14 +16,14 @@ def analyze_results(generator, id, results, machine_info):
             msg = f"Different results(checksum) detected for generator {generator}, source code ID: {id}"
             print(msg)
             id_folder_path = save_to_folder(generator, id, results, "checksum")
-            send_telegram_message(machine_info, generator, id, "Different Checksum", msg, os.path.join(id_folder_path, f"{id}_result.txt"))
+            send_telegram_message(machine_info, generator, id, "Different Checksum", msg, os.path.join(id_folder_path, f"{id}_result.txt"), "high")
         else:
             crash_exists, crash_type = detect_crashes(results)  
             if crash_exists:                                    # 크래시가 있는 경우
                 msg = f"{crash_type} Crash detected for generator {generator}, source code ID: {id}"
                 print(msg)
                 id_folder_path = save_to_folder(generator, id, results, f"{crash_type.lower()}_crash")
-                send_telegram_message(machine_info, generator, id, f"{crash_type} Crash", msg, os.path.join(id_folder_path, f"{id}_result.txt"))
+                send_telegram_message(machine_info, generator, id, f"{crash_type} Crash", msg, os.path.join(id_folder_path, f"{id}_result.txt"), "medium")
                 
             elif detect_partial_timeout(results):               # 부분적으로 타임아웃이 있는 경우 (어떻게 보면 결과가 다르다고 볼 수 있습니다.)
                 print(f"Binary Execution Partial timeout detected for generator {generator}, source code ID: {id}")
