@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.INFO)
 # compile_and_run 함수: compile 함수와  run_binary 함수를 통해서 특정 컴파일러와 옵션으로 컴파일 후에 실행 결과를 저장
 # argv: filepath - 소스 코드 경로/ id - 소스코드 번호/ compiler - 컴파일러/ optimization_level - 최적화 옵션/ results - 실행 결과 저장할 딕셔너리(map)
 # return: 사실상 results_queue에 저장됩니다.
-def compile_and_run(filepath, generator, id, compiler_info, optimization_level, result_queue, random_flags=False):
+def compile_and_run(filepath, generator, id, compiler_info, optimization_level, random_flags=False):
     # key는 바이너리 경로이자 이름으로 result_dict를 구분하는 요소로 사용합니다.
     compiler = compiler_info['name']
     compiler_type = compiler_info['type']
@@ -55,8 +55,7 @@ def compile_and_run(filepath, generator, id, compiler_info, optimization_level, 
         if not compile_result['status']:
             logging.warning("Compilation failed. Skipping run.")
             result_dict['compile'] = compile_result
-            result_queue.put((key, result_dict))
-            return
+            return (key, result_dict)
         
         result_dict['compile'] = compile_result
         
@@ -65,10 +64,11 @@ def compile_and_run(filepath, generator, id, compiler_info, optimization_level, 
         result_dict['run'] = run_result
 
         # 큐에 결과를 저장
-        result_queue.put((key, result_dict))
+        return (key, result_dict)
         
     except Exception as e:
         logging.error(f"Unexpected error in compile_and_run for {filepath}: {e}")
+        return ("error", None)
 
 
 # compile 함수: 인자로 받은 조건으로 컴파일을 수행
