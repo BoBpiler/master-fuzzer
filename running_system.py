@@ -134,8 +134,11 @@ def run_binary(binary_name, compiler_info):
     try:
         #logging.info(f"Starting run_binary for {binary_name}")  ['qemu-aarch64-static', '-L', '/usr/aarch64-linux-gnu', f'./{binary_name}']
         binary_name_only = os.path.basename(binary_name)
-        if compiler_type == 'cross':
+        if compiler_type == 'cross-aarch64':
             result = subprocess.run(f'qemu-aarch64-static -L /usr/aarch64-linux-gnu ./{binary_name}', shell=True, capture_output=True, timeout=binary_time_out)
+            print(f"{binary_name_only} Result obtained: {result.stdout.decode('utf-8')}")
+        elif compiler_type == 'cross-riscv64':
+            result = subprocess.run(f'qemu-riscv64-static ./{binary_name}', shell=True, capture_output=True, timeout=binary_time_out)
             print(f"{binary_name_only} Result obtained: {result.stdout.decode('utf-8')}")
         else:
             result = subprocess.run(f'./{binary_name}', shell=True, capture_output=True, timeout=binary_time_out)

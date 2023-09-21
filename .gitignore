@@ -8,3 +8,5 @@ llvm-project
 clang-18
 BoBpiler
 BoBpiler.pub
+riscv-gnu-toolchain
+riscv64-unknown-elf-gcc

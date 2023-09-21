@@ -66,8 +66,9 @@ generators = ['csmith', 'yarpgen']
 compilers = [
     {'name': './gcc-trunk', 'type': 'base', 'folder_name': 'gcc'},
     {'name': './clang-18', 'type': 'base', 'folder_name': 'clang'},
-    {'name': 'aarch64-linux-gnu-gcc', 'type': 'cross', 'folder_name': 'gcc-aarch64'},
-    {'name': './clang-18 --target=aarch64-linux-gnu', 'type': 'cross', 'folder_name': 'clang-aarch64'}
+    {'name': 'aarch64-linux-gnu-gcc', 'type': 'cross-aarch64', 'folder_name': 'gcc-aarch64'},
+    {'name': './clang-18 --target=aarch64-linux-gnu', 'type': 'cross-aarch64', 'folder_name': 'clang-aarch64'},
+    {'name': './riscv64-unknown-elf-gcc', 'type': 'cross-riscv64', 'folder_name': 'gcc-riscv64'}
 ]
 
 # 최적화 옵션
