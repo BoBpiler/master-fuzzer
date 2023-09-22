@@ -65,7 +65,7 @@ cd ../../
 install_riscv_gcc() {
   cd riscv-gnu-toolchain
   mkdir gcc-build && cd gcc-build
-  ../configure --prefix=$INSTALL_DIR/gcc || { echo "Configure failed"; return 1; }
+  ../configure --prefix=$INSTALL_DIR || { echo "Configure failed"; return 1; }
   make -j 2 || { echo "Make failed"; return 1; }
   make install || { echo "Make install failed"; return 1; }
   cd ../../
@@ -86,7 +86,7 @@ install_riscv_gcc
 #install_riscv_clang
 
 # 심볼릭 링크 생성
-ln -s $INSTALL_DIR/gcc/bin/riscv64-unknown-elf-gcc $current_path/riscv64-unknown-elf-gcc || { echo "Failed to create symbolic link for RISC-V GCC"; exit 1; }
+ln -s $INSTALL_DIR/bin/riscv64-unknown-elf-gcc $current_path/riscv64-unknown-elf-gcc || { echo "Failed to create symbolic link for RISC-V GCC"; exit 1; }
 #ln -s $INSTALL_DIR/clang/bin/riscv64-unknown-elf-clang $current_path/riscv64-unknown-elf-clang || { echo "Failed to create symbolic link for RISC-V Clang"; exit 1; }
 
 # SSH 키 생성
