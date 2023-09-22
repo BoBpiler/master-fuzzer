@@ -55,10 +55,11 @@ INSTALL_DIR=$HOME/riscv
 
 git clone https://github.com/riscv/riscv-gnu-toolchain || { echo "Failed to clone riscv-gnu-toolchain"; return 1; }
 cd riscv-gnu-toolchain || { echo "Failed to enter riscv-gnu-toolchain directory"; return 1; }
+git submodule update --init gcc
 
 # 원하는 브랜치로 체크아웃
 cd gcc && git checkout trunk || { echo "Failed to checkout gcc trunk"; return 1; }
-cd ../llvm && git checkout llvmorg-18-init || { echo "Failed to checkout llvm llvmorg-18-init"; return 1; }
+#cd ../llvm && git checkout llvmorg-18-init || { echo "Failed to checkout llvm llvmorg-18-init"; return 1; }
 cd ../../
 
 # RISC-V용 GCC, clang 설치
