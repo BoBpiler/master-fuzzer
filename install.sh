@@ -107,7 +107,7 @@ sudo make -j `nproc` && sudo make install
 cd ..
 
 # YARPGen 설치 스크립트
-git clone https://github.com/intel/yarpgen.git
+git clone https://github.com/BoBpiler/yarpgen.git
 cd yarpgen
 mkdir build
 cd build
