@@ -9,7 +9,7 @@ logging.basicConfig(level=logging.INFO)
 
 # compare_results 함수: 실행 결과를 비교 로직에 따라서 분석하는 함수
 # argv: generator - 코드 생성기 종류/ id - 소스코드 번호/ results - 바이너리 실행 결과들/ comparison_strategy - 비교 로직
-def analyze_results(generator, id, results, machine_info):
+def analyze_results(generator, id, results, machine_info, partial_timeout=True):
     # 해당 결과들을 대상으로 비교
     try:
         if compare_execution_results(results):  # 실행 결과가 다른 경우
@@ -25,7 +25,7 @@ def analyze_results(generator, id, results, machine_info):
                 id_folder_path = save_to_folder(generator, id, results, f"{crash_type.lower()}_crash")
                 send_telegram_message(machine_info, generator, id, f"{crash_type} Crash", msg, os.path.join(id_folder_path, f"random_program_{id}.c"), os.path.join(id_folder_path, f"{id}_result.txt"), "medium")
                 
-            elif detect_partial_timeout(results):               # 부분적으로 타임아웃이 있는 경우 (어떻게 보면 결과가 다르다고 볼 수 있습니다.)
+            elif partial_timeout and detect_partial_timeout(results):               # 부분적으로 타임아웃이 있는 경우 (어떻게 보면 결과가 다르다고 볼 수 있습니다.)
                 print(f"Binary Execution Partial timeout detected for generator {generator}, source code ID: {id}")
                 save_to_folder(generator, id, results, "partial_timeout")
             

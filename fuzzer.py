@@ -9,12 +9,14 @@ from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from queue import Queue
 import logging
 import uuid
+import argparse
+from itertools import repeat
 
 logging.basicConfig(level=logging.WARNING)
 # process_generator 함수: 생성기 별로 퍼징을 수행하는 함수
 # argv: generator - 생성기 종류 (현재 csmith와 yarpgen)
 # return: None 
-def process_generator(generator):
+def process_generator(generator, partial_timeout=True):
     machine_info = get_machine_info()
     round_number = 0  # 라운드 번호 초기화
     
@@ -25,7 +27,7 @@ def process_generator(generator):
         
         completed_tasks = 0
         skipped_tasks = 0
-        random_flags = random.random() <= 0.5
+        
         try:
             for index in range(0, total_tasks):
                 #result_queue = Queue()  # 스레드 안전한 큐 생성
@@ -47,7 +49,7 @@ def process_generator(generator):
                     # 컴파일 및 실행 (gcc, clang으로 -O0 ~ -O3 옵션 주어서 컴파일 하고 실행 결과 저장)
                     for compiler in compilers:
                         for opt_level in optimization_levels:
-                            futures.append(executor.submit(compile_and_run, filepath, generator, id, compiler, opt_level, random_flags))
+                            futures.append(executor.submit(compile_and_run, filepath, generator, id, compiler, opt_level))
                             
                     for future in futures:
                         result = future.result()
@@ -58,7 +60,7 @@ def process_generator(generator):
                             results[key] = result_dict
                 
                 if len(results) > 0:  # results 딕셔너리가 비어 있지 않다면
-                    analyze_results(generator, id, results, machine_info)
+                    analyze_results(generator, id, results, machine_info, partial_timeout)
                 else:
                     # results 딕셔너리가 비어 있는 경우, 문제가 발생한 것으로 판단
                     skipped_tasks += 1
@@ -79,10 +81,13 @@ def process_generator(generator):
 
 # main 함수: 퍼징을 수행하는 총괄 코드
 def main():
+    parser = argparse.ArgumentParser(description="Analyze results.")
+    parser.add_argument("--no-timeout", action="store_false", dest="partial_timeout")
+    args = parser.parse_args()
     # 디렉토리 초기화
     setup_output_dirs(generators)
     with ThreadPoolExecutor() as executor:
-        executor.map(process_generator, generators)
+        executor.map(process_generator, generators, repeat(args.partial_timeout))
 
 if __name__ == "__main__":
     main()
