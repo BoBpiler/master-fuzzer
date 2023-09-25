@@ -17,9 +17,9 @@ def generate_c_code(id, generator):
         filepath = f'{dir_path}/random_program_{id}.c'
         random_hex = secrets.token_hex(16)
         random_seed = int(random_hex, 16)
-        print(random_seed)
+        
         # 폴더가 없으면 생성
-        if not os.path.exists(dir_path):
+        if not os.path.exists(dir_path):    
             os.makedirs(dir_path)
         
         csmith_env= os.environ.copy()
