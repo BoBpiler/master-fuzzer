@@ -6,6 +6,7 @@ import os
 import subprocess
 import logging
 logging.basicConfig(level=logging.INFO) 
+import secrets
 
 # generate_c_code 함수: Csmith와 yarpgen을 통해서 C 코드를 랜덤으로 생성
 # argv: id - 소스코드 번호
@@ -14,7 +15,9 @@ def generate_c_code(id, generator):
     try:
         dir_path = f'{TEMP_DIRS[generator]}/{id}'   
         filepath = f'{dir_path}/random_program_{id}.c'
-        
+        random_hex = secrets.token_hex(16)
+        random_seed = int(random_hex, 16)
+        print(random_seed)
         # 폴더가 없으면 생성
         if not os.path.exists(dir_path):
             os.makedirs(dir_path)
@@ -24,7 +27,7 @@ def generate_c_code(id, generator):
             csmith_env["PATH"] = f"{csmith_env['PATH']}:{os.path.expanduser('~')}/csmith/bin"
             #csmith_include = f"{os.path.expanduser('~')}/csmith/include"
             # C 코드 생성 ['csmith', '-o', filepath]
-            subprocess.run(f'csmith {csmith_options} -o {filepath}', shell=True, env=csmith_env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=generator_time_out)
+            subprocess.run(f'csmith {csmith_options} -o {filepath} --seed {random_seed}', shell=True, env=csmith_env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=generator_time_out)
             return filepath
         elif generator == 'yarpgen':
             # c 코드 생성 ['yarpgen', '--std=c', '-o', TEMP_DIRS[generator]]
