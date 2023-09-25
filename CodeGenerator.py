@@ -15,8 +15,7 @@ def generate_c_code(id, generator):
     try:
         dir_path = f'{TEMP_DIRS[generator]}/{id}'   
         filepath = f'{dir_path}/random_program_{id}.c'
-        random_hex = secrets.token_hex(16)
-        random_seed = int(random_hex, 16)
+        random_seed = secrets.randbelow(4294967296)
         
         # 폴더가 없으면 생성
         if not os.path.exists(dir_path):    
