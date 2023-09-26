@@ -14,6 +14,7 @@ import random
 
 # 텔레그램 Chat ID 와 Token 값으로 직접 넣어주어야 합니다!
 CHAT_ID = ""
+HIGH_SEVERITY_CHAT_ID = ""
 TOKEN = ""
 
 # send_telegram_message 함수: 버그를 탐지하고 텔레그램 봇에게 알림을 보내는 함수
@@ -52,13 +53,22 @@ Bug Info:
 
     # 성공적으로 메시지를 보냈다면, 이제 결과 파일 보내기
     if response.json().get("ok"):
-        url = f"https://api.telegram.org/bot{TOKEN}/sendDocument"
+        url_doc = f"https://api.telegram.org/bot{TOKEN}/sendDocument"
         files = {'document': open(result_file_path, 'rb')}
-        data = {'chat_id': CHAT_ID}
-        response = requests.post(url, files=files, data=data)
-        if response.json().get("ok") and severity == "high":
+        data_doc = {'chat_id': CHAT_ID}
+        response_doc = requests.post(url_doc, files=files, data=data_doc)
+        
+        if response_doc.json().get("ok") and severity == "high":
             files = {'document': open(src_file_path, 'rb')}
-            response = requests.post(url, files=files, data=data)
+            response = requests.post(url_doc, files=files, data=data_doc)
+
+            # high인 경우 high만 알람이 오는 방에 추가적으로 보냅니다.
+            data['chat_id'] = HIGH_SEVERITY_CHAT_ID
+            data_doc['chat_id'] = HIGH_SEVERITY_CHAT_ID
+            requests.post(url, data=data)
+            requests.post(url_doc, files={'document': open(result_file_path, 'rb')}, data=data_doc)
+            requests.post(url_doc, files={'document': open(src_file_path, 'rb')}, data=data_doc)
+
         return response.json()
     else:
         return {"status": "failed", "reason": "Could not send the message"}
