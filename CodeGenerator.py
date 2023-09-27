@@ -28,7 +28,7 @@ def generate_c_code(id, generator):
             #csmith_include = f"{os.path.expanduser('~')}/csmith/include"
             # C 코드 생성 ['csmith', '-o', filepath]
             subprocess.run(f'csmith {csmith_options} -o {filepath} --seed {random_seed}', shell=True, env=csmith_env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=generator_time_out)
-            return filepath
+            return (filepath, random_seed)
         elif generator == 'yarpgen':
             # c 코드 생성 ['yarpgen', '--std=c', '-o', TEMP_DIRS[generator]]
             subprocess.run(f'yarpgen --std=c -o {dir_path}', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=generator_time_out)

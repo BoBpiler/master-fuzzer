@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.INFO)
 # compile_and_run 함수: compile 함수와  run_binary 함수를 통해서 특정 컴파일러와 옵션으로 컴파일 후에 실행 결과를 저장
 # argv: filepath - 소스 코드 경로/ id - 소스코드 번호/ compiler - 컴파일러/ optimization_level - 최적화 옵션/ results - 실행 결과 저장할 딕셔너리(map)
 # return: 사실상 results_queue에 저장됩니다.
-def compile_and_run(filepath, generator, id, compiler_info, optimization_level):
+def compile_and_run(filepath, generator, id, compiler_info, optimization_level, random_seed=None):
     # key는 바이너리 경로이자 이름으로 result_dict를 구분하는 요소로 사용합니다.
     compiler = compiler_info['name']
     compiler_type = compiler_info['type']
@@ -21,7 +21,8 @@ def compile_and_run(filepath, generator, id, compiler_info, optimization_level):
     key = f"{TEMP_DIRS[generator]}/{id}/{folder_name}_O{optimization_level}"
     
     result_dict = {
-        'id': id,
+        'id': str(id),
+        'random_Seed': str(random_seed),
         'compiler': compiler,
         'optimization_level': optimization_level,
         'generator': generator,

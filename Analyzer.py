@@ -9,21 +9,21 @@ logging.basicConfig(level=logging.INFO)
 
 # compare_results 함수: 실행 결과를 비교 로직에 따라서 분석하는 함수
 # argv: generator - 코드 생성기 종류/ id - 소스코드 번호/ results - 바이너리 실행 결과들/ comparison_strategy - 비교 로직
-def analyze_results(generator, id, results, machine_info, partial_timeout=True):
+def analyze_results(generator, id, random_seed, results, machine_info, partial_timeout=True):
     # 해당 결과들을 대상으로 비교
     try:
         if compare_execution_results(results):  # 실행 결과가 다른 경우
             msg = f"Different results(checksum) detected for generator {generator}, source code ID: {id}"
             print(msg)
             id_folder_path = save_to_folder(generator, id, results, "checksum")
-            send_telegram_message(machine_info, generator, id, "Different Checksum", msg, os.path.join(id_folder_path, f"random_program_{id}.c"), os.path.join(id_folder_path, f"{id}_result.txt"), "high")
+            send_telegram_message(machine_info, generator, id, random_seed, "Different Checksum", msg, os.path.join(id_folder_path, f"random_program_{id}.c"), os.path.join(id_folder_path, f"{id}_result.txt"), "high")
         else:
             crash_exists, crash_type = detect_crashes(results)  
             if crash_exists:                                    # 크래시가 있는 경우
                 msg = f"{crash_type} Crash detected for generator {generator}, source code ID: {id}"
                 print(msg)
                 id_folder_path = save_to_folder(generator, id, results, f"{crash_type.lower()}_crash")
-                send_telegram_message(machine_info, generator, id, f"{crash_type} Crash", msg, os.path.join(id_folder_path, f"random_program_{id}.c"), os.path.join(id_folder_path, f"{id}_result.txt"), "medium")
+                send_telegram_message(machine_info, generator, id, random_seed, f"{crash_type} Crash", msg, os.path.join(id_folder_path, f"random_program_{id}.c"), os.path.join(id_folder_path, f"{id}_result.txt"), "medium")
                 
             elif partial_timeout and detect_partial_timeout(results):               # 부분적으로 타임아웃이 있는 경우 (어떻게 보면 결과가 다르다고 볼 수 있습니다.)
                 print(f"Binary Execution Partial timeout detected for generator {generator}, source code ID: {id}")
@@ -33,13 +33,13 @@ def analyze_results(generator, id, results, machine_info, partial_timeout=True):
                 msg = f"Abnormal compile detected for generator {generator}, source code ID: {id}"
                 print(msg)
                 id_folder_path = save_to_folder(generator, id, results, "abnormal_compile")
-                send_telegram_message(machine_info, generator, id, "Abnormal Compile", msg, os.path.join(id_folder_path, f"random_program_{id}.c"), os.path.join(id_folder_path, f"{id}_result.txt"))
+                send_telegram_message(machine_info, generator, id, random_seed, "Abnormal Compile", msg, os.path.join(id_folder_path, f"random_program_{id}.c"), os.path.join(id_folder_path, f"{id}_result.txt"))
             
             elif detect_abnormal_binary(results):  # 바이너리 returncode가 0이 아닌 경우가 하나라도 있는 경우 
                 msg = f"Abnormal binary detected for generator {generator}, source code ID: {id}"
                 print(msg)
                 id_folder_path = save_to_folder(generator, id, results, "abnormal_binary")
-                send_telegram_message(machine_info, generator, id, "Abnormal Binary", msg, os.path.join(id_folder_path, f"random_program_{id}.c"), os.path.join(id_folder_path, f"{id}_result.txt"))
+                send_telegram_message(machine_info, generator, id, random_seed, "Abnormal Binary", msg, os.path.join(id_folder_path, f"random_program_{id}.c"), os.path.join(id_folder_path, f"{id}_result.txt"))
     
     except Exception as e:
         logging.error(f"An unexpected error occurred in analyze_results for generator {generator} and task {id}: {e}")
@@ -181,6 +181,7 @@ def save_results_to_file(id_folder_path, id, results):
                 f.write(f"Binary_Path: {Binary_Path}\n")
 
                 f.write(f"\nID: {result_dict['id']}")
+                f.write(f"\nRandom Seed: {result_dict['random_Seed']}")
                 f.write(f"\nCompiler: {result_dict['compiler']}")
                 f.write(f"\nOptimization Level: {result_dict['optimization_level']}")
                 f.write(f"\nCode Generator: {result_dict['generator']}")
