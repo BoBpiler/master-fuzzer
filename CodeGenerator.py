@@ -32,12 +32,12 @@ def generate_c_code(id, generator):
         elif generator == 'yarpgen':
             # c 코드 생성 ['yarpgen', '--std=c', '-o', TEMP_DIRS[generator]]
             subprocess.run(f'yarpgen --std=c -o {dir_path}', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=generator_time_out)
-            return dir_path 
+            return (dir_path, None)
         else:
-            return None 
+            return (None, None)
     except subprocess.TimeoutExpired:
         logging.warning(f"Code generation timed out for generator {generator} and task {id}")
-        return None
+        return (None, None)
     except Exception as e:
         logging.error(f"An unexpected error occurred in generate_c_code for generator {generator} and task {id}: {e}")
-        return None
+        return (None, None)
