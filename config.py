@@ -112,14 +112,13 @@ csmith_options = "--max-array-dim 3 \
 --max-block-depth 3 \
 --max-block-size 5 \
 --max-expr-complexity 10 \
---max-funcs 3 \
+--max-funcs 4 \
 --max-pointer-depth 3 \
 --max-struct-fields 10 \
 --max-union-fields 10 \
 --muls \
 --safe-math \
 --no-packed-struct \
---paranoid \
 --pointers \
 --structs \
 --unions \
