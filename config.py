@@ -237,6 +237,9 @@ def create_directory(dir_name, sub_dirs=None):
     try:
         if not os.path.exists(dir_name):
             os.mkdir(dir_name)
+        else:
+            shutil.rmtree(dir_name)
+            os.mkdir(dir_name)
             #print(f"Directory {dir_name} created successfully.")
     except (FileExistsError, PermissionError, FileNotFoundError) as e:
         print(f"An error occurred while creating {dir_name}: {e}")

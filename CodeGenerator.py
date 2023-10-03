@@ -34,7 +34,7 @@ def generate_c_code(id, generator):
             return (filepath, random_seed)
         elif generator == 'yarpgen':
             yarpgen_options_str = ' '.join(yarpgen_options)
-            result = subprocess.run(f'yarpgen {yarpgen_options_str} {dir_path} --seed={random_seed} --mutation-seed={random_seed}', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=generator_time_out)
+            result = subprocess.run(f'yarpgen {yarpgen_options_str} -o {dir_path} --seed={random_seed} --mutation-seed={random_seed}', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=generator_time_out)
             if result.returncode != 0:
                 logging.warning(f"{generator} code generation failed for {dir_path} with return code {result.returncode}, error message: {result.stdout + result.stderr}")
                 return (None, None)
