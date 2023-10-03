@@ -215,9 +215,10 @@ def analyze_returncode(returncode, context):
 ##################################################################################################
 # 디렉토리 설정 (상수로 경로 설정)
 BASE_DIR = None
-GENERATOR_DIRS = {gen: os.path.join(BASE_DIR, gen) for gen in generators}
-CATCH_DIRS = {gen: os.path.join(GENERATOR_DIRS[gen], 'catch') for gen in generators}
-TEMP_DIRS = {gen: os.path.join(GENERATOR_DIRS[gen], 'temp') for gen in generators}
+GENERATOR_DIRS = {}
+CATCH_DIRS = {}
+TEMP_DIRS = {}
+
 #CATCH_SUB_DIRS = ['source', 'binary', 'result']
 #TEMP_SUB_DIRS = ['source', 'binary']
 
@@ -246,7 +247,11 @@ def create_directory(dir_name, sub_dirs=None):
 # argv: compilers - 사용할 컴파일러의 목록 
 # return: None
 def setup_output_dirs(generators):
+    global BASE_DIR, GENERATOR_DIRS, CATCH_DIRS, TEMP_DIRS
     BASE_DIR = f'output_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}'
+    GENERATOR_DIRS = {gen: os.path.join(BASE_DIR, gen) for gen in generators}
+    CATCH_DIRS = {gen: os.path.join(GENERATOR_DIRS[gen], 'catch') for gen in generators}
+    TEMP_DIRS = {gen: os.path.join(GENERATOR_DIRS[gen], 'temp') for gen in generators}
     create_directory(BASE_DIR)
 
     for generator in generators:
