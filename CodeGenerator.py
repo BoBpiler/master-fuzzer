@@ -1,7 +1,7 @@
 # CodeGenerator.py
 # 생성기를 이용해서 소스코드를 생성하는 함수
 
-from config import TEMP_DIRS, generator_time_out, csmith_options
+from config import TEMP_DIRS, generator_time_out, csmith_options, yarpgen_options
 import os
 import subprocess
 import logging
@@ -27,11 +27,17 @@ def generate_c_code(id, generator):
             csmith_env["PATH"] = f"{csmith_env['PATH']}:{os.path.expanduser('~')}/csmith/bin"
             #csmith_include = f"{os.path.expanduser('~')}/csmith/include"
             # C 코드 생성 ['csmith', '-o', filepath]
-            subprocess.run(f'csmith {csmith_options} -o {filepath} --seed {random_seed}', shell=True, env=csmith_env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=generator_time_out)
+            result = subprocess.run(f'csmith {csmith_options} -o {filepath} --seed {random_seed}', shell=True, env=csmith_env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=generator_time_out)
+            if result.returncode != 0:
+                logging.warning(f"{generator} code generation failed for {filepath} with return code {result.returncode}, error message: {result.stdout + result.stderr}")
+                return (None, None)
             return (filepath, random_seed)
         elif generator == 'yarpgen':
-            # c 코드 생성 ['yarpgen', '--std=c', '-o', TEMP_DIRS[generator]]
-            subprocess.run(f'yarpgen --std=c -o {dir_path}', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=generator_time_out)
+            yarpgen_options_str = ' '.join(yarpgen_options)
+            result = subprocess.run(f'yarpgen {yarpgen_options_str} {dir_path} --seed={random_seed} --mutation-seed={random_seed}', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=generator_time_out)
+            if result.returncode != 0:
+                logging.warning(f"{generator} code generation failed for {dir_path} with return code {result.returncode}, error message: {result.stdout + result.stderr}")
+                return (None, None)
             return (dir_path, None)
         else:
             return (None, None)

@@ -125,6 +125,13 @@ total_tasks = 100
 generator_time_out = 30
 compile_time_out = 30
 binary_time_out = 30
+
+# yarpgen 옵션
+yarpgen_options = [
+    "--std=c",
+    "--mutate=all"
+]
+
 # csmith include 경로
 csmith_include = "/usr/local/include/"
 
