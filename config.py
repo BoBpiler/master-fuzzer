@@ -11,16 +11,35 @@ import sys
 import requests
 from datetime import datetime
 import random
+import zipfile
+
 
 # 텔레그램 Chat ID 와 Token 값으로 직접 넣어주어야 합니다!
 CHAT_ID = ""
 HIGH_SEVERITY_CHAT_ID = ""
 TOKEN = ""
 
+def zip_src_files(filenames, output_filename):
+    with zipfile.ZipFile(output_filename, 'w') as zipf:
+        for file in filenames:
+            zipf.write(file, os.path.basename(file))
+
 # send_telegram_message 함수: 버그를 탐지하고 텔레그램 봇에게 알림을 보내는 함수
 # argv: machine_info - 머신 정보를 담은 딕셔너리/ generator - 생성기 종류/ id - 소스코드 uuid/ bug_type - 버그 타입/ detail - 버그 상세 내용/src_file_path - 소스코드 경로 /result_file_path - 결과 txt 경로/ severity - 중요도 정보
 # return: response.json() - http post 요청 응답 정보
 def send_telegram_message(machine_info, generator, id, random_seed, bug_type, detail, src_file_path, result_file_path, severity="low"):
+    files_to_send = []
+    if generator == 'yarpgen':
+        files = ['driver.c', 'func.c', 'init.h']
+        files_to_send = [os.path.join(src_file_path, filename) for filename in files]
+        # yarpgen의 경우 ZIP 파일 생성
+        zip_path = os.path.join(src_file_path, f"yarpgen_{id}.zip")
+        zip_src_files(files_to_send, zip_path)
+        files_to_send = [zip_path]
+
+    elif generator == 'csmith':
+        files_to_send.append(os.path.join(src_file_path, f"random_program_{id}.c"))
+
     # 중요도에 따른 이모지 선택
     severity_emoji = {
         "low": "ℹ️",
@@ -60,15 +79,18 @@ Bug Info:
         response_doc = requests.post(url_doc, files=files, data=data_doc)
         
         if response_doc.json().get("ok") and severity == "high":
-            files = {'document': open(src_file_path, 'rb')}
-            response = requests.post(url_doc, files=files, data=data_doc)
+            for file_path in files_to_send:
+                files = {'document': open(file_path, 'rb')}
+                response = requests.post(url_doc, files=files, data=data_doc)
 
             # high인 경우 high만 알람이 오는 방에 추가적으로 보냅니다.
             data['chat_id'] = HIGH_SEVERITY_CHAT_ID
             data_doc['chat_id'] = HIGH_SEVERITY_CHAT_ID
             requests.post(url, data=data)
             requests.post(url_doc, files={'document': open(result_file_path, 'rb')}, data=data_doc)
-            requests.post(url_doc, files={'document': open(src_file_path, 'rb')}, data=data_doc)
+            for file_path in files_to_send:
+                files = {'document': open(file_path, 'rb')}
+                requests.post(url_doc, files=files, data=data_doc)
 
         return response.json()
     else:
@@ -192,7 +214,7 @@ def analyze_returncode(returncode, context):
 
 ##################################################################################################
 # 디렉토리 설정 (상수로 경로 설정)
-BASE_DIR = f'output_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}'
+BASE_DIR = None
 GENERATOR_DIRS = {gen: os.path.join(BASE_DIR, gen) for gen in generators}
 CATCH_DIRS = {gen: os.path.join(GENERATOR_DIRS[gen], 'catch') for gen in generators}
 TEMP_DIRS = {gen: os.path.join(GENERATOR_DIRS[gen], 'temp') for gen in generators}
@@ -224,6 +246,7 @@ def create_directory(dir_name, sub_dirs=None):
 # argv: compilers - 사용할 컴파일러의 목록 
 # return: None
 def setup_output_dirs(generators):
+    BASE_DIR = f'output_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}'
     create_directory(BASE_DIR)
 
     for generator in generators:
