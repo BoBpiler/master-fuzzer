@@ -10,6 +10,8 @@ import threading
 import queue
 import time
 import signal
+from forkserver_generator import generator as g
+
 
 
 class Compiler:
@@ -85,6 +87,10 @@ def analyze_results_thread():
         else:
             time.sleep(5)
 
+def generate_codes_thread(csmith_temp_path, yarpgen_temp_path):
+    g.gen_main(csmith_temp_path, yarpgen_temp_path)
+            
+
 def fuzzer_init():
     gcc_compiler = Compiler(name="gcc", path="./gcc-trunk")
     clang_compiler = Compiler(name="clang", path="./clang-18")
@@ -93,13 +99,18 @@ def fuzzer_init():
     # 컴파일러를 시작
     for compiler in compilers:
         compiler.start() 
-
+    
+    csmith_temp_path = get_absolute_temp_path('csmith')
+    yarpgen_temp_path = get_absolute_temp_path('yarpgen')
     setup_output_dirs(generators)
     machine_info = get_machine_info()
     analysis_thread = threading.Thread(target=analyze_results_thread, daemon=True)
+    generation_thread = threading.Thread(target=generate_codes_thread, args=(csmith_temp_path, yarpgen_temp_path), daemon=True)
+
+    generation_thread.start()
     analysis_thread.start()
 
-    return (compilers, machine_info, analysis_thread)#, generate_thread=None)
+    return (compilers, machine_info, analysis_thread, generation_thread)
 
 
 if __name__ == "__main__":
@@ -107,30 +118,13 @@ if __name__ == "__main__":
     compilers, machine_info, analysis_thread =  fuzzer_init()
 
     while True:
-        input_src = ""
-        generator_name = None
-
+        code_data = g.code_gen_queue.get()
+        generator_name = code_data['generator']
+        id = code_data['uuid']
+        input_src = code_data['file_path']
         results = compile_and_run(compilers, id, generator_name, input_src)
         result_data = (generator_name, id, results, machine_info)
         analyze_queue.put(result_data)
     
     #analysis_thread.join()
-        
-
-
-
-
-
-# run_thread -> code generator
-# run_thread -> analyzer
-# anlyzer qeue.get() <- 여기서 스핀락인지? 아니면 성능에 영향이 없는지 확인 필ㄹ요할듯
-# get() -> here: jmp here
-# compiler start / gcc, clang(process형태로 연결)
-# compliers = [gcc_compiler, clang_compiler]
-# source_code = code_queue.get()
-# 병렬로
-# results['gcc'] = gcc_compiler.compile(source_code)
-# results['c;ang'] = clang_compiler.compile(source_code)
-# results 받기
-# analyzer.put(result)
-# anaylzer queue로 결과 전송
+    #generation_thread.join()
