@@ -115,7 +115,7 @@ def fuzzer_init():
 
 if __name__ == "__main__":
 
-    compilers, machine_info, analysis_thread =  fuzzer_init()
+    compilers, machine_info, analysis_thread, generation_thread =  fuzzer_init()
 
     while True:
         code_data = g.code_gen_queue.get()
