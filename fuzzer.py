@@ -44,7 +44,7 @@ class Compiler:
             exit()
 
     def compile(self, source_code):
-        self.sync_write_data(source_code)
+        self.sync_write_data(source_code + "\n")
         line = self.process.stdout.readline()
         processed_line = preprocess_json_string(line)
         return json.loads(processed_line)
