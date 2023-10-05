@@ -10,8 +10,11 @@ import threading
 import queue
 import time
 import signal
-from forkserver_generator import generator as g
 import re
+import sys
+sys.path.append('./forkserver_generator')  # 경로 추가
+from forkserver_generator import generator as gen_obj
+
 
 def preprocess_json_string(s):
     s = s.replace("\'", "\"")  # 작은따옴표를 큰따옴표로 교체
@@ -95,7 +98,7 @@ def analyze_results_thread():
             time.sleep(5)
 
 def generate_codes_thread(csmith_temp_path, yarpgen_temp_path):
-    g.gen_main(csmith_temp_path, yarpgen_temp_path)
+    gen_obj.gen_main(csmith_temp_path, yarpgen_temp_path)
             
 
 def fuzzer_init():
@@ -125,7 +128,7 @@ if __name__ == "__main__":
     compilers, machine_info, analysis_thread, generation_thread =  fuzzer_init()
 
     while True:
-        code_data = g.code_gen_queue.get()
+        code_data = gen_obj.code_gen_queue.get()
         generator_name = code_data['generator']
         id = code_data['uuid']
         input_src = code_data['file_path']
