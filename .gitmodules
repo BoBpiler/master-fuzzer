@@ -1,3 +1,6 @@
 [submodule "forkserver_code"]
 	path = forkserver_code
 	url = https://github.com/BoBpiler/BoBpiler-forkserver.git
+[submodule "forkserver_generator"]
+	path = forkserver_generator
+	url = https://github.com/BoBpiler/BoBpiler-Generator.git
