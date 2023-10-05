@@ -71,6 +71,7 @@ class Compiler:
 
 
 analyze_queue = queue.Queue()
+error_queue = queue.Queue()
 
 # 종료 신호를 처리하기 위한 이벤트 객체 생성
 shutdown_event = threading.Event()
@@ -128,7 +129,14 @@ if __name__ == "__main__":
         generator_name = code_data['generator']
         id = code_data['uuid']
         input_src = code_data['file_path']
-        results = compile_and_run(compilers, id, generator_name, input_src)
+
+        results, error_compilers = compile_and_run(compilers, id, generator_name, input_src)
+        if error_compilers: 
+            for error_compiler in error_compilers:
+                error_compiler.start()
+            error_queue.put(code_data)
+            continue
+
         result_data = (generator_name, id, results, machine_info)
         analyze_queue.put(result_data)
     

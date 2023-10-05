@@ -10,33 +10,40 @@ def compile_and_run(compilers, id, generator_name, input_src):
         futures = [executor.submit(compiler.compile, input_src) for compiler in compilers]
         compile_results = {compilers[i].name: future.result() for i, future in enumerate(futures)}
 
-    
+    error_compilers = []
+
     for compiler_name, compile_result in compile_results.items():
-        for optimization_level, status in compile_result["result"].items():
-            binary_path, result_dict = init_result(compile_result['binary_base'], id, generator_name, compiler_name, optimization_level)
-            
-            # 컴파일 결과를 result_dict에 저장
-            if status == "0":
-                result_dict['compile']['status'] = True
-                result_dict['compile']['return_code'] = status
-                run_tasks.append((binary_path, result_dict))
-            else:
-                result_dict['compile']['return_code'] = status
-                result_dict['compile']['status'] = False
-                # results에 결과 저장
+        if "exit_code" in compile_result:
+            error_compilers.append(compiler_name)
+            continue
+        else:
+            for optimization_level, status in compile_result["result"].items():
+                binary_path, result_dict = init_result(compile_result['binary_base'], id, generator_name, compiler_name, optimization_level)
+                
+                # 컴파일 결과를 result_dict에 저장
+                if status == "0":
+                    result_dict['compile']['status'] = True
+                    result_dict['compile']['return_code'] = status
+                    run_tasks.append((binary_path, result_dict))
+                else:
+                    result_dict['compile']['return_code'] = status
+                    result_dict['compile']['status'] = False
+                    # results에 결과 저장
+                    results[binary_path] = result_dict
+    if error_compilers:
+        return (None, error_compilers)
+    else:
+        # binary run 
+        with concurrent.futures.ProcessPoolExecutor() as executor:
+            futures = []
+            for binary_path, result_dict in run_tasks:
+                futures.append(executor.submit(run_binary, binary_path, result_dict))
+
+            # 작업 완료 및 결과 저장
+            for future in futures:
+                binary_path, result_dict = future.result()
                 results[binary_path] = result_dict
-    # binary run 
-    with concurrent.futures.ProcessPoolExecutor() as executor:
-        futures = []
-        for binary_path, result_dict in run_tasks:
-            futures.append(executor.submit(run_binary, binary_path, result_dict))
-
-        # 작업 완료 및 결과 저장
-        for future in futures:
-            binary_path, result_dict = future.result()
-            results[binary_path] = result_dict
-
-    return results
+        return (results, [])
 
 
 
