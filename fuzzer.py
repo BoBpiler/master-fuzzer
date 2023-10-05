@@ -11,8 +11,12 @@ import queue
 import time
 import signal
 from forkserver_generator import generator as g
+import re
 
-
+def preprocess_json_string(s):
+    s = s.replace("\'", "\"")  # 작은따옴표를 큰따옴표로 교체
+    s = re.sub(r',\s*}', '}', s)  # 마지막 , 제거
+    return s
 
 class Compiler:
     def __init__(self, name, path):
@@ -41,8 +45,9 @@ class Compiler:
 
     def compile(self, source_code):
         self.sync_write_data(source_code)
-        result_json_str = self.process.stdout.readline()
-        return json.loads(result_json_str)
+        line = self.process.stdout.readline()
+        processed_line = preprocess_json_string(line)
+        return json.loads(processed_line)
     
     def fork_handshake(self) -> bool:
         ret = self.process.stdout.readline()
