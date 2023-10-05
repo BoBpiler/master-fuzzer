@@ -78,6 +78,7 @@ shutdown_event = threading.Event()
 def signal_handler(signum, frame):
     print("Signal received, shutting down")
     shutdown_event.set()
+    exit(0)
 
 # 시그널 핸들러 설정
 signal.signal(signal.SIGINT, signal_handler)
