@@ -18,8 +18,9 @@ install_gcc() {
   ../configure --prefix=$HOME/gcc-trunk\
                --enable-languages=c,c++ \
                --disable-multilib \
-               --program-suffix=-trunk || { echo "Configure failed"; return 1; }
-  make -j $(expr `nproc` / 2) || { echo "Make failed"; return 1; }
+               --program-suffix=-trunk \
+               --disable-bootstrap || { echo "Configure failed"; return 1; }
+  make -j 4 || { echo "Make failed"; return 1; }
   make install
   cd ../../
 }
@@ -31,7 +32,7 @@ install_clang() {
   git checkout llvmorg-18-init || { echo "Failed to checkout llvmorg-18-init"; return 1; }
   mkdir build && cd build || { echo "Failed to enter build directory"; return 1; }
   cmake -DLLVM_ENABLE_PROJECTS=clang -DCMAKE_BUILD_TYPE=Release -G "Unix Makefiles" ../llvm || { echo "CMake failed"; return 1; }
-  make -j $(expr `nproc` / 2) || { echo "Make failed"; return 1; }
+  make -j 4 || { echo "Make failed"; return 1; }
   cd ../../
 }
 
