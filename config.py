@@ -239,6 +239,22 @@ def cleanup_temp(generator):
         print(f"An error occurred while deleting {full_path}: {e}")
 
 
+def cleanup_uuid_folder(generator, uuid):
+    # uuid 폴더의 절대 경로 구하기
+    uuid_dir_path = os.path.join(TEMP_DIRS[generator], uuid)
+
+    # 해당 폴더가 있는지 확인
+    if os.path.exists(uuid_dir_path) and os.path.isdir(uuid_dir_path):
+        try:
+            # uuid 폴더와 그 내부의 모든 파일 및 서브디렉토리 삭제
+            shutil.rmtree(uuid_dir_path)
+            #print(f"Successfully deleted {uuid_dir_path}.")
+        except (FileNotFoundError, PermissionError, OSError) as e:
+            print(f"An error occurred while deleting {uuid_dir_path}: {e}")
+    else:
+        print(f"UUID directory {uuid_dir_path} does not exist.")
+
+
 # get_machine_info 함수: 해당 머신의 정보를 가져오는 함수
 # argv: None
 # return: info_dict - OS, hostname, IP, whoami, ssh pub key hash 값을 담고 있음
