@@ -72,7 +72,7 @@ def run_binary(binary_path, result_dict):
     }
 
     try:
-        result = subprocess.run(f'./{binary_path}', shell=True, capture_output=True, timeout=binary_time_out)
+        result = subprocess.run(f'{binary_path}', shell=True, capture_output=True, timeout=binary_time_out)
         print(f"{binary_path} Result obtained: {result.stdout.decode('utf-8')}")
         
         # return code를 확인합니다.

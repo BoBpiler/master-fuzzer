@@ -98,6 +98,15 @@ def detect_abnormal_compile(results):
     for key, result_dict in results.items():
         compile_status = result_dict['compile']['status']
         return_code = result_dict['compile']['return_code']
+
+        # return_code가 문자열 형태의 숫자일 경우 정수로 변환
+        if isinstance(return_code, str) and return_code.isdigit():
+            return_code = int(return_code)
+
+        # return_code가 정수가 아닌 경우 continue로 다음 iteration으로 이동
+        if not isinstance(return_code, int):
+            continue
+        
         if return_code is not None:         # None인 경우도 고려
             normalized_return_code = normalize_returncode(return_code)
             if not compile_status and normalized_return_code not in [0, 1, 9]:
