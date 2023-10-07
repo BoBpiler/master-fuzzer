@@ -79,29 +79,32 @@ def compile(binary_name, path, generator, id, compiler, optimization_level):
         #logging.info(f"Starting compile for {path} with {compiler} and optimization level {optimization_level}")
         # 바이너리 파일의 이름 
 
+        command = None
         if generator == 'yarpgen':
-            # yarpgen 경우, 디렉터리 내의 모든 .c 파일을 컴파일 [compiler, *c_files, '-o', binary_name, f'-O{optimization_level}', f'-I{path}']
             c_files = [os.path.join(path, f) for f in ['driver.c', 'func.c']]
-            result = subprocess.run( f'{compiler} {c_files[0]} {c_files[1]} -o {binary_name} -O{optimization_level} -I{path}', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=compile_time_out)
-            
+            command = f'{compiler} {c_files[0]} {c_files[1]} -o {binary_name} -O{optimization_level} -I{path}'
         elif generator == 'csmith':
-            # csmith의 경우 [compiler, path, '-o', binary_name, f'-O{optimization_level}', f'-I{csmith_include}']
-            result = subprocess.run( f'{compiler} {path} -o {binary_name} -O{optimization_level} -I{csmith_include}', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=compile_time_out)
+            command = f'{compiler} {path} -o {binary_name} -O{optimization_level} -I{csmith_include}'
         
+        proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = proc.communicate(timeout=compile_time_out)
+        returncode = proc.returncode
+
         # 컴파일 실패시 넘어가기 
-        if result.returncode != 0:
+        if returncode != 0:
             compile_result['status'] = False
-            compile_result['return_code'] = result.returncode
-            compile_result['error_type'] = analyze_returncode(result.returncode, "compilation")
-            compile_result['error_message'] = result.stderr.decode('utf-8')
-            logging.warning(f"Compilation failed for {path} with return code {result.returncode}")
+            compile_result['return_code'] = returncode
+            compile_result['error_type'] = analyze_returncode(returncode, "compilation")
+            compile_result['error_message'] = stderr.decode('utf-8')
+            logging.warning(f"Compilation failed for {path} with return code {returncode}")
             return compile_result
         
         compile_result['status'] = True
-        compile_result['return_code'] = result.returncode
+        compile_result['return_code'] = returncode
         return compile_result
     
     except subprocess.TimeoutExpired as e:
+        proc.kill()  # 타임아웃 발생 시, 프로세스 종료
         return handle_exception(e, TIMEOUT_ERROR, compile_result, binary_name)
     except subprocess.SubprocessError as e:
         return handle_exception(e, UNKNOWN_SUBPROCESS_ERROR, compile_result, binary_name)
@@ -121,35 +124,37 @@ def run_binary(binary_name, compiler_info):
     
     compiler_type = compiler_info['type']
     #output_filename = f"results/{compiler}/{id}_{compiler}_O{optimization_level}.txt"
+    command = None
     try:
-        #logging.info(f"Starting run_binary for {binary_name}")  ['qemu-aarch64-static', '-L', '/usr/aarch64-linux-gnu', f'./{binary_name}']
         binary_name_only = os.path.basename(binary_name)
         if compiler_type == 'cross-aarch64':
-            result = subprocess.run(f'qemu-aarch64-static -L /usr/aarch64-linux-gnu ./{binary_name}', shell=True, capture_output=True, timeout=binary_time_out)
-            print(f"{binary_name_only} Result obtained: {result.stdout.decode('utf-8')}")
+            command = f'qemu-aarch64-static -L /usr/aarch64-linux-gnu ./{binary_name}'
         elif compiler_type == 'cross-riscv64':
-            result = subprocess.run(f'qemu-riscv64-static ./{binary_name}', shell=True, capture_output=True, timeout=binary_time_out)
-            print(f"{binary_name_only} Result obtained: {result.stdout.decode('utf-8')}")
+            command = f'qemu-riscv64-static ./{binary_name}'
         else:
-            result = subprocess.run(f'./{binary_name}', shell=True, capture_output=True, timeout=binary_time_out)
-            print(f"{binary_name_only} Result obtained: {result.stdout.decode('utf-8')}")
-        
-        # return code를 확인합니다.
-        run_result['return_code'] = result.returncode
-        if result.returncode != 0:
-            run_result['status'] = False
-            run_result['error_type'] = analyze_returncode(result.returncode, "execution")
-            run_result['error_message'] = result.stderr.decode('utf-8')
-        else:
-            run_result['status'] = True
-            run_result['result'] = result.stdout.decode('utf-8')
-        return run_result
-    except subprocess.TimeoutExpired as e:
-        # TimeoutExpired: 프로세스가 지정된 시간 내에 완료되지 않았을 때 발생
-        return handle_exception(e, TIMEOUT_ERROR, run_result, binary_name)
-    except subprocess.CalledProcessError as e:
-        # CalledProcessError: 명령어가 0이 아닌 상태 코드를 반환했을 때 발생 이 부분은 앞의 returncode랑 동일하지 않을까 싶습니다.
-        return handle_exception(e, CALLED_PROCESS_ERROR, run_result, binary_name)
+            command = f'./{binary_name}'
+        try:
+            proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            stdout, stderr = proc.communicate(timeout=binary_time_out)
+            returncode = proc.returncode
+            # return code를 확인합니다.
+            run_result['return_code'] = returncode
+            if returncode != 0:
+                run_result['status'] = False
+                run_result['error_type'] = analyze_returncode(returncode, "execution")
+                run_result['error_message'] = stderr.decode('utf-8')
+            else:
+                run_result['status'] = True
+                run_result['result'] = stdout.decode('utf-8')
+                print(f"{binary_name_only} Result obtained: {stdout.decode('utf-8')}")
+            return run_result
+        except subprocess.TimeoutExpired as e:
+            # TimeoutExpired: 프로세스가 지정된 시간 내에 완료되지 않았을 때 발생
+            proc.kill()
+            return handle_exception(e, TIMEOUT_ERROR, run_result, binary_name)
+        except subprocess.CalledProcessError as e:
+            # CalledProcessError: 명령어가 0이 아닌 상태 코드를 반환했을 때 발생 이 부분은 앞의 returncode랑 동일하지 않을까 싶습니다.
+            return handle_exception(e, CALLED_PROCESS_ERROR, run_result, binary_name)
     except FileNotFoundError as e:
         # FileNotFoundError: 바이너리 파일을 찾을 수 없을 때 발생
         return handle_exception(e, FILE_NOT_FOUND_ERROR, run_result, binary_name)
