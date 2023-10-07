@@ -1,21 +1,7 @@
 # BoBpiler-fuzzer
 
-gcc, clang 등의 컴파일러 버그 탐지를 위한 퍼저입니다.
+기존 퍼저와 최적화 퍼저의 속도 차이를 비교하기 위한 브랜치입니다.
 
-
-
-**Note**: 결과를 분석하는 로직을 더 발전시켜야 할 것 같습니다.
-
-## Telegram Notification Setup
-
-알림을 받기 위해서는 텔레그램 봇 설정이 필요합니다.
-
-### Steps:
-1. **Get your Bot Token**: Telegram's BotFather를 통해 봇을 생성하고 토큰을 획득합니다.
-2. **Find your Chat ID**: 텔레그램 봇에 메시지를 보내고 `/getUpdates` API 메서드를 사용하여 Chat ID를 찾습니다.
-3. **Edit `config.py`**: 프로젝트 폴더에서 `conf.py` 파일을 열고, `TOKEN`과 `CHAT_ID` 변수에 획득한 Bot Token과 Chat ID를 할당합니다.
-
-## 사용법
 
 ### 1. 필수 설치
 
@@ -26,14 +12,19 @@ sh ./install.sh
 
 `install.sh` 스크립트를 실행하면 필요한 모든 설정과 파일들이 자동으로 설치됩니다.
 
-### 2. 퍼저 실행
+사실 해당 브랜치에서 필요한 것은 clang-18, gcc-trunk 바이너리가 필요합니다.
+
+
+### 2. 프로파일링 실행
 
 ```bash
-chmod +x run.sh
-sh ./run.sh
+python3 code_generate.py
+python3 new_fuzzer.py
+python3 older_fuzzer.py
 ```
+우선, code_generate.py를 실행해서 테스트 용 코드를 1000개 생성합니다.
 
-퍼저를 실행하기 위해서는 `run.sh` 스크립트를 사용해야 합니다. 이 스크립트는 gcc와 clang을 업데이트 한 뒤 퍼저를 실행합니다.
+new_fuzzer.py, older_fuzzer.py 를 각각 실행해서 시간을 측정합니다.
 
 ## 3. 결과 저장 구조
 
