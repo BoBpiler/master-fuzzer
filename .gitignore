@@ -10,3 +10,5 @@ BoBpiler
 BoBpiler.pub
 riscv-gnu-toolchain
 riscv64-unknown-elf-gcc
+new_fuzzer_output
+older_fuzzer_output
