@@ -6,6 +6,7 @@ def compile_and_run(compilers, id, generator_name, input_src):
     results = {} # 모든 결과를 기록함
     run_tasks = []  # 바이너리 병렬 실행을 위한 작업 목록
 
+    # 여기를 해결해야함
     with concurrent.futures.ThreadPoolExecutor() as executor:
         futures = [executor.submit(compiler.compile, input_src) for compiler in compilers]
         compile_results = {compilers[i].name: future.result() for i, future in enumerate(futures)}

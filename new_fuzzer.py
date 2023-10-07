@@ -7,7 +7,7 @@ from new_running_system import*
 import logging
 import uuid
 import threading
-import queue
+import multiprocessing
 import time
 import signal
 import re
@@ -70,8 +70,8 @@ class Compiler:
 
 
 
-analyze_queue = queue.Queue()
-error_queue = queue.Queue()
+analyze_queue = multiprocessing.Queue()
+error_queue = multiprocessing.Queue()
 
 shutdown_event = threading.Event()
 
@@ -90,8 +90,8 @@ def analyze_results_thread():
         if not analyze_queue.empty():
             data = analyze_queue.get()
             analyze_results(*data)
-        else:
-            time.sleep(10)
+        #else:
+        #    time.sleep(10)
 
 def fuzzer_init():
     gcc_compiler = Compiler(name="gcc", path="./gcc-trunk")

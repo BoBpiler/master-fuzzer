@@ -13,3 +13,6 @@ riscv64-unknown-elf-gcc
 new_fuzzer_output
 older_fuzzer_output
 saved_codes.json
+build/
+.vscode/
+.idea/
