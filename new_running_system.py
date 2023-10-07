@@ -1,7 +1,7 @@
 from new_config import *
 import concurrent.futures
 import logging
-
+import signal
 def compile_and_run(compilers, id, generator_name, input_src):
     results = {} # 모든 결과를 기록함
     run_tasks = []  # 바이너리 병렬 실행을 위한 작업 목록
@@ -73,7 +73,7 @@ def run_binary(binary_path, result_dict):
 
     try:
         command = f'{binary_path}'
-        proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=os.setsid)
         stdout, stderr = proc.communicate(timeout=binary_time_out)
         returncode = proc.returncode
         # return code를 확인합니다.
@@ -91,7 +91,7 @@ def run_binary(binary_path, result_dict):
         return (binary_path, result_dict)
     except subprocess.TimeoutExpired as e:
         # TimeoutExpired: 프로세스가 지정된 시간 내에 완료되지 않았을 때 발생
-        proc.kill()
+        os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
         result_dict['run'] = handle_exception(e, TIMEOUT_ERROR, run_result, binary_path)
         return (binary_path, result_dict)
     except subprocess.CalledProcessError as e:
