@@ -1,9 +1,9 @@
 import subprocess
 import concurrent.futures
 import json
-from config import*
-from analyzer import*
-from running_system import*
+from new_config import*
+from new_analyzer import*
+from new_running_system import*
 import logging
 import uuid
 import threading
@@ -12,8 +12,8 @@ import time
 import signal
 import re
 import sys
-sys.path.append('./forkserver_generator')  # 경로 추가
-from forkserver_generator import generator as gen_obj
+import time
+
 
 
 def preprocess_json_string(s):
@@ -33,12 +33,10 @@ class Compiler:
         self.process.stdin.flush()
 
     def start(self):
-        # 여기에서 프로세스를 시작하고 초기화 합니다.
         self.process = subprocess.Popen(
             [self.path, "bob.c"], 
             stdin=subprocess.PIPE, 
             stdout=subprocess.PIPE, 
-            #stderr=subprocess.PIPE,  # 컴파일 과정에서의 출력 무시
             text=True
         )
         success = self.fork_handshake()
@@ -68,7 +66,6 @@ class Compiler:
         if "time_out_set" not in ret:
             print("failed to set time out\n")
             return False 
-        #print("success set time out!")
         return True
 
 
@@ -76,7 +73,6 @@ class Compiler:
 analyze_queue = queue.Queue()
 error_queue = queue.Queue()
 
-# 종료 신호를 처리하기 위한 이벤트 객체 생성
 shutdown_event = threading.Event()
 
 def signal_handler(signum, frame):
@@ -95,11 +91,7 @@ def analyze_results_thread():
             data = analyze_queue.get()
             analyze_results(*data)
         else:
-            time.sleep(5)
-
-def generate_codes_thread(csmith_temp_path, yarpgen_temp_path):
-    gen_obj.gen_main(csmith_temp_path, yarpgen_temp_path)
-            
+            time.sleep(10)
 
 def fuzzer_init():
     gcc_compiler = Compiler(name="gcc", path="./gcc-trunk")
@@ -109,26 +101,33 @@ def fuzzer_init():
     # 컴파일러를 시작
     for compiler in compilers:
         compiler.start() 
-    
-    csmith_temp_path = get_absolute_temp_path('csmith')
-    yarpgen_temp_path = get_absolute_temp_path('yarpgen')
-    setup_output_dirs(generators)
+
     machine_info = get_machine_info()
     analysis_thread = threading.Thread(target=analyze_results_thread, daemon=True)
-    generation_thread = threading.Thread(target=generate_codes_thread, args=(csmith_temp_path, yarpgen_temp_path), daemon=True)
 
-    generation_thread.start()
     analysis_thread.start()
 
-    return (compilers, machine_info, analysis_thread, generation_thread)
+    return (compilers, machine_info, analysis_thread)#, generation_thread)
 
+def save_to_json_file(data, filename):
+    with open(filename, 'w') as f:
+        json.dump(data, f)
 
+def load_from_json_file(filename):
+    with open(filename, 'r') as f:
+        return json.load(f)
+    
 if __name__ == "__main__":
 
-    compilers, machine_info, analysis_thread, generation_thread =  fuzzer_init()
+    compilers, machine_info, analysis_thread =  fuzzer_init()
 
-    while True:
-        code_data = gen_obj.code_gen_queue.get()
+    iteration_count = 0  # 반복 횟수를 카운트하기 위한 변수
+    codes_to_save = []
+    codes_from_file = load_from_json_file("saved_codes.json")
+
+    start_time = time.time()  # 시작 시간 기록
+    for code in codes_from_file:
+        code_data = code
         generator_name = code_data['generator']
         id = code_data['uuid']
         input_src = code_data['file_path']
@@ -142,6 +141,8 @@ if __name__ == "__main__":
 
         result_data = (generator_name, id, results, machine_info)
         analyze_queue.put(result_data)
-    
-    #analysis_thread.join()
-    #generation_thread.join()
+        iteration_count += 1
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    print(f"{iteration_count} iterations completed in {elapsed_time} seconds.")
+

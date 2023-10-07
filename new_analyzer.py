@@ -1,6 +1,6 @@
 # Analyzer.py
 # 테스트 케이스가 분석되면 적용해서 발전시켜보겠습니다.
-from config import*
+from new_config import*
 import shutil
 import os
 import json
@@ -40,7 +40,7 @@ def analyze_results(generator, id, results, machine_info, partial_timeout=True):
                 print(msg)
                 id_folder_path = save_to_folder(generator, id, results, "abnormal_binary")
                 send_telegram_message(machine_info, generator, id, "Abnormal Binary", msg, id_folder_path, os.path.join(id_folder_path, f"{id}_result.txt"))
-        cleanup_uuid_folder(generator, id)
+        #cleanup_uuid_folder(generator, id)
     except Exception as e:
         logging.error(f"An unexpected error occurred in analyze_results for generator {generator} and task {id}: {e}")
 

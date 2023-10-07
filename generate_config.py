@@ -25,9 +25,9 @@ generators = ['csmith', 'yarpgen']
 
 # 수행 횟수 및 타임아웃
 total_tasks = 100 
-generator_time_out = 30
-compile_time_out = 30
-binary_time_out = 30
+generator_time_out = 10
+compile_time_out = 5
+binary_time_out = 10
 
 
 

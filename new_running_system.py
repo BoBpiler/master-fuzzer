@@ -1,4 +1,4 @@
-from config import *
+from new_config import *
 import concurrent.futures
 import logging
 
