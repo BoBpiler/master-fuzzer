@@ -72,23 +72,26 @@ def run_binary(binary_path, result_dict):
     }
 
     try:
-        result = subprocess.run(f'{binary_path}', shell=True, capture_output=True, timeout=binary_time_out)
-        print(f"{binary_path} Result obtained: {result.stdout.decode('utf-8')}")
-        
+        command = f'{binary_path}'
+        proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = proc.communicate(timeout=binary_time_out)
+        returncode = proc.returncode
         # return code를 확인합니다.
-        run_result['return_code'] = result.returncode
-        if result.returncode != 0:
+        run_result['return_code'] = returncode
+        if returncode != 0:
             run_result['status'] = False
-            run_result['error_type'] = analyze_returncode(result.returncode, "execution")
-            run_result['error_message'] = result.stderr.decode('utf-8')
+            run_result['error_type'] = analyze_returncode(returncode, "execution")
+            run_result['error_message'] = stderr.decode('utf-8')
         else:
             run_result['status'] = True
-            run_result['result'] = result.stdout.decode('utf-8')
+            run_result['result'] = stdout.decode('utf-8')
+            print(f"{binary_path} Result obtained: {stdout.decode('utf-8')}")
         
         result_dict['run'] = run_result
         return (binary_path, result_dict)
     except subprocess.TimeoutExpired as e:
         # TimeoutExpired: 프로세스가 지정된 시간 내에 완료되지 않았을 때 발생
+        proc.kill()
         result_dict['run'] = handle_exception(e, TIMEOUT_ERROR, run_result, binary_path)
         return (binary_path, result_dict)
     except subprocess.CalledProcessError as e:
