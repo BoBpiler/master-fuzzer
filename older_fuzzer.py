@@ -20,7 +20,7 @@ def load_from_json_file(filename):
     with open(filename, 'r') as f:
         return json.load(f)
 
-def process_test_codes(code_data):
+def process_test_codes(code_data, machine_info):
     try:
         generator = code_data['generator']
         id = code_data['uuid']
@@ -44,7 +44,6 @@ def process_test_codes(code_data):
                     results[key] = result_dict
                 
             if len(results) > 0:
-                machine_info = get_machine_info()
                 analyze_results(generator, id, random_seed, results, machine_info, True)  # Assuming partial_timeout as True
             else:
                 logging.critical(f"CRITICAL ERROR: This is an exceptional case which means impossible and requires immediate attention.")
@@ -55,9 +54,10 @@ def process_test_codes(code_data):
 def main():
     codes_from_file = load_from_json_file("saved_codes.json")
     iteration_count = 0
+    machine_info = get_machine_info()
     start_time = time.time()  # 시작 시간 기록
     for code_data in codes_from_file:
-        process_test_codes(code_data)
+        process_test_codes(code_data, machine_info)
         iteration_count += 1
     end_time = time.time()
     elapsed_time = end_time - start_time
