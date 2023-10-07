@@ -53,7 +53,7 @@ def process_test_codes(code_data):
 
 # main 함수: 퍼징을 수행하는 총괄 코드
 def main():
-    codes_from_file = load_from_json_file("saved1_codes.json")
+    codes_from_file = load_from_json_file("saved_codes.json")
     iteration_count = 0
     start_time = time.time()  # 시작 시간 기록
     for code_data in codes_from_file:
