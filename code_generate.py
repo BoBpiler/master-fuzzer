@@ -65,7 +65,7 @@ if __name__ == "__main__":
         codes_to_save.append(code_data)
         # 반복 횟수 업데이트 및 체크
         iteration_count += 1
-        if iteration_count >= 100:
+        if iteration_count >= 1000:
             # 1000개 데이터를 JSON 파일로 저장
             save_to_json_file(codes_to_save, "saved_codes.json")
             os.killpg(generation_process.pid, signal.SIGKILL)
