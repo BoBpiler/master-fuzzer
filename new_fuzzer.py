@@ -13,7 +13,7 @@ import signal
 import re
 import sys
 import time
-
+import multiprocessing
 
 
 def preprocess_json_string(s):
@@ -70,8 +70,8 @@ class Compiler:
 
 
 
-analyze_queue = queue.Queue()
-error_queue = queue.Queue()
+analyze_queue = multiprocessing.Queue()
+error_queue = multiprocessing.Queue()
 
 shutdown_event = threading.Event()
 
