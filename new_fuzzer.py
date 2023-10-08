@@ -58,7 +58,7 @@ def fuzzer_init():
 
     machine_info = get_machine_info()
 
-    return (compilers, machine_info, analysis_thread)#, generation_thread)
+    return (compilers, machine_info)#, analysis_thread)#, generation_thread)
 
 def save_to_json_file(data, filename):
     with open(filename, 'w') as f:
@@ -70,7 +70,7 @@ def load_from_json_file(filename):
     
 if __name__ == "__main__":
 
-    compilers, machine_info, analysis_thread =  fuzzer_init()
+    compilers, machine_info  =  fuzzer_init()
 
     iteration_count = 0  # 반복 횟수를 카운트하기 위한 변수
     codes_to_save = []
