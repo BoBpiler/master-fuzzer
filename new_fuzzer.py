@@ -53,37 +53,10 @@ class Compilers_Manager:
         return self._compiler.py_exit_compilers().decode('utf-8')
 
 
-
-analyze_queue = multiprocessing.Queue()
-error_queue = multiprocessing.Queue()
-
-shutdown_event = threading.Event()
-
-def signal_handler(signum, frame):
-    print("Signal received, shutting down")
-    shutdown_event.set()
-    exit(0)
-
-# 시그널 핸들러 설정
-signal.signal(signal.SIGINT, signal_handler)
-signal.signal(signal.SIGTERM, signal_handler)
-
-
-def analyze_results_thread():
-    while not shutdown_event.is_set():
-        if not analyze_queue.empty():
-            data = analyze_queue.get()
-            analyze_results(*data)
-        else:
-            time.sleep(10)
-
 def fuzzer_init():
     compilers = Compilers_Manager()
 
     machine_info = get_machine_info()
-    analysis_thread = threading.Thread(target=analyze_results_thread, daemon=True)
-
-    analysis_thread.start()
 
     return (compilers, machine_info, analysis_thread)#, generation_thread)
 
@@ -109,16 +82,8 @@ if __name__ == "__main__":
         generator_name = code_data['generator']
         id = code_data['uuid']
         input_src = code_data['file_path']
-
-        results, error_compilers = compile_and_run(compilers, id, generator_name, input_src)
-        # if error_compilers: 
-        #     for error_compiler in error_compilers:
-        #         error_compiler.start()
-        #     error_queue.put(code_data)
-        #     continue
-
-        result_data = (generator_name, id, results, machine_info)
-        analyze_queue.put(result_data)
+        compile_results = compilers.compile(input_src)
+        print(compile_results)
         iteration_count += 1
     end_time = time.time()
     elapsed_time = end_time - start_time

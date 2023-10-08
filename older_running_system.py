@@ -98,17 +98,17 @@ def compile(binary_name, path, generator, id, compiler, optimization_level):
             compile_result['error_type'] = analyze_returncode(returncode, "compilation")
             compile_result['error_message'] = stderr.decode('utf-8')
             logging.warning(f"Compilation failed for {path} with return code {returncode}")
-            return compile_result
+            return (binary_name, compile_result)
         
         compile_result['status'] = True
         compile_result['return_code'] = returncode
-        return compile_result
+        return (binary_name, compile_result)
     
     except subprocess.TimeoutExpired as e:
         os.killpg(os.getpgid(proc.pid), signal.SIGTERM)   # 타임아웃 발생 시, 프로세스 종료
-        return handle_exception(e, TIMEOUT_ERROR, compile_result, binary_name)
+        return (binary_name, handle_exception(e, TIMEOUT_ERROR, compile_result, binary_name))
     except subprocess.SubprocessError as e:
-        return handle_exception(e, UNKNOWN_SUBPROCESS_ERROR, compile_result, binary_name)
+        return (binary_name, handle_exception(e, UNKNOWN_SUBPROCESS_ERROR, compile_result, binary_name))
 
 
 # run_binary 함수: 바이너리를 실행하고, 실행 결과를 반환

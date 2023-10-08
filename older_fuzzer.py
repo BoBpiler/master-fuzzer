@@ -26,14 +26,15 @@ def process_test_codes(code_data, machine_info):
         id = code_data['uuid']
         filepath = code_data['original_fuzzer_path'] 
         random_seed = None  # No random seed
-        
         with ProcessPoolExecutor() as executor:
             futures = []
             results = {}
             # 컴파일 및 실행 (gcc, clang으로 -O0 ~ -O3 옵션 주어서 컴파일 하고 실행 결과 저장)
             for compiler in compilers:
                 for opt_level in optimization_levels:
-                    futures.append(executor.submit(compile_and_run, filepath, generator, id, compiler, opt_level, random_seed))
+                    folder_name = compiler['folder_name']
+                    key = f"{TEMP_DIRS[generator]}/{id}/{folder_name}_O{opt_level}"
+                    futures.append(executor.submit(compile, key, filepath, generator, id, compiler['name'], opt_level))
                             
             for future in futures:
                 result = future.result()
@@ -42,11 +43,6 @@ def process_test_codes(code_data, machine_info):
                     if key == "error":  # 에러 처리
                         continue
                     results[key] = result_dict
-                
-            if len(results) > 0:
-                analyze_results(generator, id, random_seed, results, machine_info, True)  # Assuming partial_timeout as True
-            else:
-                logging.critical(f"CRITICAL ERROR: This is an exceptional case which means impossible and requires immediate attention.")
     except Exception as e:
         logging.error(f"An unexpected error occurred for UUID {id}: {e}")
 
