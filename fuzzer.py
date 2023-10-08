@@ -46,8 +46,8 @@ class Compilers_Manager:
         return s
     
     def compile(self, source_code_path: str) -> str:
-        c_string_path = self.make_cstring(source_code_path)
-        results = self.compilers_manager.py_compile(c_string_path).decode('utf-8')
+        c_string_path = self._make_cstring(source_code_path)
+        results = self._compiler.py_compile(c_string_path).decode('utf-8')
         processed_results = self.preprocess_json_string(results)
         return json.loads(processed_results)
 
