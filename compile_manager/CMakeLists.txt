@@ -4,7 +4,8 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_subdirectory("pipe_manager")
-add_executable(${PROJECT_NAME} "compile_manager.cpp")
+#add_executable(${PROJECT_NAME} "compile_manager.cpp")
+add_library(${PROJECT_NAME} SHARED "compile_manager.cpp")
 
 target_link_libraries(${PROJECT_NAME}
 	PUBLIC
