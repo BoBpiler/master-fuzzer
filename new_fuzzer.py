@@ -14,59 +14,43 @@ import re
 import sys
 import time
 import multiprocessing
+import ctypes
 
-
-def preprocess_json_string(s):
-    s = s.replace("\'", "\"")  # 작은따옴표를 큰따옴표로 교체
-    s = re.sub(r',\s*}', '}', s)  # 마지막 , 제거
-    return s
-
-class Compiler:
-    def __init__(self, name, path):
-        self.name = name
-        self.path = path
-        self.process = None
-        self.compile_time_out = "5\n"
+class Compilers_Manager:
+    def __init__(self, lib_path='./lib/libcompile_manager.so'):
+        self._compiler = ctypes.CDLL(lib_path)
+        self._init_ctypes_methods()
+        if not self._init_compilers():
+            raise Exception("Failed to initialize compilers")
     
-    def sync_write_data(self, data:str) :
-        self.process.stdin.write(data)
-        self.process.stdin.flush()
+    def _init_ctypes_methods(self):
+        self._compiler.py_compile.restype = ctypes.c_char_p
+        self._compiler.py_exit_compilers.restype = ctypes.c_char_p
 
-    def start(self):
-        self.process = subprocess.Popen(
-            [self.path, "bob.c"], 
-            stdin=subprocess.PIPE, 
-            stdout=subprocess.PIPE, 
-            text=True
-        )
-        success = self.fork_handshake()
-        if not success:
-            print("Handshake failed!")
-            exit()
-
-    def compile(self, source_code):
-        self.sync_write_data(source_code + "\n")
-        line = self.process.stdout.readline()
-        processed_line = preprocess_json_string(line)
-        return json.loads(processed_line)
+    def _init_compilers(self) -> bool:
+        returncode = self._compiler.py_init_compilers()
+        return returncode == 1
     
-    def fork_handshake(self) -> bool:
-        ret = self.process.stdout.readline()
-        if ret not in "fork client hello\n" : 
-            print("fork client hello failed")
-            return False
-        self.sync_write_data("fork server hello\n")
-        ret = self.process.stdout.readline()
-        if ret not in "done\n" :
-            print("fork server hello failed\n")
-            return False
-        # set timeout
-        self.sync_write_data(self.compile_time_out)
-        ret = self.process.stdout.readline()
-        if "time_out_set" not in ret:
-            print("failed to set time out\n")
-            return False 
-        return True
+    @staticmethod
+    def _make_cstring(py_str: str) -> ctypes.c_char_p:
+        return ctypes.c_char_p(py_str.encode('utf-8'))
+
+    @staticmethod
+    def preprocess_json_string(s: str) -> str:
+        s = s.replace("\'", "\"")  # 작은따옴표를 큰따옴표로 교체
+        s = re.sub(r',\s*}', '}', s)  # 마지막 , 제거
+        s = re.sub(r',\s*]', ']', s)  # 마지막 배열 항목 후의 , 제거
+        return s
+    
+    def compile(self, source_code_path: str) -> str:
+        c_string_path = self._make_cstring(source_code_path + "\n")
+        results = self._compiler.py_compile(c_string_path).decode('utf-8')
+        processed_results = self.preprocess_json_string(results)
+        return json.loads(processed_results)
+
+    
+    def exit_compilers(self) -> str:
+        return self._compiler.py_exit_compilers().decode('utf-8')
 
 
 
@@ -94,13 +78,7 @@ def analyze_results_thread():
             time.sleep(10)
 
 def fuzzer_init():
-    gcc_compiler = Compiler(name="gcc", path="./gcc-trunk")
-    clang_compiler = Compiler(name="clang", path="./clang-18")
-    compilers = [gcc_compiler, clang_compiler]
-
-    # 컴파일러를 시작
-    for compiler in compilers:
-        compiler.start() 
+    compilers = Compilers_Manager()
 
     machine_info = get_machine_info()
     analysis_thread = threading.Thread(target=analyze_results_thread, daemon=True)
@@ -133,11 +111,11 @@ if __name__ == "__main__":
         input_src = code_data['file_path']
 
         results, error_compilers = compile_and_run(compilers, id, generator_name, input_src)
-        if error_compilers: 
-            for error_compiler in error_compilers:
-                error_compiler.start()
-            error_queue.put(code_data)
-            continue
+        # if error_compilers: 
+        #     for error_compiler in error_compilers:
+        #         error_compiler.start()
+        #     error_queue.put(code_data)
+        #     continue
 
         result_data = (generator_name, id, results, machine_info)
         analyze_queue.put(result_data)

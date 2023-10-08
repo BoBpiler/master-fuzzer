@@ -3,16 +3,14 @@ import concurrent.futures
 import logging
 import signal
 def compile_and_run(compilers, id, generator_name, input_src):
+    compile_results = compilers.compile(input_src)
     results = {} # 모든 결과를 기록함
     run_tasks = []  # 바이너리 병렬 실행을 위한 작업 목록
-
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        futures = [executor.submit(compiler.compile, input_src) for compiler in compilers]
-        compile_results = {compilers[i].name: future.result() for i, future in enumerate(futures)}
-
     error_compilers = []
 
-    for compiler_name, compile_result in compile_results.items():
+    for compile_result in compile_results:  # 각 컴파일러의 결과를 반복
+        compiler_name = compile_result["compiler"]
+        
         if "exit_code" in compile_result:
             error_compilers.append(compiler_name)
             continue
