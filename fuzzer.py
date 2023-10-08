@@ -12,6 +12,8 @@ import time
 import signal
 import re
 import sys
+import multiprocessing
+
 sys.path.append('./forkserver_generator')  # 경로 추가
 from forkserver_generator import generator as gen_obj
 
@@ -73,8 +75,8 @@ class Compiler:
 
 
 
-analyze_queue = queue.Queue()
-error_queue = queue.Queue()
+analyze_queue = multiprocessing.Queue()
+error_queue = multiprocessing.Queue()
 
 # 종료 신호를 처리하기 위한 이벤트 객체 생성
 shutdown_event = threading.Event()
