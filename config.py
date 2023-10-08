@@ -27,7 +27,7 @@ generators = ['csmith', 'yarpgen']
 total_tasks = 100 
 generator_time_out = 30
 compile_time_out = 30
-binary_time_out = 30
+binary_time_out = 10
 
 
 
