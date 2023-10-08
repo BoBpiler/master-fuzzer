@@ -102,22 +102,28 @@ int py_init_compilers() {
 }
 
 const char *py_compile(const char *source_code) {
-  static std::string result;  // 정적 지역 변수
+  static std::string result;
   result.clear();
-
+  std::stringstream json_str; //정적 지역 변수
+  json_str.clear();
+  json_str << "[";
   auto ret = compiler_manager.compile(source_code);
 
   for (auto &d : ret) {
     result += d;
-    result += "\n";
+    result += ",\n";
   }
-
+  json_str << result << "]";
+  result = json_str.str();
   return result.c_str();
 }
 
 const char *py_exit_compilers() {
-  static std::string result;  // 정적 변수로 메시지 저장
+  static std::string result;
   result.clear();
+  std::stringstream json_str; //정적 지역 변수
+  json_str.clear();
+  json_str << "[";
 
   auto str = compiler_manager.exit_compilers();
 
@@ -129,9 +135,10 @@ const char *py_exit_compilers() {
 
   for (auto &s : *str) {
     result += s;
-    result += "\n";
+    result += ",\n";
   }
-
+  json_str << result << "]";
+  result = json_str.str();
   return result.c_str();
 }
 
