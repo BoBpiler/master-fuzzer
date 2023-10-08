@@ -20,7 +20,7 @@ from forkserver_generator import generator as gen_obj
 
 
 class Compilers_Manager:
-    def __init__(self, lib_path='./build/libcompile_manager.so'):
+    def __init__(self, lib_path='./lib/libcompile_manager.so'):
         self._compiler = ctypes.CDLL(lib_path)
         self._init_ctypes_methods()
         if not self._init_compilers():
