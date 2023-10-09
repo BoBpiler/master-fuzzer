@@ -143,7 +143,7 @@ if __name__ == "__main__":
         id = code_data['uuid']
         input_src = code_data['file_path']
 
-        with concurrent.futures.ProcessPoolExecutor() as executor:
+        with concurrent.futures.ThreadPoolExecutor() as executor:
             futures = []
             results = {}
             error_compilers = []
