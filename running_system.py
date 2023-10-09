@@ -2,47 +2,41 @@ from config import *
 import concurrent.futures
 import logging
 import signal
-def compile_and_run(compilers, id, generator_name, input_src):
-    compile_results = compilers.compile(input_src)
-    results = {} # 모든 결과를 기록함
-    run_tasks = []  # 바이너리 병렬 실행을 위한 작업 목록
-    error_compilers = []
-
-    for compile_result in compile_results:  # 각 컴파일러의 결과를 반복
-        compiler_name = compile_result["compiler"]
-        
-        if "exit_code" in compile_result:
-            error_compilers.append(compiler_name)
-            continue
-        else:
-            for optimization_level, status in compile_result["result"].items():
-                binary_path, result_dict = init_result(compile_result['binary_base'], id, generator_name, compiler_name, optimization_level)
-                
-                # 컴파일 결과를 result_dict에 저장
-                if status == "0":
-                    result_dict['compile']['status'] = True
-                    result_dict['compile']['return_code'] = status
-                    run_tasks.append((binary_path, result_dict))
-                else:
-                    result_dict['compile']['return_code'] = status
-                    result_dict['compile']['status'] = False
-                    # results에 결과 저장
-                    results[binary_path] = result_dict
-    if error_compilers:
-        return (None, error_compilers)
-    else:
-        # binary run 
-        with concurrent.futures.ProcessPoolExecutor() as executor:
-            futures = []
-            for binary_path, result_dict in run_tasks:
-                futures.append(executor.submit(run_binary, binary_path, result_dict))
-
-            # 작업 완료 및 결과 저장
-            for future in futures:
-                binary_path, result_dict = future.result()
-                results[binary_path] = result_dict
-        return (results, [])
-
+def compile_and_run(compiler, id, generator_name, input_src):
+    result_dict = {
+            'id': str(id),
+            'compiler': compiler.name,
+            'optimization_level': compiler.optimization_option,
+            'generator': generator_name,
+            'compile': {
+                'status': None,
+                'return_code': None,
+                'error_type': None,
+                'error_message': None
+            },
+            'run': {
+                'status': None,
+                'return_code': None,
+                'error_type': None,
+                'error_message': None,
+                'result': None
+            }
+        }
+    
+    compile_result = compiler.compile(input_src)
+    if "exit_code" in compile_result:
+        result_dict['compile']['status'] = False
+        result_dict['compile']['return_code'] = compile_result['exit_code']
+        result_dict['compile']['error_type'] = "CompilerError"
+        result_dict['compile']['error_message'] = compile_result['error_message']
+        return compile_result['binary_base'], result_dict, compiler
+    
+    for opt_level, status in compile_result["result"].items():
+        result_dict['compile']['status'] = True
+        result_dict['compile']['return_code'] = status
+        binary_path = compile_result['binary_base']        
+        binary_path, result_dict = run_binary(binary_path, result_dict)
+    return (binary_path, result_dict, None)
 
 
 def init_result(binary_base, id, generator_name, compiler_name, optimization_level):
@@ -137,4 +131,3 @@ def handle_exception(e, error_type, result, path):
     result['error_type'] = error_type
     logging.error(f"{error_type} occurred for {path}: {e}")
     return result
-
