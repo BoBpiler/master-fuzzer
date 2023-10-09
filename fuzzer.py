@@ -158,8 +158,12 @@ if __name__ == "__main__":
                     error_compilers.append(error_compiler)
         
         if error_compilers:
-            for error_compiler in error_compilers:
-                error_compiler.start()
+            for error_compiler_name in error_compilers:
+                # 컴파일러 객체 목록에서 해당 이름을 가진 컴파일러 객체 찾기
+                error_compiler_obj = next((compiler for compiler in compilers if compiler.name == error_compiler_name), None)
+                if error_compiler_obj:
+                    error_compiler_obj.start()
+    
         result_data = (generator_name, id, results, machine_info)
         analyze_queue.put(result_data)
     

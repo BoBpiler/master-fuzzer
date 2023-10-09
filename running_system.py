@@ -29,7 +29,7 @@ def compile_and_run(compiler, id, generator_name, input_src):
         result_dict['compile']['return_code'] = compile_result['exit_code']
         result_dict['compile']['error_type'] = "CompilerError"
         result_dict['compile']['error_message'] = compile_result['error_message']
-        return compile_result['binary_base'], result_dict, compiler
+        return compile_result['binary_base'], result_dict, compiler.name
     
     for opt_level, status in compile_result["result"].items():
         result_dict['compile']['status'] = True
