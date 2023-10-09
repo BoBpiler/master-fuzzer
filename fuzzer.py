@@ -148,8 +148,7 @@ if __name__ == "__main__":
             results = {}
             error_compilers = []
             for compiler in compilers:
-                for optimization_option in optimization_options:
-                    futures.append(executor.submit(compile_and_run, compiler, id, generator_name, input_src))
+                futures.append(executor.submit(compile_and_run, compiler, id, generator_name, input_src))
 
             for future in futures:
                 binary_path, result_dict, error_compiler = future.result()
