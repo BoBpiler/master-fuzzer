@@ -16,45 +16,76 @@ import time
 import multiprocessing
 import ctypes
 
-class Compilers_Manager:
-    def __init__(self, lib_path='./lib/libcompile_manager.so'):
-        self._compiler = ctypes.CDLL(lib_path)
-        self._init_ctypes_methods()
-        if not self._init_compilers():
-            raise Exception("Failed to initialize compilers")
-    
-    def _init_ctypes_methods(self):
-        self._compiler.py_compile.restype = ctypes.c_char_p
-        self._compiler.py_exit_compilers.restype = ctypes.c_char_p
+def preprocess_json_string(s):
+    s = s.replace("\'", "\"")  # 작은따옴표를 큰따옴표로 교체
+    s = re.sub(r',\s*}', '}', s)  # 마지막 , 제거
+    return s
 
-    def _init_compilers(self) -> bool:
-        returncode = self._compiler.py_init_compilers()
-        return returncode == 1
+class Compiler:
+    def __init__(self, name, path, optimization_option):
+        self.name = name
+        self.path = path
+        self.optimization_option = optimization_option
+        self.process = None
+        self.compile_time_out = "5\n"
     
-    @staticmethod
-    def _make_cstring(py_str: str) -> ctypes.c_char_p:
-        return ctypes.c_char_p(py_str.encode('utf-8'))
+    def sync_write_data(self, data:str) :
+        self.process.stdin.write(data)
+        self.process.stdin.flush()
 
-    @staticmethod
-    def preprocess_json_string(s: str) -> str:
-        s = s.replace("\'", "\"")  # 작은따옴표를 큰따옴표로 교체
-        s = re.sub(r',\s*}', '}', s)  # 마지막 , 제거
-        s = re.sub(r',\s*]', ']', s)  # 마지막 배열 항목 후의 , 제거
-        return s
+    def start(self):
+        # 여기에서 프로세스를 시작하고 초기화 합니다.
+        self.process = subprocess.Popen(
+            [self.path, "bob.c", self.optimization_option], 
+            stdin=subprocess.PIPE, 
+            stdout=subprocess.PIPE, 
+            #stderr=subprocess.PIPE,  # 컴파일 과정에서의 출력 무시
+            text=True
+        )
+        success = self.fork_handshake()
+        if not success:
+            print("Handshake failed!")
+            exit()
+
+    def compile(self, source_code):
+        self.sync_write_data(source_code + "\n")
+        line = self.process.stdout.readline()
+        processed_line = preprocess_json_string(line)
+        return json.loads(processed_line)
     
-    def compile(self, source_code_path: str) -> str:
-        c_string_path = self._make_cstring(source_code_path + "\n")
-        results = self._compiler.py_compile(c_string_path).decode('utf-8')
-        processed_results = self.preprocess_json_string(results)
-        return json.loads(processed_results)
+    def fork_handshake(self) -> bool:
+        ret = self.process.stdout.readline()
+        if ret not in "fork client hello\n" : 
+            print("fork client hello failed")
+            return False
+        self.sync_write_data("fork server hello\n")
+        ret = self.process.stdout.readline()
+        if ret not in "done\n" :
+            print("fork server hello failed\n")
+            return False
+        # set timeout
+        self.sync_write_data(self.compile_time_out)
+        ret = self.process.stdout.readline()
+        if "time_out_set" not in ret:
+            print("failed to set time out\n")
+            return False 
+        #print("success set time out!")
+        return True
 
-    
-    def exit_compilers(self) -> str:
-        return self._compiler.py_exit_compilers().decode('utf-8')
-
+optimization_options = ["-O0", "-O1", "-O2", "-O3"] 
 
 def fuzzer_init():
-    compilers = Compilers_Manager()
+    compilers = [
+        Compiler(name=f"gcc_{opt}", path="./gcc-trunk", optimization_option=opt) 
+        for opt in optimization_options
+    ] + [
+        Compiler(name=f"clang_{opt}", path="./clang-18", optimization_option=opt) 
+        for opt in optimization_options
+    ]
+
+    # 컴파일러를 시작
+    for compiler in compilers:
+        compiler.start() 
 
     machine_info = get_machine_info()
 
@@ -82,8 +113,16 @@ if __name__ == "__main__":
         generator_name = code_data['generator']
         id = code_data['uuid']
         input_src = code_data['file_path']
-        compile_results = compilers.compile(input_src)
-        print(compile_results)
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            futures = []
+            results = {}
+            error_compilers = []
+            for compiler in compilers:
+                futures.append(executor.submit(compiler.compile,input_src))
+
+            for future in futures:
+                ret = future.result()
+                print(ret)
         iteration_count += 1
     end_time = time.time()
     elapsed_time = end_time - start_time
