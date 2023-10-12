@@ -81,7 +81,7 @@ def compile(binary_name, path, generator, id, compiler, optimization_level):
         # 바이너리 파일의 이름 
 
         command = None
-        if generator == 'yarpgen':
+        if generator == 'yarpgen' or generator == 'yarpgen_scalar':
             c_files = [os.path.join(path, f) for f in ['driver.c', 'func.c']]
             command = f'{compiler} {c_files[0]} {c_files[1]} -o {binary_name} -O{optimization_level} -I{path}'
         elif generator == 'csmith':

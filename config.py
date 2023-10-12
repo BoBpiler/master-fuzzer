@@ -29,7 +29,7 @@ def zip_src_files(filenames, output_filename):
 # return: response.json() - http post 요청 응답 정보
 def send_telegram_message(machine_info, generator, id, random_seed, bug_type, detail, src_file_path, result_file_path, severity="low"):
     files_to_send = []
-    if generator == 'yarpgen':
+    if generator == 'yarpgen' or generator == 'yarpgen_scalar':
         files = ['driver.c', 'func.c', 'init.h']
         files_to_send = [os.path.join(src_file_path, filename) for filename in files]
         # yarpgen의 경우 ZIP 파일 생성
@@ -97,7 +97,7 @@ Bug Info:
         return {"status": "failed", "reason": "Could not send the message"}
 
 # 코드 생성기 종류
-generators = ['csmith', 'yarpgen']
+generators = ['csmith', 'yarpgen', 'yarpgen_scalar']
 # 컴파일러 종류
 compilers = [
     {'name': './gcc-trunk', 'type': 'base', 'folder_name': 'gcc'},
@@ -131,6 +131,11 @@ yarpgen_options = [
     "--std=c",
     "--mutate=all"
 ]
+
+yarpgen_scalar_options = [
+    "--std=c99"
+]
+
 
 # csmith include 경로
 csmith_include = "/usr/local/include/"

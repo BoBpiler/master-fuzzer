@@ -153,7 +153,7 @@ def save_to_folder(generator, id, results, folder_name):
     if not os.path.exists(id_folder_path):
         os.makedirs(id_folder_path, exist_ok=True)
 
-    if generator == 'yarpgen':
+    if generator == 'yarpgen' or generator == 'yarpgen_scalar':
         for filename in ['driver.c', 'func.c', 'init.h']:  
             source_path = os.path.join(TEMP_DIRS[generator], str(id), filename)  
             dest_path = os.path.join(id_folder_path, filename)
