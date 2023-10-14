@@ -118,16 +118,9 @@ def run_binary(binary_name, compiler_info):
         'result': None
     }
     
-    compiler_type = compiler_info['type']
-    command = None
     try:
         binary_name_only = os.path.basename(binary_name)
-        if compiler_type == 'cross-aarch64':
-            command = f'qemu-aarch64-static -L /usr/aarch64-linux-gnu {binary_name}'
-        elif compiler_type == 'cross-riscv64':
-            command = f'qemu-riscv64-static {binary_name}'
-        else:
-            command = f'{binary_name}'
+        command = compiler_info['execute'].format(binary=binary_name)
         try:
             proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=os.setsid)
             stdout, stderr = proc.communicate(timeout=binary_time_out)

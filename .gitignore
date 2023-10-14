@@ -10,3 +10,4 @@ BoBpiler
 BoBpiler.pub
 riscv-gnu-toolchain
 riscv64-unknown-elf-gcc
+binutils-gdb
