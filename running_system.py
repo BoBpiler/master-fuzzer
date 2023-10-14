@@ -13,20 +13,21 @@ logging.basicConfig(level=logging.INFO)
 # compile_and_run 함수: compile 함수와  run_binary 함수를 통해서 특정 컴파일러와 옵션으로 컴파일 후에 실행 결과를 저장
 # argv: filepath - 소스 코드 경로/ id - 소스코드 번호/ compiler - 컴파일러/ optimization_level - 최적화 옵션/ results - 실행 결과 저장할 딕셔너리(map)
 # return: 사실상 results_queue에 저장됩니다.
-def compile_and_run(filepath, generator, id, compiler_info, optimization_level, random_seed=None):
+def compile_and_run(dir_path, generator_config, id, compiler_info, optimization_level, random_seed=None):
     # key는 바이너리 경로이자 이름으로 result_dict를 구분하는 요소로 사용합니다.
+    generator_name = generator_config["name"]
     compiler = compiler_info['name']
     compiler_type = compiler_info['type']
     folder_name = compiler_info['folder_name']
 
-    key = f"{TEMP_DIRS[generator]}/{id}/{folder_name}_O{optimization_level}"
+    binary_name = os.path.join(TEMP_DIRS[generator_name], f'{id}', f"{folder_name}_O{optimization_level}")
     
     result_dict = {
         'id': str(id),
         'random_Seed': str(random_seed),
         'compiler': compiler,
         'optimization_level': optimization_level,
-        'generator': generator,
+        'generator': generator_name,
         'compile': {
             'status': None,
             'return_code': None,
@@ -42,33 +43,32 @@ def compile_and_run(filepath, generator, id, compiler_info, optimization_level, 
         }
     }
     try:
-        #logging.info(f"Starting compile_and_run for {filepath} with {compiler} and optimization level {optimization_level}")
-        compile_result = compile(key, filepath, generator, id, compiler, optimization_level)
+        compile_result = compile(binary_name, dir_path, generator_config, id, compiler, optimization_level)
         
         # 발생할 수 있는 잠재적인 컴파일 실패 체크
         if not compile_result['status']:
             logging.warning("Compilation failed. Skipping run.")
             result_dict['compile'] = compile_result
-            return (key, result_dict)
+            return (binary_name, result_dict)
         
         result_dict['compile'] = compile_result
         
         #map 방식으로 해당 바이너리 이름과 실행 결과를 result_queue에 저장
-        run_result = run_binary(key, compiler_info)
+        run_result = run_binary(binary_name, compiler_info)
         result_dict['run'] = run_result
 
         # 큐에 결과를 저장
-        return (key, result_dict)
+        return (binary_name, result_dict)
         
     except Exception as e:
-        logging.error(f"Unexpected error in compile_and_run for {filepath}: {e}")
+        logging.error(f"Unexpected error in compile_and_run for {dir_path}: {e}")
         return ("error", None)
 
 
 # compile 함수: 인자로 받은 조건으로 컴파일을 수행
 # argv: binary_name - 바이너리 파일의 이름 및 경로/ path - 소스 코드 경로/ generator - 생성기 종류/ id - 소스코드 번호/ compiler - 컴파일러/ optimization_level - 최적화 옵션
 # return: compile_result - 컴파일 결과 딕셔너리 반환 
-def compile(binary_name, path, generator, id, compiler, optimization_level):
+def compile(binary_name, dir_path, generator_config, id, compiler, optimization_level):
     # 컴파일 결과를 저장할 딕셔너리 초기화
     compile_result = {
         'status': None,
@@ -77,15 +77,10 @@ def compile(binary_name, path, generator, id, compiler, optimization_level):
         'error_message': None
     }
     try:
-        #logging.info(f"Starting compile for {path} with {compiler} and optimization level {optimization_level}")
         # 바이너리 파일의 이름 
-
-        command = None
-        if generator == 'yarpgen' or generator == 'yarpgen_scalar':
-            c_files = [os.path.join(path, f) for f in ['driver.c', 'func.c']]
-            command = f'{compiler} {c_files[0]} {c_files[1]} -o {binary_name} -O{optimization_level} -I{path}'
-        elif generator == 'csmith':
-            command = f'{compiler} {path} -o {binary_name} -O{optimization_level} -I{csmith_include}'
+        src_files = [file.format(path=dir_path, id=id) for file in generator_config['src_files']]
+        include_dir = generator_config['include_dir'].format(path=dir_path, id=id)
+        command = f"{compiler} {' '.join(src_files)} -o {binary_name} -O{optimization_level} -I{include_dir}"
         
         proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=os.setsid)
         stdout, stderr = proc.communicate(timeout=compile_time_out)
@@ -97,7 +92,7 @@ def compile(binary_name, path, generator, id, compiler, optimization_level):
             compile_result['return_code'] = returncode
             compile_result['error_type'] = analyze_returncode(returncode, "compilation")
             compile_result['error_message'] = stderr.decode('utf-8')
-            logging.warning(f"Compilation failed for {path} with return code {returncode}")
+            logging.warning(f"Compilation failed for {dir_path} with return code {returncode}")
             return compile_result
         
         compile_result['status'] = True
@@ -124,7 +119,6 @@ def run_binary(binary_name, compiler_info):
     }
     
     compiler_type = compiler_info['type']
-    #output_filename = f"results/{compiler}/{id}_{compiler}_O{optimization_level}.txt"
     command = None
     try:
         binary_name_only = os.path.basename(binary_name)
@@ -138,6 +132,7 @@ def run_binary(binary_name, compiler_info):
             proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=os.setsid)
             stdout, stderr = proc.communicate(timeout=binary_time_out)
             returncode = proc.returncode
+            
             # return code를 확인합니다.
             run_result['return_code'] = returncode
             if returncode != 0:

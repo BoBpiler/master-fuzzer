@@ -9,40 +9,41 @@ logging.basicConfig(level=logging.INFO)
 
 # compare_results 함수: 실행 결과를 비교 로직에 따라서 분석하는 함수
 # argv: generator - 코드 생성기 종류/ id - 소스코드 번호/ results - 바이너리 실행 결과들/ comparison_strategy - 비교 로직
-def analyze_results(generator, id, random_seed, results, machine_info, partial_timeout=True):
+def analyze_results(generator_config, id, random_seed, results, machine_info, partial_timeout=True):
     # 해당 결과들을 대상으로 비교
+    generator_name = generator_config['name']
     try:
         if compare_execution_results(results):  # 실행 결과가 다른 경우
-            msg = f"Different results(checksum) detected for generator {generator}, source code ID: {id}"
+            msg = f"Different results(checksum) detected for generator {generator_name}, source code ID: {id}"
             print(msg)
-            id_folder_path = save_to_folder(generator, id, results, "checksum")
-            send_telegram_message(machine_info, generator, id, random_seed, "Different Checksum", msg, id_folder_path, os.path.join(id_folder_path, f"{id}_result.txt"), "high")
+            id_folder_path = save_to_folder(generator_name, id, results, "checksum")
+            send_telegram_message(machine_info, generator_config, id, random_seed, "Different Checksum", msg, id_folder_path, "high")
         else:
             crash_exists, crash_type = detect_crashes(results)  
             if crash_exists:                                    # 크래시가 있는 경우
-                msg = f"{crash_type} Crash detected for generator {generator}, source code ID: {id}"
+                msg = f"{crash_type} Crash detected for generator {generator_name}, source code ID: {id}"
                 print(msg)
-                id_folder_path = save_to_folder(generator, id, results, f"{crash_type.lower()}_crash")
-                send_telegram_message(machine_info, generator, id, random_seed, f"{crash_type} Crash", msg, id_folder_path, os.path.join(id_folder_path, f"{id}_result.txt"), "medium")
+                id_folder_path = save_to_folder(generator_name, id, results, f"{crash_type.lower()}_crash")
+                send_telegram_message(machine_info, generator_config, id, random_seed, f"{crash_type} Crash", msg, id_folder_path, "medium")
                 
             elif partial_timeout and detect_partial_timeout(results):               # 부분적으로 타임아웃이 있는 경우 (어떻게 보면 결과가 다르다고 볼 수 있습니다.)
-                print(f"Binary Execution Partial timeout detected for generator {generator}, source code ID: {id}")
-                save_to_folder(generator, id, results, "partial_timeout")
+                print(f"Binary Execution Partial timeout detected for generator {generator_name}, source code ID: {id}")
+                save_to_folder(generator_name, id, results, "partial_timeout")
             
             elif detect_abnormal_compile(results):              # 비정상적으로 컴파일이 수행되는 경우 (컴파일 타임아웃, 크래시 등...)
-                msg = f"Abnormal compile detected for generator {generator}, source code ID: {id}"
+                msg = f"Abnormal compile detected for generator {generator_name}, source code ID: {id}"
                 print(msg)
-                id_folder_path = save_to_folder(generator, id, results, "abnormal_compile")
-                send_telegram_message(machine_info, generator, id, random_seed, "Abnormal Compile", msg, id_folder_path, os.path.join(id_folder_path, f"{id}_result.txt"))
+                id_folder_path = save_to_folder(generator_name, id, results, "abnormal_compile")
+                send_telegram_message(machine_info, generator_config, id, random_seed, "Abnormal Compile", msg, id_folder_path)
             
             elif detect_abnormal_binary(results):  # 바이너리 returncode가 0이 아닌 경우가 하나라도 있는 경우 
-                msg = f"Abnormal binary detected for generator {generator}, source code ID: {id}"
+                msg = f"Abnormal binary detected for generator {generator_name}, source code ID: {id}"
                 print(msg)
-                id_folder_path = save_to_folder(generator, id, results, "abnormal_binary")
-                send_telegram_message(machine_info, generator, id, random_seed, "Abnormal Binary", msg, id_folder_path, os.path.join(id_folder_path, f"{id}_result.txt"))
-    
+                id_folder_path = save_to_folder(generator_name, id, results, "abnormal_binary")
+                send_telegram_message(machine_info, generator_config, id, random_seed, "Abnormal Binary", msg, id_folder_path)
+
     except Exception as e:
-        logging.error(f"An unexpected error occurred in analyze_results for generator {generator} and task {id}: {e}")
+        logging.error(f"An unexpected error occurred in analyze_results for generator {generator_name} and task {id}: {e}")
 
 # compare_execution_results 함수: 컴파일 성공하고 잘 실행된 바이너리의 결과들을 비교하는 함수
 # argv: results - 모든 결과가 담겨 있는 리스트
@@ -148,24 +149,18 @@ def detect_partial_timeout(results):
 
 
 # Analyzer 로직에 따라서 탐지된 파일을 저장하는 함수
-def save_to_folder(generator, id, results, folder_name):
-    id_folder_path = os.path.join(f"{CATCH_DIRS[generator]}", folder_name, str(id))
+def save_to_folder(generator_name, id, results, folder_name):
+    id_folder_path = os.path.join(f"{CATCH_DIRS[generator_name]}", folder_name, str(id))
     if not os.path.exists(id_folder_path):
         os.makedirs(id_folder_path, exist_ok=True)
 
-    if generator == 'yarpgen' or generator == 'yarpgen_scalar':
-        for filename in ['driver.c', 'func.c', 'init.h']:  
-            source_path = os.path.join(TEMP_DIRS[generator], str(id), filename)  
-            dest_path = os.path.join(id_folder_path, filename)
-            shutil.move(source_path, dest_path)
-    elif generator == 'csmith':
-        shutil.move(f"{TEMP_DIRS[generator]}/{id}/random_program_{id}.c", os.path.join(id_folder_path, f"random_program_{id}.c"))
-    
-    # 바이너리들 catch/binary 폴더에 저장
-    for key in results.keys():
-        if os.path.exists(key):
-            binary_filename = os.path.basename(key)  
-            shutil.move(key, os.path.join(id_folder_path, binary_filename))
+    # TEMP_DIRS[generator]/id/ 폴더 내의 모든 파일을 옮기기
+    temp_dir_path = os.path.join(TEMP_DIRS[generator_name], str(id))
+    for filename in os.listdir(temp_dir_path):
+        source_path = os.path.join(temp_dir_path, filename)
+        dest_path = os.path.join(id_folder_path, filename)
+        shutil.move(source_path, dest_path)
+
     # 결과를 txt 파일에 저장 - 한 눈에 보기 좋습니다.
     save_results_to_file(id_folder_path, id, results)
     return id_folder_path
@@ -175,7 +170,8 @@ def save_to_folder(generator, id, results, folder_name):
 def save_results_to_file(id_folder_path, id, results):
     try:
         # txt 파일에 저장하는 부분
-        with open(os.path.join(id_folder_path, f"{id}_result.txt"), 'w') as f:
+        result_files = get_result_file_names(id)
+        with open(os.path.join(id_folder_path, f"{result_files['txt']}"), 'w') as f:
             for Binary_Path, result_dict in results.items():
                 f.write("########################################################################################\n")
                 f.write(f"Binary_Path: {Binary_Path}\n")
@@ -185,8 +181,6 @@ def save_results_to_file(id_folder_path, id, results):
                 f.write(f"\nCompiler: {result_dict['compiler']}")
                 f.write(f"\nOptimization Level: {result_dict['optimization_level']}")
                 f.write(f"\nCode Generator: {result_dict['generator']}")
-                f.write(f"\nFlags: {result_dict.get('flags')}")
-                f.write(f"\nNumber of Flags: {result_dict.get('num_flags', 0)}")
                 
                 f.write("\n\nCompile:\n")
                 for key, value in result_dict['compile'].items():
@@ -213,7 +207,7 @@ def save_results_to_file(id_folder_path, id, results):
         print(f"An error occurred while writing txt file: {e}")
     # JSON 파일에 저장하는 부분
     try:
-        with open(os.path.join(id_folder_path, f"{id}_result.json"), 'w') as f:
+        with open(os.path.join(id_folder_path, f"{result_files['json']}"), 'w') as f:
             json.dump(results, f, indent=4, default=str)    # uuid serialized 문제 -> default = str
     except Exception as e:
         print(f"An error occurred while writing the json file: {e}")

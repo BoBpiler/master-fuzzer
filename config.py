@@ -27,18 +27,16 @@ def zip_src_files(filenames, output_filename):
 # send_telegram_message 함수: 버그를 탐지하고 텔레그램 봇에게 알림을 보내는 함수
 # argv: machine_info - 머신 정보를 담은 딕셔너리/ generator - 생성기 종류/ id - 소스코드 uuid/ bug_type - 버그 타입/ detail - 버그 상세 내용/src_file_path - 소스코드 경로 /result_file_path - 결과 txt 경로/ severity - 중요도 정보
 # return: response.json() - http post 요청 응답 정보
-def send_telegram_message(machine_info, generator, id, random_seed, bug_type, detail, src_file_path, result_file_path, severity="low"):
-    files_to_send = []
-    if generator == 'yarpgen' or generator == 'yarpgen_scalar':
-        files = ['driver.c', 'func.c', 'init.h']
-        files_to_send = [os.path.join(src_file_path, filename) for filename in files]
-        # yarpgen의 경우 ZIP 파일 생성
-        zip_path = os.path.join(src_file_path, f"yarpgen_{id}.zip")
+def send_telegram_message(machine_info, generator_config, id, random_seed, bug_type, detail, dir_path, severity="low"):
+    files_to_send = [filepath.format(path=dir_path, id=id) for filepath in generator_config['src_files_to_send']]
+    
+    result_files = get_result_file_names(id)
+    result_file_path = os.path.join(dir_path, result_files["txt"])
+    
+    if generator_config['zip_required']:
+        zip_path = os.path.join(dir_path, generator_config['zip_name'].format(id=str(id)))
         zip_src_files(files_to_send, zip_path)
         files_to_send = [zip_path]
-
-    elif generator == 'csmith':
-        files_to_send.append(os.path.join(src_file_path, f"random_program_{id}.c"))
 
     # 중요도에 따른 이모지 선택
     severity_emoji = {
@@ -58,7 +56,7 @@ Machine Info:
 - SSH Public Key Hash: {machine_info.get('ssh_pub_key_hash', 'None')}
 
 Bug Info:
-- Generator: {generator}
+- Generator: {generator_config['name']}
 - UUID: {id}
 - Random Seed: {random_seed}
 - Bug Type: {bug_type}
@@ -96,8 +94,77 @@ Bug Info:
     else:
         return {"status": "failed", "reason": "Could not send the message"}
 
-# 코드 생성기 종류
-generators = ['csmith', 'yarpgen', 'yarpgen_scalar']
+def get_result_file_names(id):
+    return {
+        "txt": f"{id}_result.txt",
+        "json": f"{id}_result.json"
+    }
+
+
+generators_config = {
+    'csmith': {
+        'name': 'csmith',
+        'options': [
+            "--max-array-dim 3", 
+            "--max-array-len-per-dim 10",
+            "--max-block-depth 3",
+            "--max-block-size 5",
+            "--max-expr-complexity 10",
+            "--max-funcs 4",
+            "--max-pointer-depth 3",
+            "--max-struct-fields 10",
+            "--max-union-fields 10",
+            "--muls",
+            "--safe-math",
+            "--no-packed-struct",
+            "--pointers",
+            "--structs",
+            "--unions",
+            "--volatiles",
+            "--volatile-pointers",
+            "--const-pointers",
+            "--global-variables",
+            "--no-builtins",
+            "--inline-function",
+            "--inline-function-prob 50"
+        ],
+        'output_format': '{generator} {options} -o {filepath} --seed {random_seed}',
+        'src_files': ['{path}/random_program_{id}.c'],
+        'src_files_to_send': ['{path}/random_program_{id}.c'],
+        'zip_required': False,
+        'zip_name': None,
+        'include_dir': '/usr/local/include/',
+        'path_type': 'filepath'
+    },
+    'yarpgen': {
+        'name': 'yarpgen',
+        'options': [
+            "--std=c",
+            "--mutate=all"
+        ],
+        'output_format': '{generator} {options} -o {dir_path} --seed={random_seed} --mutation-seed={random_seed}',
+        'src_files': ['{path}/driver.c', '{path}/func.c'],
+        'src_files_to_send': ['{path}/driver.c', '{path}/func.c', '{path}/init.h'],
+        'zip_required': True,
+        'zip_name': "yarpgen_{id}.zip",
+        'include_dir': '{path}',
+        'path_type': 'dirpath'
+    },
+    'yarpgen_scalar': {
+        'name': 'yarpgen_scalar',
+        'options': [
+            "--std=c99"
+        ],
+        'output_format': '{generator} {options} -d {dir_path} --seed={random_seed}',
+        'src_files': ['{path}/driver.c', '{path}/func.c'],
+        'src_files_to_send': ['{path}/driver.c', '{path}/func.c', '{path}/init.h'],
+        'zip_required': True,
+        'zip_name': "yarpgen_scalar_{id}.zip",
+        'include_dir': '{path}',
+        'path_type': 'dirpath'
+    }
+}
+
 # 컴파일러 종류
 compilers = [
     {'name': './gcc-trunk', 'type': 'base', 'folder_name': 'gcc'},
@@ -228,9 +295,9 @@ def analyze_returncode(returncode, context):
 # 디렉토리 설정 (상수로 경로 설정)
 # 디렉토리 설정 (상수로 경로 설정)
 BASE_DIR = f'output_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}'
-GENERATOR_DIRS = {gen: os.path.join(BASE_DIR, gen) for gen in generators}
-CATCH_DIRS = {gen: os.path.join(GENERATOR_DIRS[gen], 'catch') for gen in generators}
-TEMP_DIRS = {gen: os.path.join(GENERATOR_DIRS[gen], 'temp') for gen in generators}
+GENERATOR_DIRS = {key: os.path.join(BASE_DIR, config['name']) for key, config in generators_config.items()}
+CATCH_DIRS = {key: os.path.join(GENERATOR_DIRS[key], 'catch') for key in generators_config.keys()}
+TEMP_DIRS = {key: os.path.join(GENERATOR_DIRS[key], 'temp') for key in generators_config.keys()}
 
 #CATCH_SUB_DIRS = ['source', 'binary', 'result']
 #TEMP_SUB_DIRS = ['source', 'binary']
@@ -262,13 +329,13 @@ def create_directory(dir_name, sub_dirs=None):
 # setup_output_dirs 함수: 전체 디렉토리 구조 생성
 # argv: compilers - 사용할 컴파일러의 목록 
 # return: None
-def setup_output_dirs(generators):
+def setup_output_dirs():
     create_directory(BASE_DIR)
 
-    for generator in generators:
-        create_directory(GENERATOR_DIRS[generator])
-        create_directory(CATCH_DIRS[generator])#, CATCH_SUB_DIRS)
-        create_directory(TEMP_DIRS[generator])
+    for generator_key in generators_config.keys():
+        create_directory(GENERATOR_DIRS[generator_key])
+        create_directory(CATCH_DIRS[generator_key])  
+        create_directory(TEMP_DIRS[generator_key])
 
 # cleanup_temp 함수: temp 내부 파일들을 삭제하는 함수
 # argv: generator - 어떤 생성기의 temp 폴더일지 판단하기 위함
