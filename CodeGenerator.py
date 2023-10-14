@@ -33,7 +33,7 @@ def generate_c_code(id, generator_config):
             path_value = dir_path
 
         command = command_format.format(
-            generator=generator_config['name'],
+            generator=generator_config['binary_path'],
             options=options_str,
             random_seed=random_seed,
             **{path_key: path_value}

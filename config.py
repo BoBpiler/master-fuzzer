@@ -104,6 +104,7 @@ def get_result_file_names(id):
 generators_config = {
     'csmith': {
         'name': 'csmith',
+        'binary_path': 'csmith',
         'options': [
             "--max-array-dim 3", 
             "--max-array-len-per-dim 10",
@@ -138,6 +139,7 @@ generators_config = {
     },
     'yarpgen': {
         'name': 'yarpgen',
+        'binary_path': 'yarpgen',
         'options': [
             "--std=c",
             "--mutate=all"
@@ -152,6 +154,7 @@ generators_config = {
     },
     'yarpgen_scalar': {
         'name': 'yarpgen_scalar',
+        'binary_path': 'yarpgen_scalar',
         'options': [
             "--std=c99"
         ],
