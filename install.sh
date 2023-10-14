@@ -15,7 +15,7 @@ install_gcc() {
   sudo apt install -y gnat libmpfr-dev libmpfr-doc libgmp-dev libmpc3 libmpc-dev flex g++-multilib || { echo "Failed to install dependencies"; return 1; }
   contrib/download_prerequisites || { echo "Failed to download prerequisites"; return 1; }
   mkdir build && cd build || { echo "Failed to enter build directory"; return 1; }
-  ../configure --prefix=$HOME/gcc-trunk\
+  ../configure --prefix=$HOME/gcc-trunk \
                --enable-languages=c,c++ \
                --disable-multilib \
                --program-suffix=-trunk \
