@@ -85,7 +85,7 @@ def main():
     # 디렉토리 초기화
     setup_output_dirs()
     generators = list(generators_config.values())
-    with ThreadPoolExecutor() as executor:
+    with ProcessPoolExecutor() as executor:
         executor.map(process_generator, generators, repeat(args.partial_timeout))
 
 if __name__ == "__main__":
