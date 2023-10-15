@@ -465,7 +465,16 @@ generator_time_out = 10
 compile_time_out = 30
 binary_time_out = 10
 
+import psutil
 
+def terminate_process_and_children(pid):
+    try:
+        parent = psutil.Process(pid)
+        for child in parent.children(recursive=True):  # 모든 하위 프로세스에 대해
+            child.terminate()
+        parent.terminate()
+    except psutil.NoSuchProcess:
+        pass
 
 ##################################################################################################
 # 결과 저장을 위한 configuration
