@@ -269,15 +269,15 @@ window_compilers = {
         "file_name": "cl",
         "options": ["/O1", "/O2", "/Od", "/Ox", "/Ot"],
         "prepare_command": cl_prepare,
-        "output_format": "\"{compiler_path}\" {optimization} /I {include_dir} {src_files} /Fo:{obj_path}\\ /Fe:\"{exe_path}\"",
+        "output_format": "\"{compiler_path}\" {optimization} /I {include_dir} {src_files} /Fo:{obj_path}\\ /Fe:\"{exe_path}.exe\"",
         "language": {
             "c": {
                 "binary_path": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.37.32822\\bin\\Hostx64\\x64\\cl.exe",
-                "execute": "{exe_path}"  
+                "execute": "{exe_path}.exe"  
             },
             "cpp": {
                 "binary_path": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.37.32822\\bin\\Hostx64\\x64\\cl.exe",
-                "execute": "{exe_path}"  
+                "execute": "{exe_path}.exe"  
             }
         }
     },
@@ -285,15 +285,15 @@ window_compilers = {
         "name": "MinGW",
         "file_name": "mingw",
         "options": ["-O0", "-O1", "-O2", "-O3"],
-        "output_format": "\"{compiler_path}\" {optimization} -I {include_dir} {src_files} -o \"{exe_path}\"",
+        "output_format": "\"{compiler_path}\" {optimization} -I {include_dir} {src_files} -o \"{exe_path}.exe\"",
         "language": {
             "c": {
                 "binary_path": "C:\\Program Files\\mingw64\\bin\\gcc.exe",
-                "execute": "{exe_path}"  
+                "execute": "{exe_path}.exe"  
             },
             "cpp": {
                 "binary_path": "C:\\Program Files\\mingw64\\bin\\g++.exe",
-                "execute": "{exe_path}"  
+                "execute": "{exe_path}.exe"  
             }
         }
     },
@@ -301,15 +301,15 @@ window_compilers = {
         "name": "LLVM-MinGW",
         "file_name": "llvm-mingw",
         "options": ["-O0", "-O1", "-O2", "-O3"],
-        "output_format": "\"{compiler_path}\" {optimization} -I {include_dir} {src_files} -o \"{exe_path}\"",
+        "output_format": "\"{compiler_path}\" {optimization} -I {include_dir} {src_files} -o \"{exe_path}.exe\"",
         "language": {
             "c": {
                 "binary_path": "C:\\Program Files\\llvm-mingw-64\\bin\\clang.exe",
-                "execute": "{exe_path}"    
+                "execute": "{exe_path}.exe"    
             },
             "cpp": {
                 "binary_path": "C:\\Program Files\\llvm-mingw-64\\bin\\clang++.exe",
-                "execute": "{exe_path}"  
+                "execute": "{exe_path}.exe"  
             }
         }
     }
