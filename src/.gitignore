@@ -1,3 +1,16 @@
-output
+__pycache__
+output*
+csmith
+yarpgen
+gcc
+g++-trunk
+gcc-trunk
+llvm-project
+clang-18
+clang++-18
 BoBpiler
 BoBpiler.pub
+riscv-gnu-toolchain
+riscv64-unknown-elf-gcc
+riscv64-unknown-elf-g++
+binutils-gdb

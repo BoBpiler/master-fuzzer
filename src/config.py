@@ -175,7 +175,7 @@ linux_generators_config = {
 window_generators_config = {
     'csmith': {
         'name': 'csmith',
-        'binary_path': "csmith\\csmith.exe",
+        'binary_path': "..\\csmith\\csmith.exe",
         'language': 'c',
         'options': [
             "--max-array-dim 3", 
@@ -211,7 +211,7 @@ window_generators_config = {
     },
     'yarpgen': {
         'name': 'yarpgen',
-        'binary_path': "yarpgen\\yarpgen.exe",
+        'binary_path': "..\\yarpgen\\yarpgen.exe",
         'language': 'cpp',
         'options': [
             "--emit-pragmas=none",
@@ -228,7 +228,7 @@ window_generators_config = {
     },
     'yarpgen_scalar': {
         'name': 'yarpgen_scalar',
-        'binary_path': "yarpgen\\yarpgen_scalar.exe",
+        'binary_path': "..\\yarpgen\\yarpgen_scalar.exe",
         'language': 'cpp',
         'options': [
             "--std=c++17"
