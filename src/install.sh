@@ -100,6 +100,7 @@ ssh-keygen -t rsa -b 4096 -f "./BoBpiler" -N "BoBpiler BoBpiler"
 sudo apt-get install -y python3
 sudo apt-get install -y python3-pip
 pip3 install requests
+pip3 install psutil
 
 # Csmith 설치 스크립트
 git clone https://github.com/csmith-project/csmith.git
