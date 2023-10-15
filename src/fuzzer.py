@@ -59,7 +59,7 @@ def fuzz_with_generator(generator_config, partial_timeout=True):
                             results[key] = result_dict
                 
                 if len(results) > 0:  # results 딕셔너리가 비어 있지 않다면
-                    analyze_results(generator_config, id, random_seed, results, machine_info, partial_timeout)
+                    analyze_results(dir_path, generator_config, id, random_seed, results, machine_info, partial_timeout)
                 else:
                     # results 딕셔너리가 비어 있는 경우, 문제가 발생한 것으로 판단
                     skipped_tasks += 1
