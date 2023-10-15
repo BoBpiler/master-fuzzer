@@ -1,10 +1,14 @@
 # BoBpiler-fuzzer
 
-gcc, clang 등의 컴파일러 버그 탐지를 위한 퍼저입니다.
+Window와 Linux에서 모두 사용 가능한 퍼저입니다.
 
+OS 환경: ***Ubuntu 22.04.2 LTS (wsl2)***, ***Windows 11 pro (x64 Native Tools Command Prompt for VS 2022)***
 
+Window - ***cl, mingw, llvm-mingw***
 
-**Note**: 결과를 분석하는 로직을 더 발전시켜야 할 것 같습니다.
+Linux - ***gcc, clang (arm64, riscv64, mips64, x86-64)***
+
+generator - ***csmith, yarpgen, yarpgen_Scalar***
 
 ## Telegram Notification Setup
 
@@ -24,16 +28,30 @@ chmod +x install.sh
 sh ./install.sh
 ```
 
-`install.sh` 스크립트를 실행하면 필요한 모든 설정과 파일들이 자동으로 설치됩니다.
+```sh
+c:\{REPO}> INST_DEPS.bat 
+```
+
+
+Linux - `install.sh` 스크립트를 실행하면 필요한 모든 설정과 파일들이 자동으로 설치됩니다.
+
+Window - `INST_DEPS.bat` 배치 파일을 실행하면 필요한 설치가 이루어집니다. 
 
 ### 2. 퍼저 실행
 
 ```bash
-chmod +x run.sh
-sh ./run.sh
+python3 fuzzer.py
 ```
 
-퍼저를 실행하기 위해서는 `run.sh` 스크립트를 사용해야 합니다. 이 스크립트는 gcc와 clang을 업데이트 한 뒤 퍼저를 실행합니다.
+```bash
+python3 fuzzer.py
+```
+
+퍼저를 실행하기 위해서는 fuzzer.py를 실행해야 합니다. 
+
+Linux - python3 
+
+Windows - python
 
 ## 3. 결과 저장 구조
 
@@ -81,7 +99,7 @@ sh ./run.sh
 ```
 
 ## 4. 특이사항
-1. 타임아웃: csmith가 계속 실행상태를 유지하는 코드를 생성하는 경우가 있어서, 각 컴파일 및 실행 단계에는 30초의 타임아웃을 설정해두었습니다.  
-2. output 폴더에 생성기 별로 결과가 담겨있습니다.  
+1. 타임아웃: 현재 생성기 10초, 컴파일 30초, 바이너리 10초로 설정했습니다. config.py에서 timeout을 조절할 수 있습니다.  
+2. output 폴더에 생성기 별로 결과가 담겨있으며, 연 월 일 시를 기준으로 이름이 생성되고 ***동일한 폴더가 있다면 삭제하고 만들기 때문에 주의해야 합니다.***
 3. config.py에서 generators, compilers 부분을 수정해서 특정 부분만 실행할 수 있습니다. 추후에 옵션을 줄 수 있도록 해보겠습니다.  
 4. 현재 config.py에 있는 설정으로 돌리면 CPU 자원과 메모리 사용이 극심하기 때문에 테스트 하고 싶은 옵션으로 설정해주고 실행하는 것이 좋을 것 같습니다. (컴파일러 종류, 옵션 등...)
