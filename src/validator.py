@@ -62,7 +62,7 @@ def analyze_results_for_duplicate(generator_config, id, random_seed, results, ma
                 return False
 
     except Exception as e:
-        logging.error(f"An unexpected error occurred in analyze_results for generator {generator_name} and task {id}: {e}")
+        logging.error(f"An unexpected error occurred in analyze_results_for_duplicate for generator {generator_name} and task {id}: {e}")
 
 
 def fuzz(dir_path, generator_config, id, random_seed, partial_timeout=True):
