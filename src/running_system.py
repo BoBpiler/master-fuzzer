@@ -115,6 +115,8 @@ def compile(binary_name, dir_path, generator_config, id, compiler_info, optimiza
     except subprocess.TimeoutExpired as e:
         if platform.system() == 'Linux':
             os.killpg(os.getpgid(proc.pid), signal.SIGTERM)  # 타임아웃 발생 시, 프로세스 종료
+        else:
+            proc.terminate()
         return handle_exception(e, TIMEOUT_ERROR, compile_result, binary_name)
     except subprocess.SubprocessError as e:
         return handle_exception(e, UNKNOWN_SUBPROCESS_ERROR, compile_result, binary_name)
@@ -159,6 +161,8 @@ def run_binary(binary_name, generator_config, compiler_info):
             # TimeoutExpired: 프로세스가 지정된 시간 내에 완료되지 않았을 때 발생
             if platform.system() == 'Linux':
                 os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
+            else:
+                proc.terminate()
             return handle_exception(e, TIMEOUT_ERROR, run_result, binary_name)
         except subprocess.CalledProcessError as e:
             # CalledProcessError: 명령어가 0이 아닌 상태 코드를 반환했을 때 발생 이 부분은 앞의 returncode랑 동일하지 않을까 싶습니다.
