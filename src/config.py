@@ -537,7 +537,7 @@ def analyze_returncode(returncode, context):
 ##################################################################################################
 # 디렉토리 설정 (상수로 경로 설정)
 # 디렉토리 설정 (상수로 경로 설정)
-BASE_DIR = f'output_{datetime.now().strftime("%Y-%m-%d_%H")}'
+BASE_DIR = f'output_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}'
 GENERATOR_DIRS = {key: os.path.join(BASE_DIR, config['name']) for key, config in generators_config.items()}
 CATCH_DIRS = {key: os.path.join(GENERATOR_DIRS[key], 'catch') for key in generators_config.keys()}
 TEMP_DIRS = {key: os.path.join(GENERATOR_DIRS[key], 'temp') for key in generators_config.keys()}
@@ -583,10 +583,10 @@ def setup_output_dirs():
 # cleanup_temp 함수: temp 내부 파일들을 삭제하는 함수
 # argv: generator - 어떤 생성기의 temp 폴더일지 판단하기 위함
 # return: None
-def cleanup_temp(generator):
+def cleanup_temp(temp_dir):
     try:
-        for filename in os.listdir(TEMP_DIRS[generator]):
-            full_path = os.path.join(TEMP_DIRS[generator], filename)
+        for filename in os.listdir(temp_dir):
+            full_path = os.path.join(temp_dir, filename)
 
             # 파일이면 os.remove, 디렉토리면 shutil.rmtree 사용
             if os.path.isfile(full_path):

@@ -10,16 +10,16 @@ logging.basicConfig(level=logging.INFO)
 
 # compare_results 함수: 실행 결과를 비교 로직에 따라서 분석하는 함수
 # argv: generator - 코드 생성기 종류/ id - 소스코드 번호/ results - 바이너리 실행 결과들/ comparison_strategy - 비교 로직
-def analyze_results(dir_path, generator_config, id, random_seed, results, machine_info, partial_timeout=True):
+def analyze_results(dir_path, temp_dirs, catch_dirs, generator_config, id, random_seed, results, machine_info, partial_timeout=True):
     # 해당 결과들을 대상으로 비교
     generator_name = generator_config['name']
     try:
         if compare_execution_results(results):  # 실행 결과가 다른 경우
-            if platform.system() == 'Windows' and check_for_duplicated_bug(dir_path, generator_config, id, random_seed):
+            if platform.system() == 'Windows' and check_for_duplicated_bug(dir_path, temp_dirs, catch_dirs, generator_config, id, random_seed):
                 return False
             msg = f"Different results(checksum) detected for generator {generator_name}, source code ID: {id}"
             print(msg)
-            id_folder_path = save_to_folder(generator_name, id, results, "checksum")
+            id_folder_path = save_to_folder(temp_dirs, catch_dirs, generator_name, id, results, "checksum")
             send_telegram_message(machine_info, generator_config, id, random_seed, "Different Checksum", msg, id_folder_path, "high")
             return True
         else:
@@ -27,26 +27,26 @@ def analyze_results(dir_path, generator_config, id, random_seed, results, machin
             if crash_exists:                                    # 크래시가 있는 경우
                 msg = f"{crash_type} Crash detected for generator {generator_name}, source code ID: {id}"
                 print(msg)
-                id_folder_path = save_to_folder(generator_name, id, results, f"{crash_type.lower()}_crash")
+                id_folder_path = save_to_folder(temp_dirs, catch_dirs, generator_name, id, results, f"{crash_type.lower()}_crash")
                 send_telegram_message(machine_info, generator_config, id, random_seed, f"{crash_type} Crash", msg, id_folder_path, "medium")
                 return True
 
             elif partial_timeout and detect_partial_timeout(results):               # 부분적으로 타임아웃이 있는 경우 (어떻게 보면 결과가 다르다고 볼 수 있습니다.)
                 print(f"Binary Execution Partial timeout detected for generator {generator_name}, source code ID: {id}")
-                save_to_folder(generator_name, id, results, "partial_timeout")
+                save_to_folder(temp_dirs, catch_dirs, generator_name, id, results, "partial_timeout")
                 return True
             
             elif detect_abnormal_compile(results):              # 비정상적으로 컴파일이 수행되는 경우 (컴파일 타임아웃, 크래시 등...)
                 msg = f"Abnormal compile detected for generator {generator_name}, source code ID: {id}"
                 print(msg)
-                id_folder_path = save_to_folder(generator_name, id, results, "abnormal_compile")
+                id_folder_path = save_to_folder(temp_dirs, catch_dirs, generator_name, id, results, "abnormal_compile")
                 send_telegram_message(machine_info, generator_config, id, random_seed, "Abnormal Compile", msg, id_folder_path)
                 return True
             
             elif detect_abnormal_binary(results):  # 바이너리 returncode가 0이 아닌 경우가 하나라도 있는 경우 
                 msg = f"Abnormal binary detected for generator {generator_name}, source code ID: {id}"
                 print(msg)
-                id_folder_path = save_to_folder(generator_name, id, results, "abnormal_binary")
+                id_folder_path = save_to_folder(temp_dirs, catch_dirs, generator_name, id, results, "abnormal_binary")
                 send_telegram_message(machine_info, generator_config, id, random_seed, "Abnormal Binary", msg, id_folder_path)
                 return True
             else:
@@ -183,13 +183,13 @@ def retry_move(src, dest, retries=3, delay=1):
 
 
 # Analyzer 로직에 따라서 탐지된 파일을 저장하는 함수
-def save_to_folder(generator_name, id, results, folder_name):
-    id_folder_path = os.path.join(f"{CATCH_DIRS[generator_name]}", folder_name, str(id))
+def save_to_folder(temp_dirs, catch_dirs, generator_name, id, results, folder_name):
+    id_folder_path = os.path.join(catch_dirs, folder_name, str(id))
     if not os.path.exists(id_folder_path):
         os.makedirs(id_folder_path, exist_ok=True)
 
     # TEMP_DIRS[generator]/id/ 폴더 내의 모든 파일을 옮기기
-    temp_dir_path = os.path.join(TEMP_DIRS[generator_name], str(id))
+    temp_dir_path = os.path.join(temp_dirs, str(id))
     for filename in os.listdir(temp_dir_path):
         source_path = os.path.join(temp_dir_path, filename)
         dest_path = os.path.join(id_folder_path, filename)

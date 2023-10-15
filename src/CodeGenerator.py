@@ -11,10 +11,10 @@ import secrets
 # generate_c_code 함수: Csmith와 yarpgen을 통해서 C 코드를 랜덤으로 생성
 # argv: id - 소스코드 번호
 # return: filepath - 생성된 파일 이름 및 경로
-def generate_c_code(id, generator_config):
+def generate_c_code(id, generator_config, temp_dirs):
     try:
         
-        dir_path = os.path.join(f'{TEMP_DIRS[generator_config["name"]]}', f'{id}')
+        dir_path = os.path.join(temp_dirs, f'{id}')
         random_seed = secrets.randbelow(4294967296)
     
         # 폴더가 없으면 생성
