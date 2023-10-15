@@ -16,7 +16,7 @@ logging.basicConfig(level=logging.WARNING)
 # process_generator 함수: 생성기 별로 퍼징을 수행하는 함수
 # argv: generator - 생성기 종류 (현재 csmith와 yarpgen)
 # return: None 
-def process_generator(generator_config, partial_timeout=True):
+def fuzz_with_generator(generator_config, partial_timeout=True):
     generator_name = generator_config["name"]
     machine_info = get_machine_info()
     round_number = 0  # 라운드 번호 초기화
@@ -86,7 +86,7 @@ def main():
     setup_output_dirs()
     generators = list(generators_config.values())
     with ProcessPoolExecutor() as executor:
-        executor.map(process_generator, generators, repeat(args.partial_timeout))
+        executor.map(fuzz_with_generator, generators, repeat(args.partial_timeout))
 
 if __name__ == "__main__":
     main()

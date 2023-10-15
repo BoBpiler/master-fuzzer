@@ -19,80 +19,6 @@ CHAT_ID = ""
 HIGH_SEVERITY_CHAT_ID = ""
 TOKEN = ""
 
-def zip_src_files(filenames, output_filename):
-    with zipfile.ZipFile(output_filename, 'w') as zipf:
-        for file in filenames:
-            zipf.write(file, os.path.basename(file))
-
-# send_telegram_message 함수: 버그를 탐지하고 텔레그램 봇에게 알림을 보내는 함수
-# argv: machine_info - 머신 정보를 담은 딕셔너리/ generator - 생성기 종류/ id - 소스코드 uuid/ bug_type - 버그 타입/ detail - 버그 상세 내용/src_file_path - 소스코드 경로 /result_file_path - 결과 txt 경로/ severity - 중요도 정보
-# return: response.json() - http post 요청 응답 정보
-def send_telegram_message(machine_info, generator_config, id, random_seed, bug_type, detail, dir_path, severity="low"):
-    files_to_send = [filepath.format(path=dir_path, id=id) for filepath in generator_config['src_files_to_send']]
-    
-    result_files = get_result_file_names(id)
-    result_file_path = os.path.join(dir_path, result_files["txt"])
-    
-    if generator_config['zip_required']:
-        zip_path = os.path.join(dir_path, generator_config['zip_name'].format(id=str(id)))
-        zip_src_files(files_to_send, zip_path)
-        files_to_send = [zip_path]
-
-    # 중요도에 따른 이모지 선택
-    severity_emoji = {
-        "low": "ℹ️",
-        "medium": "⚠️",
-        "high": "🚨"
-    }.get(severity, "ℹ️")  # 만약 알려지지 않은 severity가 들어오면 "ℹ️"를 기본값으로 사용 
-    
-    # 메시지 포맷
-    formatted_message = f"""Fuzzing Alert {severity_emoji} ({severity.upper()}):
-
-Machine Info:
-- OS: {machine_info.get('os', 'None')}
-- Hostname: {machine_info.get('hostname', 'None')}
-- IP: {machine_info.get('ip', 'None')}
-- Whoami: {machine_info.get('whoami', 'None')}
-- SSH Public Key Hash: {machine_info.get('ssh_pub_key_hash', 'None')}
-
-Bug Info:
-- Generator: {generator_config['name']}
-- UUID: {id}
-- Random Seed: {random_seed}
-- Bug Type: {bug_type}
-- Bug detail: {detail}
-"""
-    url = f"https://api.telegram.org/bot{TOKEN}/sendmessage"
-    data = {
-        "chat_id": CHAT_ID,
-        "text": formatted_message
-    }
-    response = requests.post(url, data=data)
-
-    # 성공적으로 메시지를 보냈다면, 이제 결과 파일 보내기
-    if response.json().get("ok"):
-        url_doc = f"https://api.telegram.org/bot{TOKEN}/sendDocument"
-        files = {'document': open(result_file_path, 'rb')}
-        data_doc = {'chat_id': CHAT_ID}
-        response_doc = requests.post(url_doc, files=files, data=data_doc)
-        
-        if response_doc.json().get("ok") and severity == "high":
-            for file_path in files_to_send:
-                files = {'document': open(file_path, 'rb')}
-                response = requests.post(url_doc, files=files, data=data_doc)
-
-            # high인 경우 high만 알람이 오는 방에 추가적으로 보냅니다.
-            data['chat_id'] = HIGH_SEVERITY_CHAT_ID
-            data_doc['chat_id'] = HIGH_SEVERITY_CHAT_ID
-            requests.post(url, data=data)
-            requests.post(url_doc, files={'document': open(result_file_path, 'rb')}, data=data_doc)
-            for file_path in files_to_send:
-                files = {'document': open(file_path, 'rb')}
-                requests.post(url_doc, files=files, data=data_doc)
-
-        return response.json()
-    else:
-        return {"status": "failed", "reason": "Could not send the message"}
 
 def get_result_file_names(id):
     return {
@@ -242,20 +168,6 @@ window_generators_config = {
         'path_type': 'dirpath'
     }
 }
-
-
-
-# 컴파일러 종류
-compilers = [
-    {'name': './gcc-trunk', 'type': 'base', 'folder_name': 'gcc', 'execute': '{binary}'},
-    {'name': './clang-18', 'type': 'base', 'folder_name': 'clang', 'execute': '{binary}'},
-    {'name': 'aarch64-linux-gnu-gcc', 'type': 'cross-aarch64', 'folder_name': 'gcc-aarch64', 'execute': 'qemu-aarch64-static -L /usr/aarch64-linux-gnu {binary}'},
-    {'name': './clang-18 --target=aarch64-linux-gnu', 'type': 'cross-aarch64', 'folder_name': 'clang-aarch64', 'execute': 'qemu-aarch64-static -L /usr/aarch64-linux-gnu {binary}'},
-    {'name': 'mips64-linux-gnuabi64-gcc', 'type': 'cross-mips64', 'folder_name': 'gcc-mips64', 'execute': 'qemu-mips64-static -L /usr/mips64-linux-gnuabi64 {binary}'},
-    {'name': './clang-18 --target=mips64-linux-gnuabi64', 'type': 'cross-mips64', 'folder_name': 'clang-mips64', 'execute': 'qemu-mips64-static -L /usr/mips64-linux-gnuabi64 {binary}'},
-    {'name': './riscv64-unknown-elf-gcc', 'type': 'cross-riscv64', 'folder_name': 'gcc-riscv64', 'execute': 'qemu-riscv64-static {binary}'},
-    {'name': './clang-18 --sysroot=$HOME/riscv/riscv64-unknown-elf --gcc-toolchain=$HOME/riscv --target=riscv64-unknown-elf -march=rv64gc', 'type': 'cross-riscv64', 'folder_name': 'clang-riscv64', 'execute': 'qemu-riscv64-static {binary}'}
-]
 
 def cl_prepare(dir_path, optimization_level):
     obj_folder = os.path.join(dir_path, f"obj_{optimization_level[1:]}")
@@ -446,9 +358,6 @@ linux_compilers = {
     }
 }
 
-# 최적화 옵션
-optimization_levels = ['0', '1', '2', '3']
-
 if platform.system() == 'Linux':
     generators_config = linux_generators_config
     compilers = linux_compilers
@@ -467,6 +376,80 @@ binary_time_out = 10
 
 
 
+def zip_src_files(filenames, output_filename):
+    with zipfile.ZipFile(output_filename, 'w') as zipf:
+        for file in filenames:
+            zipf.write(file, os.path.basename(file))
+
+# send_telegram_message 함수: 버그를 탐지하고 텔레그램 봇에게 알림을 보내는 함수
+# argv: machine_info - 머신 정보를 담은 딕셔너리/ generator - 생성기 종류/ id - 소스코드 uuid/ bug_type - 버그 타입/ detail - 버그 상세 내용/src_file_path - 소스코드 경로 /result_file_path - 결과 txt 경로/ severity - 중요도 정보
+# return: response.json() - http post 요청 응답 정보
+def send_telegram_message(machine_info, generator_config, id, random_seed, bug_type, detail, dir_path, severity="low"):
+    files_to_send = [filepath.format(path=dir_path, id=id) for filepath in generator_config['src_files_to_send']]
+    
+    result_files = get_result_file_names(id)
+    result_file_path = os.path.join(dir_path, result_files["txt"])
+    
+    if generator_config['zip_required']:
+        zip_path = os.path.join(dir_path, generator_config['zip_name'].format(id=str(id)))
+        zip_src_files(files_to_send, zip_path)
+        files_to_send = [zip_path]
+
+    # 중요도에 따른 이모지 선택
+    severity_emoji = {
+        "low": "ℹ️",
+        "medium": "⚠️",
+        "high": "🚨"
+    }.get(severity, "ℹ️")  # 만약 알려지지 않은 severity가 들어오면 "ℹ️"를 기본값으로 사용 
+    
+    # 메시지 포맷
+    formatted_message = f"""Fuzzing Alert {severity_emoji} ({severity.upper()}):
+
+Machine Info:
+- OS: {machine_info.get('os', 'None')}
+- Hostname: {machine_info.get('hostname', 'None')}
+- IP: {machine_info.get('ip', 'None')}
+- Whoami: {machine_info.get('whoami', 'None')}
+- SSH Public Key Hash: {machine_info.get('ssh_pub_key_hash', 'None')}
+
+Bug Info:
+- Generator: {generator_config['name']}
+- UUID: {id}
+- Random Seed: {random_seed}
+- Bug Type: {bug_type}
+- Bug detail: {detail}
+"""
+    url = f"https://api.telegram.org/bot{TOKEN}/sendmessage"
+    data = {
+        "chat_id": CHAT_ID,
+        "text": formatted_message
+    }
+    response = requests.post(url, data=data)
+
+    # 성공적으로 메시지를 보냈다면, 이제 결과 파일 보내기
+    if response.json().get("ok"):
+        url_doc = f"https://api.telegram.org/bot{TOKEN}/sendDocument"
+        files = {'document': open(result_file_path, 'rb')}
+        data_doc = {'chat_id': CHAT_ID}
+        response_doc = requests.post(url_doc, files=files, data=data_doc)
+        
+        if response_doc.json().get("ok") and severity == "high":
+            for file_path in files_to_send:
+                files = {'document': open(file_path, 'rb')}
+                response = requests.post(url_doc, files=files, data=data_doc)
+
+            # high인 경우 high만 알람이 오는 방에 추가적으로 보냅니다.
+            data['chat_id'] = HIGH_SEVERITY_CHAT_ID
+            data_doc['chat_id'] = HIGH_SEVERITY_CHAT_ID
+            requests.post(url, data=data)
+            requests.post(url_doc, files={'document': open(result_file_path, 'rb')}, data=data_doc)
+            for file_path in files_to_send:
+                files = {'document': open(file_path, 'rb')}
+                requests.post(url_doc, files=files, data=data_doc)
+
+        return response.json()
+    else:
+        return {"status": "failed", "reason": "Could not send the message"}
 ##################################################################################################
 # 결과 저장을 위한 configuration
 # 일반적으로 프로세스가 성공적으로 종료하면 returncode는 0, 에러로 종료하면 양의 정수, 
