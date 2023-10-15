@@ -109,7 +109,13 @@ def modify_source_LL_to_ULL(source_code_path):
 def detect_bug_type_ULL(dir_path, generator_config, id, random_seed):
     generator_name = generator_config["name"]
     src_files = [file.format(path=dir_path, id=id) for file in generator_config['src_files']]
-    modified_path = modify_source_LL_to_ULL(src_files)
+    if len(src_files) > 1:
+        return False
+    
+    # if generator_name != "csmith":
+    #     return False
+
+    modified_path = modify_source_LL_to_ULL(src_files[0])
 
     result = fuzz(dir_path, generator_config, id, random_seed)
     if result:
