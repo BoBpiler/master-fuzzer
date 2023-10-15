@@ -113,6 +113,7 @@ def compile(binary_name, dir_path, generator_config, id, compiler_info, optimiza
         return compile_result
     
     except subprocess.TimeoutExpired as e:
+        terminate_process_and_children(proc.pid)
         if platform.system() == 'Linux':
             os.killpg(os.getpgid(proc.pid), signal.SIGTERM)  # 타임아웃 발생 시, 프로세스 종료
         else:
@@ -159,6 +160,7 @@ def run_binary(binary_name, generator_config, compiler_info):
             return run_result
         except subprocess.TimeoutExpired as e:
             # TimeoutExpired: 프로세스가 지정된 시간 내에 완료되지 않았을 때 발생
+            terminate_process_and_children(proc.pid)
             if platform.system() == 'Linux':
                 os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
             else:
