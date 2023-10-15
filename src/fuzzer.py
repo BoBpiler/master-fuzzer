@@ -83,7 +83,7 @@ def fuzz_with_generator(generator_config, temp_dirs, catch_dirs, partial_timeout
                     logging.critical(f"CRITICAL ERROR: This is an exceptional case which means impossible and requires immediate attention.")
                 
                 # Temp 폴더 청소
-                cleanup_temp(generator_name)
+                cleanup_temp(temp_dirs)
                 # 진행률 업데이트 및 출력
                 completed_tasks += 1
                 progress = (completed_tasks / total_tasks) * 100
