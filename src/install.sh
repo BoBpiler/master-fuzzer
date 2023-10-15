@@ -111,14 +111,23 @@ cd ..
 
 # YARPGen 설치 스크립트
 git clone https://github.com/BoBpiler/BoBpiler_yarpgen.git
-cd yarpgen
+cd BoBpiler_yarpgen
 mkdir build
 cd build
 cmake ..
-sudo make -j `nproc` && sudo make install
+sudo make -j `nproc`
 sudo cp yarpgen /usr/local/bin/
 cd ../..
 
+git clone https://github.com/intel/yarpgen.git
+cd yarpgen
+git checkout v1
+mkdir build
+cd build
+cmake ..
+sudo make -j `nproc`
+sudo cp yarpgen /usr/local/bin/yarpgen_scalar
+cd ../..
 
 # 크로스 컴파일러와 QEMU 설치 (GCC)
 sudo apt-get install -y gcc-aarch64-linux-gnu
