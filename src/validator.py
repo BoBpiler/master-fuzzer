@@ -3,6 +3,7 @@ from config import*
 from running_system import compile_and_run
 from Analyzer import*
 import re
+import logging
 
 def check_for_duplicated_bug(dir_path, generator_config, id, random_seed):
     # LL을 ULL로 변경하는 방식으로 중복된 버그인지 판단
