@@ -13,6 +13,21 @@ import argparse
 from itertools import repeat
 
 logging.basicConfig(level=logging.WARNING)
+import signal
+import atexit
+
+def signal_handler(sig, frame):
+    print("Terminating all processes...")
+    terminate_process_and_children(os.getpid())
+    sys.exit(0)
+
+signal.signal(signal.SIGINT, signal_handler)
+
+def cleanup():
+    terminate_process_and_children(os.getpid())
+
+atexit.register(cleanup)
+
 # process_generator 함수: 생성기 별로 퍼징을 수행하는 함수
 # argv: generator - 생성기 종류 (현재 csmith와 yarpgen)
 # return: None 
@@ -79,14 +94,18 @@ def process_generator(generator_config, partial_timeout=True):
 
 # main 함수: 퍼징을 수행하는 총괄 코드
 def main():
-    parser = argparse.ArgumentParser(description="Analyze results.")
-    parser.add_argument("--no-timeout", action="store_false", dest="partial_timeout")
-    args = parser.parse_args()
-    # 디렉토리 초기화
-    setup_output_dirs()
-    generators = list(generators_config.values())
-    with ProcessPoolExecutor() as executor:
-        executor.map(process_generator, generators, repeat(args.partial_timeout))
+    try:
+        parser = argparse.ArgumentParser(description="Analyze results.")
+        parser.add_argument("--no-timeout", action="store_false", dest="partial_timeout")
+        args = parser.parse_args()
+        # 디렉토리 초기화
+        setup_output_dirs()
+        generators = list(generators_config.values())
+        with ProcessPoolExecutor() as executor:
+            executor.map(process_generator, generators, repeat(args.partial_timeout))
+    except KeyboardInterrupt:
+        print("\nKeyboard interrupt received. Terminating all processes...")
+        terminate_process_and_children(os.getpid())
 
 if __name__ == "__main__":
     main()
