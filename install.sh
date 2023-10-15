@@ -48,8 +48,9 @@ wait $CLANG_PID || { echo "Clang install failed"; exit 1; }
 
 # 심볼릭 링크
 ln -s $HOME/gcc-trunk/bin/gcc-trunk gcc-trunk || { echo "Failed to create symbolic link for gcc-trunk"; exit 1; }
+ln -s $HOME/gcc-trunk/bin/g++-trunk g++-trunk || { echo "Failed to create symbolic link for gcc-trunk"; exit 1; }
 ln -s llvm-project/build/bin/clang-18 clang-18 || { echo "Failed to create symbolic link for clang-18"; exit 1; }
-
+ln -s clang-18 clang++-18 || { echo "Failed to create symbolic link for clang++-18"; exit 1; }
 
 # 설치 디렉터리 설정
 INSTALL_DIR=$HOME/riscv
@@ -89,6 +90,7 @@ install_riscv_gcc
 
 # 심볼릭 링크 생성
 ln -s $INSTALL_DIR/bin/riscv64-unknown-elf-gcc $current_path/riscv64-unknown-elf-gcc || { echo "Failed to create symbolic link for RISC-V GCC"; exit 1; }
+ln -s $INSTALL_DIR/bin/riscv64-unknown-elf-gcc $current_path/riscv64-unknown-elf-g++ || { echo "Failed to create symbolic link for RISC-V G++"; exit 1; }
 #ln -s $INSTALL_DIR/clang/bin/riscv64-unknown-elf-clang $current_path/riscv64-unknown-elf-clang || { echo "Failed to create symbolic link for RISC-V Clang"; exit 1; }
 
 # SSH 키 생성
@@ -121,6 +123,7 @@ cd ../..
 # 크로스 컴파일러와 QEMU 설치 (GCC)
 sudo apt-get install -y gcc-aarch64-linux-gnu
 sudo apt-get install -y g++-aarch64-linux-gnu
+sudo apt-get install -y gcc-mips64-linux-gnuabi64 g++-mips64-linux-gnuabi64
 
 
 # QEMU 설치

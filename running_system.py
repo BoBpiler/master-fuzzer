@@ -16,16 +16,12 @@ logging.basicConfig(level=logging.INFO)
 def compile_and_run(dir_path, generator_config, id, compiler_info, optimization_level, random_seed=None):
     # key는 바이너리 경로이자 이름으로 result_dict를 구분하는 요소로 사용합니다.
     generator_name = generator_config["name"]
-    compiler = compiler_info['name']
-    compiler_type = compiler_info['type']
-    folder_name = compiler_info['folder_name']
-
-    binary_name = os.path.join(TEMP_DIRS[generator_name], f'{id}', f"{folder_name}_O{optimization_level}")
+    binary_name = os.path.join(TEMP_DIRS[generator_name], f'{id}', f"{compiler_info['file_name']}_{optimization_level[1:]}")
     
     result_dict = {
         'id': str(id),
         'random_Seed': str(random_seed),
-        'compiler': compiler,
+        'compiler': compiler_info['name'],
         'optimization_level': optimization_level,
         'generator': generator_name,
         'compile': {
@@ -43,7 +39,7 @@ def compile_and_run(dir_path, generator_config, id, compiler_info, optimization_
         }
     }
     try:
-        compile_result = compile(binary_name, dir_path, generator_config, id, compiler, optimization_level)
+        compile_result = compile(binary_name, dir_path, generator_config, id, compiler_info, optimization_level)
         
         # 발생할 수 있는 잠재적인 컴파일 실패 체크
         if not compile_result['status']:
@@ -54,7 +50,7 @@ def compile_and_run(dir_path, generator_config, id, compiler_info, optimization_
         result_dict['compile'] = compile_result
         
         #map 방식으로 해당 바이너리 이름과 실행 결과를 result_queue에 저장
-        run_result = run_binary(binary_name, compiler_info)
+        run_result = run_binary(binary_name, generator_config, compiler_info)
         result_dict['run'] = run_result
 
         # 큐에 결과를 저장
@@ -68,7 +64,7 @@ def compile_and_run(dir_path, generator_config, id, compiler_info, optimization_
 # compile 함수: 인자로 받은 조건으로 컴파일을 수행
 # argv: binary_name - 바이너리 파일의 이름 및 경로/ path - 소스 코드 경로/ generator - 생성기 종류/ id - 소스코드 번호/ compiler - 컴파일러/ optimization_level - 최적화 옵션
 # return: compile_result - 컴파일 결과 딕셔너리 반환 
-def compile(binary_name, dir_path, generator_config, id, compiler, optimization_level):
+def compile(binary_name, dir_path, generator_config, id, compiler_info, optimization_level):
     # 컴파일 결과를 저장할 딕셔너리 초기화
     compile_result = {
         'status': None,
@@ -80,18 +76,35 @@ def compile(binary_name, dir_path, generator_config, id, compiler, optimization_
         # 바이너리 파일의 이름 
         src_files = [file.format(path=dir_path, id=id) for file in generator_config['src_files']]
         include_dir = generator_config['include_dir'].format(path=dir_path, id=id)
-        command = f"{compiler} {' '.join(src_files)} -o {binary_name} -O{optimization_level} -I{include_dir}"
+        optimization_option = optimization_level
+        compiler_path = compiler_info['language'][generator_config['language']]['binary_path']
         
-        proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=os.setsid)
+        additional_info = {}
+        if 'prepare_command' in compiler_info:
+            obj_path = compiler_info['prepare_command'](dir_path, optimization_level)
+            additional_info['obj_path'] = obj_path
+
+        command = compiler_info['output_format'].format(
+            compiler_path=compiler_path,
+            optimization=optimization_option,
+            include_dir=include_dir,
+            src_files=" ".join(src_files),
+            obj_path=additional_info.get('obj_path', ""),
+            exe_path=binary_name
+        )
+        if platform.system() == 'Linux':
+            proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=os.setsid, text=True)
+        else:
+            proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+
         stdout, stderr = proc.communicate(timeout=compile_time_out)
         returncode = proc.returncode
-
         # 컴파일 실패시 넘어가기 
         if returncode != 0:
             compile_result['status'] = False
             compile_result['return_code'] = returncode
             compile_result['error_type'] = analyze_returncode(returncode, "compilation")
-            compile_result['error_message'] = stderr.decode('utf-8')
+            compile_result['error_message'] = stdout + stderr
             logging.warning(f"Compilation failed for {dir_path} with return code {returncode}")
             return compile_result
         
@@ -100,7 +113,8 @@ def compile(binary_name, dir_path, generator_config, id, compiler, optimization_
         return compile_result
     
     except subprocess.TimeoutExpired as e:
-        os.killpg(os.getpgid(proc.pid), signal.SIGTERM)  # 타임아웃 발생 시, 프로세스 종료
+        if platform.system() == 'Linux':
+            os.killpg(os.getpgid(proc.pid), signal.SIGTERM)  # 타임아웃 발생 시, 프로세스 종료
         return handle_exception(e, TIMEOUT_ERROR, compile_result, binary_name)
     except subprocess.SubprocessError as e:
         return handle_exception(e, UNKNOWN_SUBPROCESS_ERROR, compile_result, binary_name)
@@ -109,7 +123,7 @@ def compile(binary_name, dir_path, generator_config, id, compiler, optimization_
 # run_binary 함수: 바이너리를 실행하고, 실행 결과를 반환
 # argv: binary_name - 바이너리 파일 이름 및 경로/ compiler - 크로스 컴파일 확인을 위함
 # return: run_result - 바이너리 실행 결과를 담은 딕셔너리 반환
-def run_binary(binary_name, compiler_info):
+def run_binary(binary_name, generator_config, compiler_info):
     run_result = {
         'status': None,
         'return_code': None,
@@ -120,9 +134,13 @@ def run_binary(binary_name, compiler_info):
     
     try:
         binary_name_only = os.path.basename(binary_name)
-        command = compiler_info['execute'].format(binary=binary_name)
+        command = compiler_info['language'][generator_config['language']]['execute'].format(exe_path=binary_name)
         try:
-            proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=os.setsid)
+            if platform.system() == 'Linux':
+                proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=os.setsid, text=True)
+            else:
+                proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+
             stdout, stderr = proc.communicate(timeout=binary_time_out)
             returncode = proc.returncode
             
@@ -131,15 +149,16 @@ def run_binary(binary_name, compiler_info):
             if returncode != 0:
                 run_result['status'] = False
                 run_result['error_type'] = analyze_returncode(returncode, "execution")
-                run_result['error_message'] = stderr.decode('utf-8')
+                run_result['error_message'] = stdout + stderr
             else:
                 run_result['status'] = True
-                run_result['result'] = stdout.decode('utf-8')
-                print(f"{binary_name_only} Result obtained: {stdout.decode('utf-8')}")
+                run_result['result'] = stdout
+                print(f"{binary_name_only} Result obtained: {stdout}")
             return run_result
         except subprocess.TimeoutExpired as e:
             # TimeoutExpired: 프로세스가 지정된 시간 내에 완료되지 않았을 때 발생
-            os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
+            if platform.system() == 'Linux':
+                os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
             return handle_exception(e, TIMEOUT_ERROR, run_result, binary_name)
         except subprocess.CalledProcessError as e:
             # CalledProcessError: 명령어가 0이 아닌 상태 코드를 반환했을 때 발생 이 부분은 앞의 returncode랑 동일하지 않을까 싶습니다.

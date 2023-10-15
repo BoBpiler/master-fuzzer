@@ -1,7 +1,7 @@
 # CodeGenerator.py
 # 생성기를 이용해서 소스코드를 생성하는 함수
 
-from config import TEMP_DIRS, generator_time_out, csmith_options, yarpgen_options, yarpgen_scalar_options
+from config import TEMP_DIRS, generator_time_out
 import os
 import subprocess
 import logging
@@ -39,7 +39,7 @@ def generate_c_code(id, generator_config):
             **{path_key: path_value}
         )
 
-        result = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=generator_time_out)
+        result = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=generator_time_out, text=True)
         if result.returncode != 0:
             logging.warning(f"{generator_config['name']} code generation failed for {path_value} with return code {result.returncode}, error message: {result.stdout + result.stderr}")
             return (None, None)

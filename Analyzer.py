@@ -73,21 +73,33 @@ def detect_crashes(results):
     check_crash = False
     crash_type = None
 
+    total_binary_crashes = 0
+    total_binaries = 0
+
     for key, result_dict in results.items():
         compile_status = result_dict['compile']['status']
         compile_error_type = result_dict['compile']['error_type']
-        run_status = result_dict['run']['status']
-        run_error_type = result_dict['run']['error_type']
 
-        if compile_status == False and compile_error_type == CRASH:
-            check_crash = True
-            crash_type = "Compile"
-            break 
+        if compile_status == False:
+            if compile_error_type == CRASH or \
+               "Access Violation" in compile_error_type or \
+               "Stack Overflow" in compile_error_type:
+                check_crash = True
+                crash_type = "Compile"
+                return (check_crash, crash_type) 
+        else:
+            run_status = result_dict['run']['status']
+            run_error_type = result_dict['run']['error_type']
+            total_binaries += 1
+            if run_status == False:
+                if run_error_type == CRASH or \
+                "Access Violation" in run_error_type or \
+                "Stack Overflow" in run_error_type:
+                    total_binary_crashes += 1
 
-        if run_status == False and run_error_type == CRASH:
-            check_crash = True
-            crash_type = "Binary"
-            break
+    if 0 < total_binary_crashes < total_binaries:
+        check_crash = True
+        crash_type = "Binary"
 
     return (check_crash, crash_type)
 
@@ -147,6 +159,18 @@ def detect_partial_timeout(results):
     return timeout_count > 0 and timeout_count < total_count    # 타임아웃이 존재하고 실행된 바이너리 수보다 타임아웃이 작아야 합니다. 즉, 부분적으로만 타임아웃 발생
 
 
+import time
+
+def retry_move(src, dest, retries=3, delay=1):
+    for i in range(retries):
+        try:
+            shutil.move(src, dest)
+            return
+        except Exception as e:
+            if i == retries - 1:  # 마지막 시도에서도 실패하면 오류를 발생시킵니다.
+                raise e
+            time.sleep(delay)  # 간단한 딜레이 후 재시도합니다.
+
 
 # Analyzer 로직에 따라서 탐지된 파일을 저장하는 함수
 def save_to_folder(generator_name, id, results, folder_name):
@@ -159,7 +183,10 @@ def save_to_folder(generator_name, id, results, folder_name):
     for filename in os.listdir(temp_dir_path):
         source_path = os.path.join(temp_dir_path, filename)
         dest_path = os.path.join(id_folder_path, filename)
-        shutil.move(source_path, dest_path)
+        try:
+            retry_move(source_path, dest_path)
+        except Exception as e:
+            logging.error(f"Error moving {source_path} to {dest_path}. Exception: {e}")
 
     # 결과를 txt 파일에 저장 - 한 눈에 보기 좋습니다.
     save_results_to_file(id_folder_path, id, results)

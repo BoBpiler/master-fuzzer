@@ -101,10 +101,11 @@ def get_result_file_names(id):
     }
 
 
-generators_config = {
+linux_generators_config = {
     'csmith': {
         'name': 'csmith',
         'binary_path': 'csmith',
+        'language': 'c',
         'options': [
             "--max-array-dim 3", 
             "--max-array-len-per-dim 10",
@@ -140,6 +141,7 @@ generators_config = {
     'yarpgen': {
         'name': 'yarpgen',
         'binary_path': 'yarpgen',
+        'language': 'c',
         'options': [
             "--std=c",
             "--mutate=all"
@@ -155,6 +157,7 @@ generators_config = {
     'yarpgen_scalar': {
         'name': 'yarpgen_scalar',
         'binary_path': 'yarpgen_scalar',
+        'language': 'c',
         'options': [
             "--std=c99"
         ],
@@ -168,6 +171,80 @@ generators_config = {
     }
 }
 
+
+window_generators_config = {
+    'csmith': {
+        'name': 'csmith',
+        'binary_path': "csmith\\csmith.exe",
+        'language': 'c',
+        'options': [
+            "--max-array-dim 3", 
+            "--max-array-len-per-dim 10",
+            "--max-block-depth 3",
+            "--max-block-size 5",
+            "--max-expr-complexity 10",
+            "--max-funcs 4",
+            "--max-pointer-depth 3",
+            "--max-struct-fields 10",
+            "--max-union-fields 10",
+            "--muls",
+            "--safe-math",
+            "--no-packed-struct",
+            "--pointers",
+            "--structs",
+            "--unions",
+            "--volatiles",
+            "--volatile-pointers",
+            "--const-pointers",
+            "--global-variables",
+            "--no-builtins",
+            "--inline-function",
+            "--inline-function-prob 50"
+        ],
+        'output_format': '{generator} {options} -o {filepath} --seed {random_seed}',
+        'src_files': ['{path}\\random_program_{id}.c'],
+        'src_files_to_send': ['{path}\\random_program_{id}.c'],
+        'zip_required': False,
+        'zip_name': None,
+        'include_dir': '..\\runtime',
+        'path_type': 'filepath'
+    },
+    'yarpgen': {
+        'name': 'yarpgen',
+        'binary_path': "yarpgen\\yarpgen.exe",
+        'language': 'cpp',
+        'options': [
+            "--emit-pragmas=none",
+            "--std=c++",
+            "--mutate=all"
+        ],
+        'output_format': '{generator} {options} -o {dir_path} --seed={random_seed} --mutation-seed={random_seed}',
+        'src_files': ['{path}\\driver.cpp', '{path}\\func.cpp'],
+        'src_files_to_send': ['{path}\\driver.cpp', '{path}\\func.cpp', '{path}\\init.h'],
+        'zip_required': True,
+        'zip_name': "yarpgen_{id}.zip",
+        'include_dir': '{path}',
+        'path_type': 'dirpath'
+    },
+    'yarpgen_scalar': {
+        'name': 'yarpgen_scalar',
+        'binary_path': "yarpgen\\yarpgen_scalar.exe",
+        'language': 'cpp',
+        'options': [
+            "--std=c++17"
+        ],
+        'output_format': '{generator} {options} -d {dir_path} --seed={random_seed}',
+        'src_files': ['{path}\\driver.cpp', '{path}\\func.cpp'],
+        'src_files_to_send': ['{path}\\driver.cpp', '{path}\\func.cpp', '{path}\\init.h'],
+        'zip_required': True,
+        'zip_name': "yarpgen_scalar_{id}.zip",
+        'include_dir': '{path}',
+        'path_type': 'dirpath'
+    }
+}
+
+
+
 # 컴파일러 종류
 compilers = [
     {'name': './gcc-trunk', 'type': 'base', 'folder_name': 'gcc', 'execute': '{binary}'},
@@ -180,18 +257,207 @@ compilers = [
     {'name': './clang-18 --sysroot=$HOME/riscv/riscv64-unknown-elf --gcc-toolchain=$HOME/riscv --target=riscv64-unknown-elf -march=rv64gc', 'type': 'cross-riscv64', 'folder_name': 'clang-riscv64', 'execute': 'qemu-riscv64-static {binary}'}
 ]
 
+def cl_prepare(dir_path, optimization_level):
+    obj_folder = os.path.join(dir_path, f"obj_{optimization_level[1:]}")
+    if not os.path.exists(obj_folder):
+        os.makedirs(obj_folder)
+    return obj_folder
+
+window_compilers = {
+    "cl": {
+        "name": "CL",
+        "file_name": "cl",
+        "options": ["/O1", "/O2", "/Od", "/Ox", "/Ot"],
+        "prepare_command": cl_prepare,
+        "output_format": "\"{compiler_path}\" {optimization} /I {include_dir} {src_files} /Fo:{obj_path}\\ /Fe:\"{exe_path}\"",
+        "language": {
+            "c": {
+                "binary_path": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.37.32822\\bin\\Hostx64\\x64\\cl.exe",
+                "execute": "{exe_path}"  
+            },
+            "cpp": {
+                "binary_path": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.37.32822\\bin\\Hostx64\\x64\\cl.exe",
+                "execute": "{exe_path}"  
+            }
+        }
+    },
+    "mingw": {
+        "name": "MinGW",
+        "file_name": "mingw",
+        "options": ["-O0", "-O1", "-O2", "-O3"],
+        "output_format": "\"{compiler_path}\" {optimization} -I {include_dir} {src_files} -o \"{exe_path}\"",
+        "language": {
+            "c": {
+                "binary_path": "C:\\Program Files\\mingw64\\bin\\gcc.exe",
+                "execute": "{exe_path}"  
+            },
+            "cpp": {
+                "binary_path": "C:\\Program Files\\mingw64\\bin\\g++.exe",
+                "execute": "{exe_path}"  
+            }
+        }
+    },
+    "llvm-mingw": {
+        "name": "LLVM-MinGW",
+        "file_name": "llvm-mingw",
+        "options": ["-O0", "-O1", "-O2", "-O3"],
+        "output_format": "\"{compiler_path}\" {optimization} -I {include_dir} {src_files} -o \"{exe_path}\"",
+        "language": {
+            "c": {
+                "binary_path": "C:\\Program Files\\llvm-mingw-64\\bin\\clang.exe",
+                "execute": "{exe_path}"    
+            },
+            "cpp": {
+                "binary_path": "C:\\Program Files\\llvm-mingw-64\\bin\\clang++.exe",
+                "execute": "{exe_path}"  
+            }
+        }
+    }
+}
+
+linux_compilers = {
+    "gcc": {
+        "name": "gcc-trunk",
+        "file_name": "gcc",
+        "options": ["-O0", "-O1", "-O2", "-O3"],
+        "output_format": "{compiler_path} {src_files} -o {exe_path} {optimization} -I {include_dir}",
+        "language": {
+            "c": {
+                "binary_path": "./gcc-trunk",
+                "execute": "{exe_path}"  
+            },
+            "cpp": {
+                "binary_path": "./g++-trunk",
+                "execute": "{exe_path}"  
+            }
+        }
+    },
+    "clang": {
+        "name": "clang-18",
+        "file_name": "clang",
+        "options": ["-O0", "-O1", "-O2", "-O3"],
+        "output_format": "{compiler_path} {src_files} -o {exe_path} {optimization} -I {include_dir}",
+        "language": {
+            "c": {
+                "binary_path": "./clang-18",
+                "execute": "{exe_path}"  
+            },
+            "cpp": {
+                "binary_path": "./clang++-18",
+                "execute": "{exe_path}"  
+            }
+        }
+    },
+    "gcc-aarch64": {
+        "name": "aarch64-linux-gnu-gcc",
+        "file_name": "gcc-aarch64",
+        "options": ["-O0", "-O1", "-O2", "-O3"],
+        "output_format": "{compiler_path} {src_files} -o {exe_path} {optimization} -I {include_dir}",
+        "language": {
+            "c": {
+                "binary_path": "aarch64-linux-gnu-gcc",
+                "execute": "qemu-aarch64-static -L /usr/aarch64-linux-gnu {exe_path}"
+            },
+            "cpp": {
+                "binary_path": "aarch64-linux-gnu-g++",
+                "execute": "qemu-aarch64-static -L /usr/aarch64-linux-gnu {exe_path}"
+            }
+        }
+    },
+    "clang-aarch64": {
+        "name": "clang-18 --target=aarch64-linux-gnu",
+        "file_name": "clang-aarch64",
+        "options": ["-O0", "-O1", "-O2", "-O3"],
+        "output_format": "{compiler_path} {src_files} -o {exe_path} {optimization} -I {include_dir}",
+        "language": {
+            "c": {
+                "binary_path": "./clang-18 --target=aarch64-linux-gnu",
+                "execute": "qemu-aarch64-static -L /usr/aarch64-linux-gnu {exe_path}"
+            },
+            "cpp": {
+                "binary_path": "./clang++-18 --target=aarch64-linux-gnu",
+                "execute": "qemu-aarch64-static -L /usr/aarch64-linux-gnu {exe_path}"
+            }
+        }
+    },
+    "gcc-mips64": {
+        "name": "mips64-linux-gnuabi64-gcc",
+        "file_name": "gcc-mips64",
+        "options": ["-O0", "-O1", "-O2", "-O3"],
+        "output_format": "{compiler_path} {src_files} -o {exe_path} {optimization} -I {include_dir}",
+        "language": {
+            "c": {
+                "binary_path": "mips64-linux-gnuabi64-gcc",
+                "execute": "qemu-mips64-static -L /usr/mips64-linux-gnuabi64 {exe_path}"
+            },
+            "cpp": {
+                "binary_path": "mips64-linux-gnuabi64-g++",
+                "execute": "qemu-mips64-static -L /usr/mips64-linux-gnuabi64 {exe_path}"
+            }
+        }
+    },
+    "clang-mips64": {
+        "name": "clang-18 --target=mips64-linux-gnuabi64",
+        "file_name": "clang-mips64",
+        "options": ["-O0", "-O1", "-O2", "-O3"],
+        "output_format": "{compiler_path} {src_files} -o {exe_path} {optimization} -I {include_dir}",
+        "language": {
+            "c": {
+                "binary_path": "./clang-18 --target=mips64-linux-gnuabi64",
+                "execute": "qemu-mips64-static -L /usr/mips64-linux-gnuabi64 {exe_path}"
+            },
+            "cpp": {
+                "binary_path": "./clang++-18 --target=mips64-linux-gnuabi64",
+                "execute": "qemu-mips64-static -L /usr/mips64-linux-gnuabi64 {exe_path}"
+            }
+        }
+    },
+    "gcc-riscv64": {
+        "name": "riscv64-unknown-elf-gcc",
+        "file_name": "gcc-riscv64",
+        "options": ["-O0", "-O1", "-O2", "-O3"],
+        "output_format": "{compiler_path} {src_files} -o {exe_path} {optimization} -I {include_dir}",
+        "language": {
+            "c": {
+                "binary_path": "./riscv64-unknown-elf-gcc",
+                "execute": "qemu-riscv64-static {exe_path}"
+            },
+            "cpp": {
+                "binary_path": "./riscv64-unknown-elf-g++",
+                "execute": "qemu-riscv64-static {exe_path}"
+            }
+        }
+    },
+    "clang-riscv64": {
+        "name": "clang-18 --target=riscv64-unknown-elf",
+        "file_name": "clang-riscv64",
+        "options": ["-O0", "-O1", "-O2", "-O3"],
+        "output_format": "{compiler_path} {src_files} -o {exe_path} {optimization} -I {include_dir}",
+        "language": {
+            "c": {
+                "binary_path": "./clang-18 --sysroot=$HOME/riscv/riscv64-unknown-elf --gcc-toolchain=$HOME/riscv --target=riscv64-unknown-elf -march=rv64gc",
+                "execute": "qemu-riscv64-static {exe_path}"
+            },
+            "cpp": {
+                "binary_path": "./clang++-18 --sysroot=$HOME/riscv/riscv64-unknown-elf --gcc-toolchain=$HOME/riscv --target=riscv64-unknown-elf -march=rv64gc",
+                "execute": "qemu-riscv64-static {exe_path}"
+            }
+        }
+    }
+}
 
 # 최적화 옵션
 optimization_levels = ['0', '1', '2', '3']
 
-# gcc_O3_flags
-# gcc_O3_flags = ['-fgcse-after-reload', '-fipa-cp-clone', '-floop-interchange', '-floop-unroll-and-jam', 
-#                 '-fpeel-loops', '-fpredictive-commoning', '-fsplit-loops', '-fsplit-paths', '-ftree-loop-distribution', 
-#                 '-ftree-loop-vectorize', '-ftree-partial-pre', '-ftree-slp-vectorize', '-funswitch-loops', '-fvect-cost-model', 
-#                 '-fvect-cost-model=dynami', '-fversion-loops-for-strides']
-
-# def select_random_flags(flags, num):
-#     return random.sample(flags, num)
+if platform.system() == 'Linux':
+    generators_config = linux_generators_config
+    compilers = linux_compilers
+elif platform.system() == 'Windows':
+    generators_config = window_generators_config
+    compilers = window_compilers
+else:
+    generators_config = linux_generators_config
+    compilers = linux_compilers
 
 # 수행 횟수 및 타임아웃
 total_tasks = 100 
@@ -199,43 +465,7 @@ generator_time_out = 10
 compile_time_out = 30
 binary_time_out = 10
 
-# yarpgen 옵션
-yarpgen_options = [
-    "--std=c",
-    "--mutate=all"
-]
 
-yarpgen_scalar_options = [
-    "--std=c99"
-]
-
-
-# csmith include 경로
-csmith_include = "/usr/local/include/"
-
-# csmith 옵션
-csmith_options = "--max-array-dim 3 \
---max-array-len-per-dim 10 \
---max-block-depth 3 \
---max-block-size 5 \
---max-expr-complexity 10 \
---max-funcs 4 \
---max-pointer-depth 3 \
---max-struct-fields 10 \
---max-union-fields 10 \
---muls \
---safe-math \
---no-packed-struct \
---pointers \
---structs \
---unions \
---volatiles \
---volatile-pointers \
---const-pointers \
---global-variables \
---no-builtins \
---inline-function \
---inline-function-prob 50"
 
 ##################################################################################################
 # 결과 저장을 위한 configuration
@@ -257,7 +487,9 @@ UNICODE_DECODE_ERROR = 'UnicodeDecodeError'
 OS_ERROR = 'OSError'
 UNKNOWN_SUBPROCESS_ERROR = 'UnknownSubprocessError'
 PROCESS_KILLED = "ProcessKilled"
-
+# Windows-specific error codes NTSTATUS
+ACCESS_VIOLATION = 3221225477  # 0xC0000005
+STACK_OVERFLOW = 3221225725  # 0xC00000FD
 
 # 정의한 크래시 시그널들
 CRASH_SIGNALS = {4, 6, 7, 8, 11}  # SIGILL, SIGABRT, SIGBUS, SIGFPE, SIGSEGV
@@ -270,37 +502,48 @@ def normalize_returncode(returncode):
         return returncode - 128
     else:
         return returncode
-    
+
 # return code 분석 함수
 def analyze_returncode(returncode, context):
-    # 신호값이 음수로 들어오거나 128이 더해진 경우를 처리
-    code = normalize_returncode(returncode)
-    
-    if code == 0:
-        return "Success"
+    if platform.system == "Windows":
+        if returncode == 0:
+            return "Success"
+        elif returncode == ACCESS_VIOLATION:
+            return "Access Violation"
+        elif returncode == STACK_OVERFLOW:
+            return "Stack Overflow"
+        else:
+            return UNKNOWN_ERROR
+        # 기존 리눅스 프로토타입 부분
+    else:
+        # 신호값이 음수로 들어오거나 128이 더해진 경우를 처리
+        code = normalize_returncode(returncode)
+        
+        if code == 0:
+            return "Success"
 
-    if code in CRASH_SIGNALS:
-        return CRASH
+        if code in CRASH_SIGNALS:
+            return CRASH
 
-    if code == 13:
-        return PERMISSION_ERROR
+        if code == 13:
+            return PERMISSION_ERROR
 
-    if code == 9:  # SIGKILL
-        return PROCESS_KILLED
-    
-    if code == 124:
-        return TIMEOUT_ERROR
-    
-    if context == "compilation":
-        if code == 1:
-            return COMPILE_ERROR
-    return UNKNOWN_ERROR
+        if code == 9:  # SIGKILL
+            return PROCESS_KILLED
+        
+        if code == 124:
+            return TIMEOUT_ERROR
+        
+        if context == "compilation":
+            if code == 1:
+                return COMPILE_ERROR
+        return UNKNOWN_ERROR
 
 
 ##################################################################################################
 # 디렉토리 설정 (상수로 경로 설정)
 # 디렉토리 설정 (상수로 경로 설정)
-BASE_DIR = f'output_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}'
+BASE_DIR = f'output_{datetime.now().strftime("%Y-%m-%d_%H")}'
 GENERATOR_DIRS = {key: os.path.join(BASE_DIR, config['name']) for key, config in generators_config.items()}
 CATCH_DIRS = {key: os.path.join(GENERATOR_DIRS[key], 'catch') for key in generators_config.keys()}
 TEMP_DIRS = {key: os.path.join(GENERATOR_DIRS[key], 'temp') for key in generators_config.keys()}

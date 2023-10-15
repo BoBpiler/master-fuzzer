@@ -46,9 +46,9 @@ def process_generator(generator_config, partial_timeout=True):
                     futures = []
                     results = {}
                     # 컴파일 및 실행 (gcc, clang으로 -O0 ~ -O3 옵션 주어서 컴파일 하고 실행 결과 저장)
-                    for compiler in compilers:
-                        for opt_level in optimization_levels:
-                            futures.append(executor.submit(compile_and_run, dir_path, generator_config, id, compiler, opt_level, random_seed))
+                    for compiler_info in compilers.values():
+                        for opt_level in compiler_info['options']:
+                            futures.append(executor.submit(compile_and_run, dir_path, generator_config, id, compiler_info, opt_level, random_seed))
                             
                     for future in futures:
                         result = future.result()
