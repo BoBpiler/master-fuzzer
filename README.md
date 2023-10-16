@@ -6,7 +6,7 @@ OS 환경: ***Ubuntu 22.04.2 LTS (wsl2)***, ***Windows 11 pro (x64 Native Tools 
 
 Window - ***cl, mingw, llvm-mingw***
 
-Linux - ***gcc, clang (arm64, riscv64, mips64, x86-64)***
+Linux - ***gcc, clang (arm64(little), riscv64(little), x86-64(little), mips64(big), mips64el(little), powerpc64le(little), powerpc64(big), s390x(big), sparc64(big))***
 
 generator - ***csmith, yarpgen, yarpgen_Scalar***
 
