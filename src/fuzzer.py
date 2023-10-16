@@ -1,7 +1,7 @@
 # fuzzer.py
 # main 입니다.
 
-from config import*
+from utils import*
 from CodeGenerator import generate_c_code
 from Analyzer import analyze_results
 from running_system import*

@@ -1,7 +1,7 @@
 # CodeGenerator.py
 # 생성기를 이용해서 소스코드를 생성하는 함수
 
-from config import TEMP_DIRS, generator_time_out
+from config import generator_time_out
 import os
 import subprocess
 import logging

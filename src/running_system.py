@@ -1,7 +1,7 @@
 # running_system.py 
 # 컴파일하고 바이너리를 실행하는 함수들이 담겨 있습니다. :)
 
-from config import *
+from utils import*
 from queue import Queue
 import os
 import subprocess
