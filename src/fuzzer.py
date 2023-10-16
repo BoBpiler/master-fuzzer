@@ -64,15 +64,48 @@ def fuzz_with_generator(compilers, generator_config, temp_dirs, catch_dirs, part
                     # 컴파일 및 실행 (gcc, clang으로 -O0 ~ -O3 옵션 주어서 컴파일 하고 실행 결과 저장)
                     for compiler_info in compilers.values():
                         for opt_level in compiler_info['options']:
-                            futures.append(executor.submit(compile_and_run, dir_path, temp_dirs, generator_config, id, compiler_info, opt_level, random_seed))
-                            
+                            if 'runners' not in compiler_info['language'][generator_config['language']]: # 일반 컴파일러의 경우
+                                futures.append(executor.submit(compile_and_run, dir_path, temp_dirs, generator_config, id, compiler_info, opt_level, random_seed))
+                            else:
+                                binary_name = os.path.join(temp_dirs, f'{id}', f"{compiler_info['file_name']}_{opt_level[1:]}")
+                                compile_result = compile(binary_name, dir_path, generator_config, id, compiler_info, opt_level)
+                                if compile_result['status']: # 컴파일이 성공한 경우에만 실행
+                                    for runner_name, runner_command in compiler_info['language'][generator_config['language']]['runners'].items():
+                                        futures.append(executor.submit(run_binary_for_wasm, runner_name, runner_command, compile_result, binary_name, generator_config, id, compiler_info, opt_level, random_seed))
+                                else:
+                                    result_dict = {
+                                        'id': str(id),
+                                        'random_Seed': str(random_seed),
+                                        'compiler': compiler_info['name'],
+                                        'optimization_level': opt_level,
+                                        'generator': generator_name,
+                                        'compile': {
+                                            'status': None,
+                                            'return_code': None,
+                                            'error_type': None,
+                                            'error_message': None
+                                        },
+                                        'run': {
+                                            'status': None,
+                                            'return_code': None,
+                                            'error_type': None,
+                                            'error_message': None,
+                                            'result': None
+                                        }
+                                    }
+                                    result_dict['compile'] = compile_result
+                                    futures.append((binary_name, result_dict))  # 컴파일 실패 결과를 futures에 추가
+
                     for future in futures:
-                        result = future.result()
-                        if result is not None:
-                            key, result_dict = result
-                            if key == "error": # 에러 처리
-                                continue
-                            results[key] = result_dict
+                        if isinstance(future, tuple):
+                            key, result_dict = future
+                        else:
+                            result = future.result()
+                            if result is not None:
+                                key, result_dict = result
+                        if key == "error": # 에러 처리
+                            continue
+                        results[key] = result_dict
                 
                 if len(results) > 0:  # results 딕셔너리가 비어 있지 않다면
                     analyze_results(compilers, dir_path, temp_dirs, catch_dirs, generator_config, id, random_seed, results, machine_info, partial_timeout)

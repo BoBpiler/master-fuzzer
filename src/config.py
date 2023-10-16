@@ -234,15 +234,23 @@ linux_little_endian_compilers = {
         "name": "emscription",
         "file_name": "emcc",
         "options": ["-O0", "-O1", "-O2", "-O3"],
-        "output_format": "{compiler_path} {src_files} -o {exe_path}.wasm {optimization} -I {include_dir}",
+        "output_format": "{compiler_path} {src_files} -o {exe_path}.html -s STANDALONE_WASM {optimization} -I {include_dir}",
         "language": {
             "c": {
                 "binary_path": "emcc",
-                "execute": "wasmer {exe_path}.wasm"  
+                "runners": {
+                    "wasmer": "wasmer {exe_path}.wasm",
+                    "wasmtime": "wasmtime {exe_path}.wasm",
+                    "node": "node {exe_path}.js"
+                }  
             },
             "cpp": {
                 "binary_path": "em++",
-                "execute": "wasmer {exe_path}.wasm"  
+                "runners": {
+                    "wasmer": "wasmer {exe_path}.wasm",
+                    "wasmtime": "wasmtime {exe_path}.wasm",
+                    "node": "node {exe_path}.js"
+                }  
             }
         }
     },

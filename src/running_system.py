@@ -187,6 +187,102 @@ def run_binary(binary_name, generator_config, compiler_info):
         # 다른 모든 subprocess 관련 예외를 처리하기 위해서 추가했습니다.
         return handle_exception(e, UNKNOWN_SUBPROCESS_ERROR, run_result, binary_name)
     
+# run_binary 함수: 바이너리를 실행하고, 실행 결과를 반환
+# argv: binary_name - 바이너리 파일 이름 및 경로/ compiler - 크로스 컴파일 확인을 위함
+# return: run_result - 바이너리 실행 결과를 담은 딕셔너리 반환
+def run_binary_for_wasm(runner_name, runner_command, compile_result, binary_name, generator_config, id, compiler_info, optimization_level, random_seed):
+    
+    result_dict = {
+        'id': str(id),
+        'random_Seed': str(random_seed),
+        'compiler': f"{compiler_info['name']}_{runner_name}",
+        'optimization_level': optimization_level,
+        'generator': generator_config["name"],
+        'compile': {
+            'status': None,
+            'return_code': None,
+            'error_type': None,
+            'error_message': None
+        },
+        'run': {
+            'status': None,
+            'return_code': None,
+            'error_type': None,
+            'error_message': None,
+            'result': None
+        }
+    }
+    result_dict['compile'] = compile_result
+    run_result = {
+        'status': None,
+        'return_code': None,
+        'error_type': None,
+        'error_message': None,
+        'result': None
+    }
+    
+    try:
+        key = f"{binary_name}_{runner_name}"
+        binary_name_only = os.path.basename(binary_name) + f"_{runner_name}"
+        command = runner_command.format(exe_path=binary_name)
+        try:
+            if platform.system() == 'Linux':
+                proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=os.setsid, text=True)
+            else:
+                proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+
+            stdout, stderr = proc.communicate(timeout=binary_time_out)
+            returncode = proc.returncode
+            
+            # return code를 확인합니다.
+            run_result['return_code'] = returncode
+            if returncode != 0:
+                run_result['status'] = False
+                run_result['error_type'] = analyze_returncode(returncode, "execution")
+                run_result['error_message'] = stdout + stderr
+            else:
+                run_result['status'] = True
+                run_result['result'] = stdout
+                print(f"{binary_name_only} Result obtained: {stdout}")
+            result_dict['run'] = run_result
+            
+            return (key, result_dict)
+        except subprocess.TimeoutExpired as e:
+            # TimeoutExpired: 프로세스가 지정된 시간 내에 완료되지 않았을 때 발생
+            terminate_process_and_children(proc.pid)
+            if platform.system() == 'Linux':
+                os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
+            else:
+                proc.terminate()
+            result_dict['run'] = handle_exception(e, TIMEOUT_ERROR, run_result, binary_name)
+            return (key, result_dict)
+        except subprocess.CalledProcessError as e:
+            # CalledProcessError: 명령어가 0이 아닌 상태 코드를 반환했을 때 발생 이 부분은 앞의 returncode랑 동일하지 않을까 싶습니다.
+            result_dict['run'] = handle_exception(e, CALLED_PROCESS_ERROR, run_result, binary_name)
+            return (key, result_dict) 
+    except FileNotFoundError as e:
+        # FileNotFoundError: 바이너리 파일을 찾을 수 없을 때 발생
+        result_dict['run'] = handle_exception(e, FILE_NOT_FOUND_ERROR, run_result, binary_name)
+        return (key, result_dict)
+    except PermissionError as e:
+        # PermissionError: 바이너리 파일을 실행할 권한이 없을 때 발생
+        result_dict['run'] = handle_exception(e, PERMISSION_ERROR, run_result, binary_name)
+        return (key, result_dict)
+    except UnicodeDecodeError as e:
+        # UnicodeDecodeError: 출력을 UTF-8 텍스트로 디코딩할 수 없을 때 발생
+        result_dict['run'] = handle_exception(e, UNICODE_DECODE_ERROR, run_result, binary_name)
+        return (key, result_dict)
+    except OSError as e:
+        # OSError: 운영체제 수준에서 발생하는 일반적인 오류를 처리
+        result_dict['run'] = handle_exception(e, OS_ERROR, run_result, binary_name)
+        return (key, result_dict)
+    except subprocess.SubprocessError as e:
+        # SubprocessError: subprocess 모듈에서 발생할 수 있는 모든 예외의 상위 클래스로
+        # 이 핸들러는 TimeoutExpired나 CalledProcessError와 같은 구체적인 예외가 먼저 처리되지 않은 경우에
+        # 다른 모든 subprocess 관련 예외를 처리하기 위해서 추가했습니다.
+        result_dict['run'] = handle_exception(e, UNKNOWN_SUBPROCESS_ERROR, run_result, binary_name)
+        return (key, result_dict)
+    
 # 예외처리 함수 
 def handle_exception(e, error_type, result, path):
     result['status'] = False
