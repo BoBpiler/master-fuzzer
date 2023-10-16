@@ -230,6 +230,22 @@ window_compilers = {
 
 # 리눅스 리틀 엔디안 컴파일러 설정
 linux_little_endian_compilers = {
+    "emcc": {
+        "name": "emscription",
+        "file_name": "emcc",
+        "options": ["-O0", "-O1", "-O2", "-O3"],
+        "output_format": "{compiler_path} {src_files} -o {exe_path}.wasm {optimization} -I {include_dir}",
+        "language": {
+            "c": {
+                "binary_path": "emcc",
+                "execute": "wasmer {exe_path}.wasm"  
+            },
+            "cpp": {
+                "binary_path": "em++",
+                "execute": "wasmer {exe_path}.wasm"  
+            }
+        }
+    },
     "gcc": {
         "name": "gcc-trunk",
         "file_name": "gcc",
