@@ -16,6 +16,8 @@ sudo cp /$HOME/.wasmtime/bin/wasmtime /usr/bin/wasmtime
 
 echo "Installing node..."
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
+nvm install node  # 최신 버전 설치
+nvm use node  # 최신 버전 사용
 
 echo "Cloning Emscripten..."
 git clone https://github.com/emscripten-core/emscripten.git
