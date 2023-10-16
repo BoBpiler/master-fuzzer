@@ -44,7 +44,7 @@ python3 fuzzer.py
 ```
 
 ```bash
-python3 fuzzer.py
+python fuzzer.py
 ```
 
 퍼저를 실행하기 위해서는 fuzzer.py를 실행해야 합니다. 
@@ -52,6 +52,16 @@ python3 fuzzer.py
 Linux - python3 
 
 Windows - python
+
+*** option 설명 ***
+
+python3 fuzzer.py --no-timeout 으로 실행하는 경우, partial_timeout에 대해서 무시합니다.
+
+python3 fuzzer.py --endian big 으로 실행하는 경우, 빅 엔디안 아키텍처에 대해서 퍼저를 실행합니다.
+
+python3 fuzzer.py --endian little 으로 실행하는 경우, 리틀 엔디안 아키텍처에 대해서 퍼저를 실행합니다.
+
+python3 fuzzer.py 으로 실행하는 경우 기본적으로 partial_timeout 탐지하며, 리틀엔디안 아키텍처에 대해서 퍼저를 실행합니다.
 
 ## 3. 결과 저장 구조
 
