@@ -38,30 +38,41 @@ Linux - `install.sh` 스크립트를 실행하면 필요한 모든 설정과 파
 Window - `INST_DEPS.bat` 배치 파일을 실행하면 필요한 설치가 이루어집니다. 
 
 ### 2. 퍼저 실행
+실행 방법
 
+Linux 환경에서:
 ```bash
 python3 fuzzer.py
 ```
-
+Windows 환경에서:
 ```bash
 python fuzzer.py
 ```
+옵션 설명
+1. --no-timeout:
+이 옵션을 사용하여 퍼저를 실행하면, partial_timeout을 무시합니다.
 
-퍼저를 실행하기 위해서는 fuzzer.py를 실행해야 합니다. 
+예시:
+```bash
+python3 fuzzer.py --no-timeout
+```
+2. --endian:
+이 옵션은 아키텍처의 엔디언 타입을 지정합니다. big 또는 little 값 중 하나를 선택할 수 있습니다.
 
-Linux - python3 
+- big: 빅 엔디안 아키텍처에 대해서 퍼저를 실행합니다.
+예시:
+```bash
+python3 fuzzer.py --endian big
+```
 
-Windows - python
+- little: 리틀 엔디안 아키텍처에 대해서 퍼저를 실행합니다.
+예시:
+```bash
+python3 fuzzer.py --endian little
+```
+3. No option:
+옵션을 지정하지 않고 퍼저를 실행하면, 기본적으로 partial_timeout을 탐지하며 리틀엔디안 아키텍처에 대해서 퍼저를 실행합니다.
 
-*** option 설명 ***
-
-python3 fuzzer.py --no-timeout 으로 실행하는 경우, partial_timeout에 대해서 무시합니다.
-
-python3 fuzzer.py --endian big 으로 실행하는 경우, 빅 엔디안 아키텍처에 대해서 퍼저를 실행합니다.
-
-python3 fuzzer.py --endian little 으로 실행하는 경우, 리틀 엔디안 아키텍처에 대해서 퍼저를 실행합니다.
-
-python3 fuzzer.py 으로 실행하는 경우 기본적으로 partial_timeout 탐지하며, 리틀엔디안 아키텍처에 대해서 퍼저를 실행합니다.
 
 ## 3. 결과 저장 구조
 
