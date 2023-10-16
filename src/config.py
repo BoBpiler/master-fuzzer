@@ -292,35 +292,35 @@ linux_compilers = {
             }
         }
     },
-    "gcc-mips64": {
-        "name": "mips64-linux-gnuabi64-gcc",
-        "file_name": "gcc-mips64",
+    "gcc-mips64el": {
+        "name": "mips64el-linux-gnuabi64-gcc",
+        "file_name": "gcc-mips64el",
         "options": ["-O0", "-O1", "-O2", "-O3"],
         "output_format": "{compiler_path} {src_files} -o {exe_path} {optimization} -I {include_dir}",
         "language": {
             "c": {
-                "binary_path": "mips64-linux-gnuabi64-gcc",
-                "execute": "qemu-mips64-static -L /usr/mips64-linux-gnuabi64 {exe_path}"
+                "binary_path": "mips64el-linux-gnuabi64-gcc",
+                "execute": "qemu-mips64el-static -L /usr/mips64el-linux-gnuabi64 {exe_path}"
             },
             "cpp": {
-                "binary_path": "mips64-linux-gnuabi64-g++",
-                "execute": "qemu-mips64-static -L /usr/mips64-linux-gnuabi64 {exe_path}"
+                "binary_path": "mips64el-linux-gnuabi64-g++",
+                "execute": "qemu-mips64el-static -L /usr/mips64el-linux-gnuabi64 {exe_path}"
             }
         }
     },
-    "clang-mips64": {
-        "name": "clang-18 --target=mips64-linux-gnuabi64",
-        "file_name": "clang-mips64",
+    "clang-mips64el": {
+        "name": "clang-18 --target=mips64el-linux-gnuabi64",
+        "file_name": "clang-mips64el",
         "options": ["-O0", "-O1", "-O2", "-O3"],
         "output_format": "{compiler_path} {src_files} -o {exe_path} {optimization} -I {include_dir}",
         "language": {
             "c": {
-                "binary_path": "./clang-18 --target=mips64-linux-gnuabi64",
-                "execute": "qemu-mips64-static -L /usr/mips64-linux-gnuabi64 {exe_path}"
+                "binary_path": "./clang-18 --target=mips64el-linux-gnuabi64",
+                "execute": "qemu-mips64el-static -L /usr/mips64el-linux-gnuabi64 {exe_path}"
             },
             "cpp": {
-                "binary_path": "./clang++-18 --target=mips64-linux-gnuabi64",
-                "execute": "qemu-mips64-static -L /usr/mips64-linux-gnuabi64 {exe_path}"
+                "binary_path": "./clang++-18 --target=mips64el-linux-gnuabi64",
+                "execute": "qemu-mips64el-static -L /usr/mips64el-linux-gnuabi64 {exe_path}"
             }
         }
     },
