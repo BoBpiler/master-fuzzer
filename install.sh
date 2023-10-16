@@ -134,7 +134,7 @@ cd ../..
 sudo apt-get install -y gcc-aarch64-linux-gnu
 sudo apt-get install -y g++-aarch64-linux-gnu
 sudo apt-get install -y gcc-mips64-linux-gnuabi64 g++-mips64-linux-gnuabi64
-
+sudo apt-get install -y gcc-mips64el-linux-gnuabi64 g++-mips64el-linux-gnuabi64
 
 # QEMU 설치
 sudo apt-get install -y qemu-user-static

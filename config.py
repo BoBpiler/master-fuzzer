@@ -246,16 +246,16 @@ window_generators_config = {
 
 
 # 컴파일러 종류
-compilers = [
-    {'name': './gcc-trunk', 'type': 'base', 'folder_name': 'gcc', 'execute': '{binary}'},
-    {'name': './clang-18', 'type': 'base', 'folder_name': 'clang', 'execute': '{binary}'},
-    {'name': 'aarch64-linux-gnu-gcc', 'type': 'cross-aarch64', 'folder_name': 'gcc-aarch64', 'execute': 'qemu-aarch64-static -L /usr/aarch64-linux-gnu {binary}'},
-    {'name': './clang-18 --target=aarch64-linux-gnu', 'type': 'cross-aarch64', 'folder_name': 'clang-aarch64', 'execute': 'qemu-aarch64-static -L /usr/aarch64-linux-gnu {binary}'},
-    {'name': 'mips64-linux-gnuabi64-gcc', 'type': 'cross-mips64', 'folder_name': 'gcc-mips64', 'execute': 'qemu-mips64-static -L /usr/mips64-linux-gnuabi64 {binary}'},
-    {'name': './clang-18 --target=mips64-linux-gnuabi64', 'type': 'cross-mips64', 'folder_name': 'clang-mips64', 'execute': 'qemu-mips64-static -L /usr/mips64-linux-gnuabi64 {binary}'},
-    {'name': './riscv64-unknown-elf-gcc', 'type': 'cross-riscv64', 'folder_name': 'gcc-riscv64', 'execute': 'qemu-riscv64-static {binary}'},
-    {'name': './clang-18 --sysroot=$HOME/riscv/riscv64-unknown-elf --gcc-toolchain=$HOME/riscv --target=riscv64-unknown-elf -march=rv64gc', 'type': 'cross-riscv64', 'folder_name': 'clang-riscv64', 'execute': 'qemu-riscv64-static {binary}'}
-]
+# compilers = [
+#     {'name': './gcc-trunk', 'type': 'base', 'folder_name': 'gcc', 'execute': '{binary}'},
+#     {'name': './clang-18', 'type': 'base', 'folder_name': 'clang', 'execute': '{binary}'},
+#     {'name': 'aarch64-linux-gnu-gcc', 'type': 'cross-aarch64', 'folder_name': 'gcc-aarch64', 'execute': 'qemu-aarch64-static -L /usr/aarch64-linux-gnu {binary}'},
+#     {'name': './clang-18 --target=aarch64-linux-gnu', 'type': 'cross-aarch64', 'folder_name': 'clang-aarch64', 'execute': 'qemu-aarch64-static -L /usr/aarch64-linux-gnu {binary}'},
+#     {'name': 'mips64-linux-gnuabi64-gcc', 'type': 'cross-mips64', 'folder_name': 'gcc-mips64', 'execute': 'qemu-mips64-static -L /usr/mips64-linux-gnuabi64 {binary}'},
+#     {'name': './clang-18 --target=mips64-linux-gnuabi64', 'type': 'cross-mips64', 'folder_name': 'clang-mips64', 'execute': 'qemu-mips64-static -L /usr/mips64-linux-gnuabi64 {binary}'},
+#     {'name': './riscv64-unknown-elf-gcc', 'type': 'cross-riscv64', 'folder_name': 'gcc-riscv64', 'execute': 'qemu-riscv64-static {binary}'},
+#     {'name': './clang-18 --sysroot=$HOME/riscv/riscv64-unknown-elf --gcc-toolchain=$HOME/riscv --target=riscv64-unknown-elf -march=rv64gc', 'type': 'cross-riscv64', 'folder_name': 'clang-riscv64', 'execute': 'qemu-riscv64-static {binary}'}
+# ]
 
 def cl_prepare(dir_path, optimization_level):
     obj_folder = os.path.join(dir_path, f"obj_{optimization_level[1:]}")
@@ -380,35 +380,35 @@ linux_compilers = {
             }
         }
     },
-    "gcc-mips64": {
-        "name": "mips64-linux-gnuabi64-gcc",
-        "file_name": "gcc-mips64",
+    "gcc-mips64el": {
+        "name": "mips64el-linux-gnuabi64-gcc",
+        "file_name": "gcc-mips64el",
         "options": ["-O0", "-O1", "-O2", "-O3"],
         "output_format": "{compiler_path} {src_files} -o {exe_path} {optimization} -I {include_dir}",
         "language": {
             "c": {
-                "binary_path": "mips64-linux-gnuabi64-gcc",
-                "execute": "qemu-mips64-static -L /usr/mips64-linux-gnuabi64 {exe_path}"
+                "binary_path": "mips64el-linux-gnuabi64-gcc",
+                "execute": "qemu-mips64el-static -L /usr/mips64el-linux-gnuabi64 {exe_path}"
             },
             "cpp": {
-                "binary_path": "mips64-linux-gnuabi64-g++",
-                "execute": "qemu-mips64-static -L /usr/mips64-linux-gnuabi64 {exe_path}"
+                "binary_path": "mips64el-linux-gnuabi64-g++",
+                "execute": "qemu-mips64el-static -L /usr/mips64el-linux-gnuabi64 {exe_path}"
             }
         }
     },
-    "clang-mips64": {
-        "name": "clang-18 --target=mips64-linux-gnuabi64",
-        "file_name": "clang-mips64",
+    "clang-mips64el": {
+        "name": "clang-18 --target=mips64el-linux-gnuabi64",
+        "file_name": "clang-mips64el",
         "options": ["-O0", "-O1", "-O2", "-O3"],
         "output_format": "{compiler_path} {src_files} -o {exe_path} {optimization} -I {include_dir}",
         "language": {
             "c": {
-                "binary_path": "./clang-18 --target=mips64-linux-gnuabi64",
-                "execute": "qemu-mips64-static -L /usr/mips64-linux-gnuabi64 {exe_path}"
+                "binary_path": "./clang-18 --target=mips64el-linux-gnuabi64",
+                "execute": "qemu-mips64el-static -L /usr/mips64el-linux-gnuabi64 {exe_path}"
             },
             "cpp": {
-                "binary_path": "./clang++-18 --target=mips64-linux-gnuabi64",
-                "execute": "qemu-mips64-static -L /usr/mips64-linux-gnuabi64 {exe_path}"
+                "binary_path": "./clang++-18 --target=mips64el-linux-gnuabi64",
+                "execute": "qemu-mips64el-static -L /usr/mips64el-linux-gnuabi64 {exe_path}"
             }
         }
     },
