@@ -5,10 +5,10 @@ from utils import send_telegram_message, get_machine_info
 import re
 import logging
 
-def check_for_duplicated_bug(dir_path, temp_dirs, catch_dirs, generator_config, id, random_seed):
+def check_for_duplicated_bug(compilers, dir_path, temp_dirs, catch_dirs, generator_config, id, random_seed):
     # LL을 ULL로 변경하는 방식으로 중복된 버그인지 판단
     generator_name = generator_config["name"]
-    is_duplicated_by_ULL = detect_bug_type_ULL(dir_path, temp_dirs, catch_dirs, generator_config, id, random_seed)
+    is_duplicated_by_ULL = detect_bug_type_ULL(compilers, dir_path, temp_dirs, catch_dirs, generator_config, id, random_seed)
     
     # TODO: 앞으로 추가될 다른 판단 로직들도 여기에서 호출
     # 예: is_duplicated_by_another_method = detect_bug_by_another_method(source_code_path, generator, id, random_seed)
@@ -65,7 +65,7 @@ def analyze_results_for_duplicate(temp_dirs, catch_dirs, generator_config, id, r
         logging.error(f"An unexpected error occurred in analyze_results for generator {generator_name} and task {id}: {e}")
 
 
-def fuzz(dir_path, temp_dirs, catch_dirs, generator_config, id, random_seed, partial_timeout=True):
+def fuzz(compilers, dir_path, temp_dirs, catch_dirs, generator_config, id, random_seed, partial_timeout=True):
     machine_info = get_machine_info()
     with ProcessPoolExecutor() as executor:
         futures = []
@@ -107,7 +107,7 @@ def modify_source_LL_to_ULL(source_code_path):
 
 
 
-def detect_bug_type_ULL(dir_path, temp_dirs, catch_dirs, generator_config, id, random_seed):
+def detect_bug_type_ULL(compilers, dir_path, temp_dirs, catch_dirs, generator_config, id, random_seed):
     generator_name = generator_config["name"]
     src_files = [file.format(path=dir_path, id=id) for file in generator_config['src_files']]
     if len(src_files) > 1:
@@ -118,7 +118,7 @@ def detect_bug_type_ULL(dir_path, temp_dirs, catch_dirs, generator_config, id, r
 
     modified_path = modify_source_LL_to_ULL(src_files[0])
 
-    result = fuzz(dir_path, temp_dirs, catch_dirs, generator_config, id, random_seed)
+    result = fuzz(compilers, dir_path, temp_dirs, catch_dirs, generator_config, id, random_seed)
     if result:
         # True인 경우 중복된 버그가 아님
         print(f"Unsigned long long (ULL) related bug NOT found in modified source code (generator: {generator_name}, source code ID: {id}).")

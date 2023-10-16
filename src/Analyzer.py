@@ -10,12 +10,12 @@ logging.basicConfig(level=logging.INFO)
 
 # compare_results 함수: 실행 결과를 비교 로직에 따라서 분석하는 함수
 # argv: generator - 코드 생성기 종류/ id - 소스코드 번호/ results - 바이너리 실행 결과들/ comparison_strategy - 비교 로직
-def analyze_results(dir_path, temp_dirs, catch_dirs, generator_config, id, random_seed, results, machine_info, partial_timeout=True):
+def analyze_results(compilers, dir_path, temp_dirs, catch_dirs, generator_config, id, random_seed, results, machine_info, partial_timeout=True):
     # 해당 결과들을 대상으로 비교
     generator_name = generator_config['name']
     try:
         if compare_execution_results(results):  # 실행 결과가 다른 경우
-            if platform.system() == 'Windows' and check_for_duplicated_bug(dir_path, temp_dirs, catch_dirs, generator_config, id, random_seed):
+            if platform.system() == 'Windows' and check_for_duplicated_bug(compilers, dir_path, temp_dirs, catch_dirs, generator_config, id, random_seed):
                 return False
             msg = f"Different results(checksum) detected for generator {generator_name}, source code ID: {id}"
             print(msg)

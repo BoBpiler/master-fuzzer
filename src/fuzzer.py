@@ -32,7 +32,7 @@ atexit.register(cleanup)
 # process_generator 함수: 생성기 별로 퍼징을 수행하는 함수
 # argv: generator - 생성기 종류 (현재 csmith와 yarpgen)
 # return: None 
-def fuzz_with_generator(generator_config, temp_dirs, catch_dirs, partial_timeout=True):
+def fuzz_with_generator(compilers, generator_config, temp_dirs, catch_dirs, partial_timeout=True):
     generator_name = generator_config["name"]
     machine_info = get_machine_info()
     round_number = 0  # 라운드 번호 초기화
@@ -75,7 +75,7 @@ def fuzz_with_generator(generator_config, temp_dirs, catch_dirs, partial_timeout
                             results[key] = result_dict
                 
                 if len(results) > 0:  # results 딕셔너리가 비어 있지 않다면
-                    analyze_results(dir_path, temp_dirs, catch_dirs, generator_config, id, random_seed, results, machine_info, partial_timeout)
+                    analyze_results(compilers, dir_path, temp_dirs, catch_dirs, generator_config, id, random_seed, results, machine_info, partial_timeout)
                 else:
                     # results 딕셔너리가 비어 있는 경우, 문제가 발생한 것으로 판단
                     skipped_tasks += 1
@@ -96,16 +96,29 @@ def fuzz_with_generator(generator_config, temp_dirs, catch_dirs, partial_timeout
 # main 함수: 퍼징을 수행하는 총괄 코드
 def main():
     try:
-        parser = argparse.ArgumentParser(description="Analyze results.")
-        parser.add_argument("--no-timeout", action="store_false", dest="partial_timeout")
+        parser = argparse.ArgumentParser(description="This is BoBpiler fuzzer")
+        parser.add_argument("--no-timeout", action="store_false", dest="partial_timeout", help='Choose partial_timeout option')
+        parser.add_argument('--endian', type=str, choices=['big', 'little'], default='little', help='Choose endian type')
         args = parser.parse_args()
+
         # 디렉토리 초기화
         setup_output_dirs()
         generators = list(generators_config.values())
+        
+        if platform.system() == 'Linux':
+            if args.endian == 'big':
+                compilers = linux_big_endian_compilers
+            else:
+                compilers = linux_little_endian_compilers
+        elif platform.system() == 'Windows':
+            compilers = window_compilers
+        else:
+            compilers = linux_little_endian_compilers
+        
         temp_dirs_list = [TEMP_DIRS[generator["name"]] for generator in generators]
         catch_dirs_list = [CATCH_DIRS[generator["name"]] for generator in generators]
         with ProcessPoolExecutor() as executor:
-            executor.map(fuzz_with_generator, generators, temp_dirs_list, catch_dirs_list, repeat(args.partial_timeout))
+            executor.map(fuzz_with_generator, repeat(compilers), generators, temp_dirs_list, catch_dirs_list, repeat(args.partial_timeout))
     except KeyboardInterrupt:
         print("\nKeyboard interrupt received. Terminating all processes...")
         terminate_process_and_children(os.getpid())

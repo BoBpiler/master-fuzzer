@@ -228,8 +228,8 @@ window_compilers = {
     }
 }
 
-# 리눅스 컴파일러 설정
-linux_compilers = {
+# 리눅스 리틀 엔디안 컴파일러 설정
+linux_little_endian_compilers = {
     "gcc": {
         "name": "gcc-trunk",
         "file_name": "gcc",
@@ -357,19 +357,180 @@ linux_compilers = {
                 "execute": "qemu-riscv64-static {exe_path}"
             }
         }
+    },
+    "gcc-powerpc64le": {
+        "name": "powerpc64le-linux-gnu-gcc",
+        "file_name": "gcc-powerpc64le",
+        "options": ["-O0", "-O1", "-O2", "-O3"],
+        "output_format": "{compiler_path} {src_files} -o {exe_path} {optimization} -I {include_dir}",
+        "language": {
+            "c": {
+                "binary_path": "powerpc64le-linux-gnu-gcc",
+                "execute": "qemu-ppc64le-static -L /usr/powerpc64le-linux-gnu/ {exe_path}"
+            },
+            "cpp": {
+                "binary_path": "powerpc64le-linux-gnu-g++",
+                "execute": "qemu-ppc64le-static -L /usr/powerpc64le-linux-gnu/ {exe_path}"
+            }
+        }
+    },
+    "clang-powerpc64le": {
+        "name": "clang-18 --target=powerpc64le-linux-gnu",
+        "file_name": "clang-powerpc64le",
+        "options": ["-O0", "-O1", "-O2", "-O3"],
+        "output_format": "{compiler_path} {src_files} -o {exe_path} {optimization} -I {include_dir}",
+        "language": {
+            "c": {
+                "binary_path": "./clang-18 --target=powerpc64le-linux-gnu",
+                "execute": "qemu-ppc64le-static -L /usr/powerpc64le-linux-gnu/ {exe_path}"
+            },
+            "cpp": {
+                "binary_path": "./clang++-18 --target=powerpc64le-linux-gnu",
+                "execute": "qemu-ppc64le-static -L /usr/powerpc64le-linux-gnu/ {exe_path}"
+            }
+        }
     }
 }
 
-# platform에 따라서 생성기 및 컴파일러 설정 결정
+# 리눅스 빅 엔디안 컴파일러 설정
+linux_big_endian_compilers = {
+    "gcc-mips64": {
+        "name": "mips64-linux-gnuabi64-gcc",
+        "file_name": "gcc-mips64",
+        "options": ["-O0", "-O1", "-O2", "-O3"],
+        "output_format": "{compiler_path} {src_files} -o {exe_path} {optimization} -I {include_dir}",
+        "language": {
+            "c": {
+                "binary_path": "mips64-linux-gnuabi64-gcc",
+                "execute": "qemu-mips64-static -L /usr/mips64-linux-gnuabi64/ {exe_path}"  
+            },
+            "cpp": {
+                "binary_path": "mips64-linux-gnuabi64-g++",
+                "execute": "qemu-mips64-static -L /usr/mips64-linux-gnuabi64/ {exe_path}"  
+            }
+        }
+    },
+    "clang-mips64": {
+        "name": "clang-18 --target=mips64-linux-gnuabi64",
+        "file_name": "clang-mips64",
+        "options": ["-O0", "-O1", "-O2", "-O3"],
+        "output_format": "{compiler_path} {src_files} -o {exe_path} {optimization} -I {include_dir}",
+        "language": {
+            "c": {
+                "binary_path": "./clang-18 --target=mips64-linux-gnuabi64",
+                "execute": "qemu-mips64-static -L /usr/mips64-linux-gnuabi64/ {exe_path}"  
+            },
+            "cpp": {
+                "binary_path": "./clang++-18 --target=mips64-linux-gnuabi64",
+                "execute": "qemu-mips64-static -L /usr/mips64-linux-gnuabi64/ {exe_path}"  
+            }
+        }
+    },
+    "gcc-powerpc64": {
+        "name": "powerpc64-linux-gnu-gcc",
+        "file_name": "gcc-powerpc64",
+        "options": ["-O0", "-O1", "-O2", "-O3"],
+        "output_format": "{compiler_path} {src_files} -o {exe_path} {optimization} -I {include_dir}",
+        "language": {
+            "c": {
+                "binary_path": "powerpc64-linux-gnu-gcc",
+                "execute": "qemu-ppc64-static -L /usr/powerpc64-linux-gnu/ {exe_path}"
+            },
+            "cpp": {
+                "binary_path": "powerpc64-linux-gnu-g++",
+                "execute": "qemu-ppc64-static -L /usr/powerpc64-linux-gnu/ {exe_path}"
+            }
+        }
+    },
+    "clang-powerpc64": {
+        "name": "clang-18 --target=powerpc64-linux-gnu",
+        "file_name": "clang-powerpc64",
+        "options": ["-O0", "-O1", "-O2", "-O3"],
+        "output_format": "{compiler_path} {src_files} -o {exe_path} {optimization} -I {include_dir}",
+        "language": {
+            "c": {
+                "binary_path": "./clang-18 --target=powerpc64-linux-gnu",
+                "execute": "qemu-ppc64-static -L /usr/powerpc64-linux-gnu/ {exe_path}"
+            },
+            "cpp": {
+                "binary_path": "./clang-18 --target=powerpc64-linux-gnu",
+                "execute": "qemu-ppc64-static -L /usr/powerpc64-linux-gnu/ {exe_path}"
+            }
+        }
+    },
+    "gcc-s390x": {
+        "name": "s390x-linux-gnu-gcc",
+        "file_name": "gcc-s390x",
+        "options": ["-O0", "-O1", "-O2", "-O3"],
+        "output_format": "{compiler_path} {src_files} -o {exe_path} {optimization} -I {include_dir}",
+        "language": {
+            "c": {
+                "binary_path": "s390x-linux-gnu-gcc",
+                "execute": "qemu-s390x-static -L /usr/s390x-linux-gnu/ {exe_path}"
+            },
+            "cpp": {
+                "binary_path": "s390x-linux-gnu-g++",
+                "execute": "qemu-s390x-static -L /usr/s390x-linux-gnu/ {exe_path}"
+            }
+        }
+    },
+    "clang-s390x": {
+        "name": "clang-18 --target=s390x-linux-gnu",
+        "file_name": "clang-s390x",
+        "options": ["-O0", "-O1", "-O2", "-O3"],
+        "output_format": "{compiler_path} {src_files} -o {exe_path} {optimization} -I {include_dir}",
+        "language": {
+            "c": {
+                "binary_path": "./clang-18 --target=s390x-linux-gnu",
+                "execute": "qemu-s390x-static -L /usr/s390x-linux-gnu/ {exe_path}"
+            },
+            "cpp": {
+                "binary_path": "./clang++-18 --target=s390x-linux-gnu",
+                "execute": "qemu-s390x-static -L /usr/s390x-linux-gnu/ {exe_path}"
+            }
+        }
+    },
+    "gcc-sparc64": {
+        "name": "sparc64-linux-gnu-gcc",
+        "file_name": "gcc-sparc64",
+        "options": ["-O0", "-O1", "-O2", "-O3"],
+        "output_format": "{compiler_path} {src_files} -o {exe_path} {optimization} -I {include_dir}",
+        "language": {
+            "c": {
+                "binary_path": "sparc64-linux-gnu-gcc",
+                "execute": "qemu-sparc64-static -L /usr/sparc64-linux-gnu/ {exe_path}"
+            },
+            "cpp": {
+                "binary_path": "sparc64-linux-gnu-g++",
+                "execute": "qemu-sparc64-static -L /usr/sparc64-linux-gnu/ {exe_path}"
+            }
+        }
+    },
+    "clang-sparc64": {
+        "name": "clang-18 --target=sparc64-linux-gnu",
+        "file_name": "clang-sparc64",
+        "options": ["-O0", "-O1", "-O2", "-O3"],
+        "output_format": "{compiler_path} {src_files} -o {exe_path} {optimization} -I {include_dir}",
+        "language": {
+            "c": {
+                "binary_path": "./clang-18 --target=sparc64-linux-gnu",
+                "execute": "qemu-sparc64-static -L /usr/sparc64-linux-gnu/ {exe_path}"
+            },
+            "cpp": {
+                "binary_path": "./clang++-18 --target=sparc64-linux-gnu",
+                "execute": "qemu-sparc64-static -L /usr/sparc64-linux-gnu/ {exe_path}"
+            }
+        }
+    }
+}
+
+# platform에 따라서 생성기 설정 결정
 if platform.system() == 'Linux':
     generators_config = linux_generators_config
-    compilers = linux_compilers
 elif platform.system() == 'Windows':
     generators_config = window_generators_config
-    compilers = window_compilers
 else:
     generators_config = linux_generators_config
-    compilers = linux_compilers
 
 # 결정된 생성기에 따라서 output 디렉토리의 트리 구조 결정
 GENERATOR_DIRS = {key: os.path.join(BASE_DIR, config['name']) for key, config in generators_config.items()}

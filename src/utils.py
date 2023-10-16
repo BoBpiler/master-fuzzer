@@ -195,7 +195,7 @@ def create_directory(dir_name, sub_dirs=None):
                 print(f"An error occurred while creating sub-directory {sub_dir_path}: {e}")
 
 # setup_output_dirs 함수: 전체 디렉토리 구조 생성
-# argv: compilers - 사용할 컴파일러의 목록 
+# argv: None
 # return: None
 def setup_output_dirs():
     create_directory(BASE_DIR)
