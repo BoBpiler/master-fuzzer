@@ -15,3 +15,5 @@ riscv64-unknown-elf-gcc
 riscv64-unknown-elf-g++
 binutils-gdb
 BoBpiler_yarpgen
+emsdk
+emscripten

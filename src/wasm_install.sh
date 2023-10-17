@@ -16,17 +16,25 @@ sudo cp /$HOME/.wasmtime/bin/wasmtime /usr/bin/wasmtime
 
 echo "Installing node..."
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
+
+# nvm 환경 설정 불러오기
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
 nvm install node  # 최신 버전 설치
 nvm use node  # 최신 버전 사용
 
-echo "Cloning Emscripten..."
-git clone https://github.com/emscripten-core/emscripten.git
+# emsdk 설치
+git clone https://github.com/emscripten-core/emsdk.git
+cd emsdk
 
-cd emscripten
-emsdk install latest
-emsdk activate latest
+# 최신 버전의 Emscripten 툴체인 설치 및 활성화
+./emsdk install latest
+./emsdk activate latest
 
+# 환경 설정
 EMSDK_PATH="$(pwd)/emsdk_env.sh"
+
 add_to_file_if_not_present() {
     local file="$1"
     local line="$2"
