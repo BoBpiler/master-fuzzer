@@ -17,17 +17,17 @@ echo "  1) GCC"
 echo "  2) Clang"
 echo "  3) RISC-V GCC"
 echo "  4) Cross compilers"
-echo "Utility"
-echo "  5) QEMU"
 echo "Code Generators"
-echo "  6) Csmith"
-echo "  7) YARPGEN"
-echo "  8) YARPGEN_SCALAR"
+echo "  5) Csmith"
+echo "  6) YARPGEN"
+echo "  7) YARPGEN_SCALAR"
 echo "Wasm Dependencies"
-echo "  9) Wasmer"
-echo "  10) Wasmtime"
-echo "  11) node"
-echo "  12) emsdk"
+echo "  8) Wasmer"
+echo "  9) Wasmtime"
+echo "  10) node"
+echo "  11) emsdk"
+echo "Utility"
+echo "  12) QEMU"
 read -p "Enter the numbers (e.g. 1 2 3 or 8 for all): " selection
 
 # 필수 패키지 업데이트
@@ -228,7 +228,6 @@ for choice in $selection; do
       install_clang
       install_riscv_gcc
       install_cross_compilers
-      install_qemu
       install_csmith
       install_yarpgen
       install_yarpgen_scalar
@@ -236,20 +235,21 @@ for choice in $selection; do
       install_wasmtime
       install_node_with_nvm
       install_emsdk
+      install_qemu
       break
       ;;
   1) install_gcc;;
   2) install_clang;;
   3) install_riscv_gcc;;
   4) install_cross_compilers;;
-  5) install_qemu;;
-  6) install_csmith;;
-  7) install_yarpgen;;
-  8) install_yarpgen_scalar;;
-  9) install_wasmer;;
-  10) install_wasmtime;;
-  11) install_node_with_nvm;;
-  12) install_emsdk;;
+  5) install_csmith;;
+  6) install_yarpgen;;
+  7) install_yarpgen_scalar;;
+  8) install_wasmer;;
+  9) install_wasmtime;;
+  10) install_node_with_nvm;;
+  11) install_emsdk;;
+  12) install_qemu;;
   *) echo "Invalid choice: $choice";;
   esac
 done
