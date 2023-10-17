@@ -12,18 +12,21 @@ fi
 # 메뉴 선택 부분
 echo "Select the packages you want to install:"
 echo "0) Install all"
-echo "1) GCC"
-echo "2) Clang"
-echo "3) RISC-V GCC"
-echo "4) QEMU"
-echo "5) Csmith"
-echo "6) YARPGEN"
-echo "7) YARPGEN_SCALAR"
-echo "8) Cross compilers"
-echo "9) Wasmer"
-echo "10) Wasmtime"
-echo "11) node"
-echo "12) emsdk"
+echo "Compilers"
+echo "  1) GCC"
+echo "  2) Clang"
+echo "  3) RISC-V GCC"
+echo "  4) QEMU"
+echo "  5) Cross compilers"
+echo "Code Generators"
+echo "  6) Csmith"
+echo "  7) YARPGEN"
+echo "  8) YARPGEN_SCALAR"
+echo "Wasm Dependencies"
+echo "  9) Wasmer"
+echo "  10) Wasmtime"
+echo "  11) node"
+echo "  12) emsdk"
 read -p "Enter the numbers (e.g. 1 2 3 or 8 for all): " selection
 
 # 필수 패키지 업데이트
@@ -224,20 +227,24 @@ for choice in $selection; do
       install_clang
       install_riscv_gcc
       install_qemu
+      install_cross_compilers
       install_csmith
       install_yarpgen
       install_yarpgen_scalar
-      install_cross_compilers
+      install_wasmer
+      install_wasmtime
+      install_node_with_nvm
+      install_emsdk
       break
       ;;
   1) install_gcc;;
   2) install_clang;;
   3) install_riscv_gcc;;
   4) install_qemu;;
-  5) install_csmith;;
-  6) install_yarpgen;;
-  7) install_yarpgen_scalar;;
-  8) install_cross_compilers;;
+  5) install_cross_compilers;;
+  6) install_csmith;;
+  7) install_yarpgen;;
+  8) install_yarpgen_scalar;;
   9) install_wasmer;;
   10) install_wasmtime;;
   11) install_node_with_nvm;;
