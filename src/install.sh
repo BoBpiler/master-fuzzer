@@ -9,6 +9,23 @@ if [ "$(id -u)" != "0" ]; then
     exit 1
 fi
 
+# 메뉴 선택 부분
+echo "Select the packages you want to install:"
+echo "0) Install all"
+echo "1) GCC"
+echo "2) Clang"
+echo "3) RISC-V GCC"
+echo "4) QEMU"
+echo "5) Csmith"
+echo "6) YARPGEN"
+echo "7) YARPGEN_SCALAR"
+echo "8) Cross compilers"
+echo "9) Wasmer"
+echo "10) Wasmtime"
+echo "11) node"
+echo "12) emsdk"
+read -p "Enter the numbers (e.g. 1 2 3 or 8 for all): " selection
+
 # 필수 패키지 업데이트
 sudo apt-get update || { echo "Failed to update packages"; exit 1; }
 
@@ -80,12 +97,8 @@ install_riscv_gcc() {
 
 }
 
-install_qemu() {
-    sudo apt-get install -y qemu-user-static
-}
-
+# Csmith 설치 스크립트
 install_csmith() {
-  # Csmith 설치 스크립트
   git clone https://github.com/csmith-project/csmith.git
   cd csmith
   sudo apt install -y g++ cmake m4
@@ -94,8 +107,8 @@ install_csmith() {
   cd "$current_path"
 }
 
+# YARPGEN 설치 스크립트
 install_yarpgen() {
-  # YARPGEN 설치 스크립트
   git clone https://github.com/BoBpiler/BoBpiler_yarpgen.git
   cd BoBpiler_yarpgen
   mkdir build
@@ -106,8 +119,8 @@ install_yarpgen() {
   cd "$current_path"
 }
 
+# YARPGEN_SCALAR 설치 스크립트
 install_yarpgen_scalar() {
-  # YARPGEN_SCALAR 설치 스크립트
   git clone https://github.com/intel/yarpgen.git
   cd yarpgen
   git checkout v1
@@ -117,11 +130,15 @@ install_yarpgen_scalar() {
   sudo make -j `nproc`
   sudo cp yarpgen /usr/local/bin/yarpgen_scalar
   cd "$current_path"
-
 }
 
+# qemu 설치 스크립트
+install_qemu() {
+    sudo apt-get install -y qemu-user-static
+}
+
+# 크로스 컴파일러 설치 (GCC)
 install_cross_compilers() {
-  # 크로스 컴파일러와 QEMU 설치 (GCC)
   sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
   sudo apt-get install -y gcc-mips64-linux-gnuabi64 g++-mips64-linux-gnuabi64
   sudo apt-get install -y gcc-mips64el-linux-gnuabi64 g++-mips64el-linux-gnuabi64
@@ -131,30 +148,78 @@ install_cross_compilers() {
   sudo apt-get install -y gcc-sparc64-linux-gnu g++-sparc64-linux-gnu
 }
 
-# 메뉴 선택 부분
-echo "Select the packages you want to install:"
-echo "1) GCC"
-echo "2) Clang"
-echo "3) RISC-V GCC"
-echo "4) QEMU"
-echo "5) Csmith"
-echo "6) YARPGEN"
-echo "7) YARPGEN_SCALAR"
-echo "8) Cross compilers"
-echo "9) Install all"
-read -p "Enter the numbers (e.g. 1 2 3 or 8 for all): " selection
+# wasmer 설치 
+install_wasmer() {
+    echo "Installing Wasmer..."
+    curl https://get.wasmer.io -sSfL | sh
+
+    echo "Copying Wasmer binary to /usr/bin..."
+    sudo cp "$HOME/.wasmer/bin/wasmer" /usr/bin/wasmer
+}
+
+# wasmtime 설치 
+install_wasmtime() {
+    echo "Installing Wasmtime..."
+    curl https://wasmtime.dev/install.sh -sSf | bash
+
+    echo "Copying Wasmtime binary to /usr/bin..."
+    sudo cp "$HOME/.wasmtime/bin/wasmtime" /usr/bin/wasmtime
+}
+
+# node 설치
+install_node_with_nvm() {
+    echo "Installing node..."
+    if [ ! -d "$HOME/.nvm" ]; then
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
+    else
+        echo "nvm already installed!"
+    fi
+
+    # nvm 환경 설정 불러오기
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+    nvm install node  # 최신 버전 설치
+    nvm use node  # 최신 버전 사용
+}
+
+# emsdk ,emscripten 설치
+install_emsdk() {
+    # emsdk 설치
+    if [ ! -d "emsdk" ]; then
+        git clone https://github.com/emscripten-core/emsdk.git
+    fi
+    cd emsdk
+
+    # 최신 버전의 Emscripten 툴체인 설치 및 활성화
+    ./emsdk install latest
+    ./emsdk activate latest
+
+    # 환경 설정
+    EMSDK_PATH="$(pwd)/emsdk_env.sh"
+
+    add_to_file_if_not_present() {
+        local file="$1"
+        local line="$2"
+
+        # 파일이 존재하고 해당 라인이 파일에 없다면 추가
+        if [ -f "$file" ] && ! grep -Fxq "$line" "$file"; then
+            echo "$line" >> "$file"
+        fi
+    }
+
+    # .bashrc와 .zshrc에 내용 추가
+    add_to_file_if_not_present ~/.bashrc ". $EMSDK_PATH"
+    add_to_file_if_not_present ~/.zshrc ". $EMSDK_PATH"
+
+    . $EMSDK_PATH
+    echo "Configuration updated!"
+    cd ../
+}
 
 for choice in $selection; do
   case $choice in
-  1) install_gcc;;
-  2) install_clang;;
-  3) install_riscv_gcc;;
-  4) install_qemu;;
-  5) install_csmith;;
-  6) install_yarpgen;;
-  7) install_yarpgen_scalar;;
-  8) install_cross_compilers;;
-  9) 
+  0) 
       install_gcc
       install_clang
       install_riscv_gcc
@@ -165,15 +230,18 @@ for choice in $selection; do
       install_cross_compilers
       break
       ;;
+  1) install_gcc;;
+  2) install_clang;;
+  3) install_riscv_gcc;;
+  4) install_qemu;;
+  5) install_csmith;;
+  6) install_yarpgen;;
+  7) install_yarpgen_scalar;;
+  8) install_cross_compilers;;
+  9) install_wasmer;;
+  10) install_wasmtime;;
+  11) install_node_with_nvm;;
+  12) install_emsdk;;
   *) echo "Invalid choice: $choice";;
   esac
 done
-
-
-
-
-
-
-
-
-
