@@ -49,5 +49,6 @@ add_to_file_if_not_present() {
 add_to_file_if_not_present ~/.bashrc "source $EMSDK_PATH"
 add_to_file_if_not_present ~/.zshrc "source $EMSDK_PATH"
 
+source $EMSDK_PATH
 echo "Configuration updated!"
 cd ../
