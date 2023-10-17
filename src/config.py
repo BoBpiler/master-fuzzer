@@ -168,24 +168,7 @@ window_generators_config = {
     }
 }
 
-<<<<<<< HEAD:src/config.py
 # cl 컴파일러 obj 구분을 위한 폴더
-=======
-
-
-# 컴파일러 종류
-# compilers = [
-#     {'name': './gcc-trunk', 'type': 'base', 'folder_name': 'gcc', 'execute': '{binary}'},
-#     {'name': './clang-18', 'type': 'base', 'folder_name': 'clang', 'execute': '{binary}'},
-#     {'name': 'aarch64-linux-gnu-gcc', 'type': 'cross-aarch64', 'folder_name': 'gcc-aarch64', 'execute': 'qemu-aarch64-static -L /usr/aarch64-linux-gnu {binary}'},
-#     {'name': './clang-18 --target=aarch64-linux-gnu', 'type': 'cross-aarch64', 'folder_name': 'clang-aarch64', 'execute': 'qemu-aarch64-static -L /usr/aarch64-linux-gnu {binary}'},
-#     {'name': 'mips64-linux-gnuabi64-gcc', 'type': 'cross-mips64', 'folder_name': 'gcc-mips64', 'execute': 'qemu-mips64-static -L /usr/mips64-linux-gnuabi64 {binary}'},
-#     {'name': './clang-18 --target=mips64-linux-gnuabi64', 'type': 'cross-mips64', 'folder_name': 'clang-mips64', 'execute': 'qemu-mips64-static -L /usr/mips64-linux-gnuabi64 {binary}'},
-#     {'name': './riscv64-unknown-elf-gcc', 'type': 'cross-riscv64', 'folder_name': 'gcc-riscv64', 'execute': 'qemu-riscv64-static {binary}'},
-#     {'name': './clang-18 --sysroot=$HOME/riscv/riscv64-unknown-elf --gcc-toolchain=$HOME/riscv --target=riscv64-unknown-elf -march=rv64gc', 'type': 'cross-riscv64', 'folder_name': 'clang-riscv64', 'execute': 'qemu-riscv64-static {binary}'}
-# ]
-
->>>>>>> 3f7be9896306c31d9a6a0c7b7ed0c326d6c9232d:config.py
 def cl_prepare(dir_path, optimization_level):
     obj_folder = os.path.join(dir_path, f"obj_{optimization_level[1:]}")
     if not os.path.exists(obj_folder):
@@ -573,104 +556,7 @@ elif platform.system() == 'Windows':
 else:
     generators_config = linux_generators_config
 
-<<<<<<< HEAD:src/config.py
 # 결정된 생성기에 따라서 output 디렉토리의 트리 구조 결정
-=======
-# 수행 횟수 및 타임아웃
-total_tasks = 100 
-generator_time_out = 10
-compile_time_out = 30
-binary_time_out = 10
-
-import psutil
-
-def terminate_process_and_children(pid):
-    try:
-        parent = psutil.Process(pid)
-        for child in parent.children(recursive=True):  # 모든 하위 프로세스에 대해
-            child.terminate()
-        parent.terminate()
-    except psutil.NoSuchProcess:
-        pass
-
-##################################################################################################
-# 결과 저장을 위한 configuration
-# 일반적으로 프로세스가 성공적으로 종료하면 returncode는 0, 에러로 종료하면 양의 정수, 
-# 시그널에 의해 종료되면 해당 시그널 번호의 음의 정수를 출력한다고 합니다.
-
-# Error Type
-CRASH = "Crash"
-COMPILE_ERROR = "CompileError"
-SEGFAULT = "Segmentation Fault"
-SYNTAX_ERROR = "Syntax Error"
-LINKER_ERROR = "Linker Error"
-UNKNOWN_ERROR = "Unknown Error"
-TIMEOUT_ERROR = 'Timeout'
-CALLED_PROCESS_ERROR = 'CalledProcessError'
-FILE_NOT_FOUND_ERROR = 'FileNotFoundError'
-PERMISSION_ERROR = 'PermissionError'
-UNICODE_DECODE_ERROR = 'UnicodeDecodeError'
-OS_ERROR = 'OSError'
-UNKNOWN_SUBPROCESS_ERROR = 'UnknownSubprocessError'
-PROCESS_KILLED = "ProcessKilled"
-# Windows-specific error codes NTSTATUS
-ACCESS_VIOLATION = 3221225477  # 0xC0000005
-STACK_OVERFLOW = 3221225725  # 0xC00000FD
-
-# 정의한 크래시 시그널들
-CRASH_SIGNALS = {4, 6, 7, 8, 11}  # SIGILL, SIGABRT, SIGBUS, SIGFPE, SIGSEGV
-
-# returncode를 정규화하는 함수
-def normalize_returncode(returncode):
-    if returncode < 0:
-        return -returncode
-    elif returncode >= 128:
-        return returncode - 128
-    else:
-        return returncode
-
-# return code 분석 함수
-def analyze_returncode(returncode, context):
-    if platform.system == "Windows":
-        if returncode == 0:
-            return "Success"
-        elif returncode == ACCESS_VIOLATION:
-            return "Access Violation"
-        elif returncode == STACK_OVERFLOW:
-            return "Stack Overflow"
-        else:
-            return UNKNOWN_ERROR
-        # 기존 리눅스 프로토타입 부분
-    else:
-        # 신호값이 음수로 들어오거나 128이 더해진 경우를 처리
-        code = normalize_returncode(returncode)
-        
-        if code == 0:
-            return "Success"
-
-        if code in CRASH_SIGNALS:
-            return CRASH
-
-        if code == 13:
-            return PERMISSION_ERROR
-
-        if code == 9:  # SIGKILL
-            return PROCESS_KILLED
-        
-        if code == 124:
-            return TIMEOUT_ERROR
-        
-        if context == "compilation":
-            if code == 1:
-                return COMPILE_ERROR
-        return UNKNOWN_ERROR
-
-
-##################################################################################################
-# 디렉토리 설정 (상수로 경로 설정)
-# 디렉토리 설정 (상수로 경로 설정)
-BASE_DIR = f'output_{datetime.now().strftime("%Y-%m-%d_%H")}'
->>>>>>> 3f7be9896306c31d9a6a0c7b7ed0c326d6c9232d:config.py
 GENERATOR_DIRS = {key: os.path.join(BASE_DIR, config['name']) for key, config in generators_config.items()}
 CATCH_DIRS = {key: os.path.join(GENERATOR_DIRS[key], 'catch') for key in generators_config.keys()}
 TEMP_DIRS = {key: os.path.join(GENERATOR_DIRS[key], 'temp') for key in generators_config.keys()}
