@@ -16,8 +16,9 @@ echo "Compilers"
 echo "  1) GCC"
 echo "  2) Clang"
 echo "  3) RISC-V GCC"
-echo "  4) QEMU"
-echo "  5) Cross compilers"
+echo "  4) Cross compilers"
+echo "Utility"
+echo "  5) QEMU"
 echo "Code Generators"
 echo "  6) Csmith"
 echo "  7) YARPGEN"
@@ -226,8 +227,8 @@ for choice in $selection; do
       install_gcc
       install_clang
       install_riscv_gcc
-      install_qemu
       install_cross_compilers
+      install_qemu
       install_csmith
       install_yarpgen
       install_yarpgen_scalar
@@ -240,8 +241,8 @@ for choice in $selection; do
   1) install_gcc;;
   2) install_clang;;
   3) install_riscv_gcc;;
-  4) install_qemu;;
-  5) install_cross_compilers;;
+  4) install_cross_compilers;;
+  5) install_qemu;;
   6) install_csmith;;
   7) install_yarpgen;;
   8) install_yarpgen_scalar;;
