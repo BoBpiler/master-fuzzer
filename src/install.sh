@@ -28,7 +28,7 @@ echo "  10) node"
 echo "  11) emsdk"
 echo "Utility"
 echo "  12) QEMU"
-read -p "Enter the numbers (e.g. 1 2 3 or 8 for all): " selection
+read -p "Enter the numbers (e.g. 1 2 3 or 0 for all): " selection
 
 # 필수 패키지 업데이트
 sudo apt-get update || { echo "Failed to update packages"; exit 1; }
