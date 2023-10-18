@@ -15,7 +15,7 @@ def analyze_results(compilers, dir_path, temp_dirs, catch_dirs, generator_config
     generator_name = generator_config['name']
     try:
         if compare_execution_results(results):  # 실행 결과가 다른 경우
-            if platform.system() == 'Windows' and check_for_duplicated_bug(compilers, dir_path, temp_dirs, catch_dirs, generator_config, id, random_seed):
+            if check_for_duplicated_bug(compilers, dir_path, temp_dirs, catch_dirs, generator_config, id, random_seed):
                 return False
             msg = f"Different results(checksum) detected for generator {generator_name}, source code ID: {id}"
             print(msg)
