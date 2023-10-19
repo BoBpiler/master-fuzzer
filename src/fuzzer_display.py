@@ -180,6 +180,7 @@ def draw_overall_results(stdscr, y, x, width, temp_status):
     else:
         memory_color = 1  # 빨간색
 
+    clear_line(stdscr, y + 6, x + 2, width - 3)
     stdscr.attron(curses.color_pair(6))  # 회색
     stdscr.addstr(y + 6, x + 2, "Used Memory: ")
     stdscr.attroff(curses.color_pair(6))
@@ -196,6 +197,7 @@ def draw_overall_results(stdscr, y, x, width, temp_status):
     else:
         cpu_color = 1  # 빨간색
 
+    clear_line(stdscr, y + 7, x + 2, width - 3)
     stdscr.attron(curses.color_pair(6))  # 회색
     stdscr.addstr(y + 7, x + 2, "CPU Usage: ")
     stdscr.attroff(curses.color_pair(6))
