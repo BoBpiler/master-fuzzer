@@ -26,8 +26,9 @@ echo "  8) Wasmer"
 echo "  9) Wasmtime"
 echo "  10) node"
 echo "  11) emsdk"
+echo "  12) wasienv"
 echo "Utility"
-echo "  12) QEMU"
+echo "  13) QEMU"
 read -p "Enter the numbers (e.g. 1 2 3 or 0 for all): " selection
 
 # 필수 패키지 업데이트
@@ -221,6 +222,22 @@ install_emsdk() {
     cd ../
 }
 
+# emsdk ,emscripten 설치
+install_wasienv() {
+  echo "Installing wasienv..."
+  if [ ! -d "$HOME/.wasienv" ]; then
+      curl https://github.com/wasienv/wasienv/raw/master/install.sh -L| sh
+  else
+      echo "wasienv already installed!"
+  fi
+
+  # 바이너리 복사
+  sudo cp ~/.wasienv/local/bin/* /usr/bin/
+
+  wasienv install-sdk 7 
+  wasienv install-sdk unstable
+}
+
 for choice in $selection; do
   case $choice in
   0) 
@@ -249,7 +266,8 @@ for choice in $selection; do
   9) install_wasmtime;;
   10) install_node_with_nvm;;
   11) install_emsdk;;
-  12) install_qemu;;
+  12) install_wasienv;;
+  13) install_qemu;;
   *) echo "Invalid choice: $choice";;
   esac
 done
