@@ -222,20 +222,28 @@ install_emsdk() {
     cd ../
 }
 
-# emsdk ,emscripten 설치
+# wasienv 설치
 install_wasienv() {
-  echo "Installing wasienv..."
-  if [ ! -d "$HOME/.wasienv" ]; then
-      curl https://github.com/wasienv/wasienv/raw/master/install.sh -L| sh
-  else
-      echo "wasienv already installed!"
-  fi
+    local WASIENV_DIR="$HOME/.wasienv"
 
-  # 바이너리 복사
-  sudo cp ~/.wasienv/local/bin/* /usr/bin/
+    echo "Installing wasienv..."
 
-  wasienv install-sdk 7 
-  wasienv install-sdk unstable
+    if [ ! -d "$WASIENV_DIR" ]; then
+        curl -L https://github.com/wasienv/wasienv/raw/master/install.sh | sh
+    else
+        echo "wasienv already installed!"
+    fi
+
+    # Copy binaries
+    if [ -d "$WASIENV_DIR/local/bin" ]; then
+        sudo cp "$WASIENV_DIR/local/bin/"* /usr/bin/
+    else
+        echo "Error: $WASIENV_DIR/local/bin does not exist."
+        return 1
+    fi
+
+    wasienv install-sdk 7 
+    wasienv install-sdk unstable
 }
 
 for choice in $selection; do
