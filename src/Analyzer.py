@@ -9,7 +9,7 @@ import json
 
 # compare_results 함수: 실행 결과를 비교 로직에 따라서 분석하는 함수
 # argv: generator - 코드 생성기 종류/ id - 소스코드 번호/ results - 바이너리 실행 결과들/ comparison_strategy - 비교 로직
-def analyze_results(compilers, dir_path, temp_dirs, catch_dirs, generator_config, id, random_seed, results, machine_info, logger, partial_timeout=True):
+def analyze_results(compilers, dir_path, temp_dirs, catch_dirs, generator_config, id, random_seed, results, machine_info, status_info, status_lock, logger, partial_timeout=True):
     # 해당 결과들을 대상으로 비교
     generator_name = generator_config['name']
     try:

@@ -31,7 +31,7 @@ atexit.register(cleanup)
 # process_generator 함수: 생성기 별로 퍼징을 수행하는 함수
 # argv: generator - 생성기 종류 (현재 csmith와 yarpgen)
 # return: None 
-def fuzz_with_generator(compilers, generator_config, temp_dirs, catch_dirs, logger, partial_timeout=True):
+def fuzz_with_generator(compilers, generator_config, temp_dirs, catch_dirs, status_info, status_lock, logger, partial_timeout=True):
     generator_name = generator_config["name"]
     with status_lock:
     # generator 별로 상태 정보 저장
@@ -149,7 +149,7 @@ def fuzz_with_generator(compilers, generator_config, temp_dirs, catch_dirs, logg
                     temp_status[generator_name]["current_status"] = ANALYZING
                     status_info.update(temp_status)
                 if len(results) > 0:  # results 딕셔너리가 비어 있지 않다면
-                    analyze_results(compilers, dir_path, temp_dirs, catch_dirs, generator_config, id, random_seed, results, machine_info, logger, partial_timeout)
+                    analyze_results(compilers, dir_path, temp_dirs, catch_dirs, generator_config, id, random_seed, results, machine_info, status_info, status_lock, logger, partial_timeout)
                 else:
                     # results 딕셔너리가 비어 있는 경우, 문제가 발생한 것으로 판단
                     skipped_tasks += 1
@@ -202,13 +202,23 @@ def main():
 
         # 1. display_status 함수를 별도의 프로세스로 시작
         start_time = datetime.now()
-        display_process = Process(target=curses.wrapper, args=(display_status, status_info, generators, start_time))
+        status_info, status_lock = initialize_manager()
+        display_process = Process(target=curses.wrapper, args=(display_status, status_info, status_lock, generators, start_time))
         display_process.start()
-
+        
         # logging 정보 모든 프로세스 통합
         logger, listener = setup_logging()
-        with ProcessPoolExecutor() as executor:
-            executor.map(fuzz_with_generator, repeat(compilers), generators, temp_dirs_list, catch_dirs_list, repeat(logger), repeat(args.partial_timeout))
+        processes = []
+
+        for generator, temp_dir, catch_dir in zip(generators, temp_dirs_list, catch_dirs_list):
+            p = Process(target=fuzz_with_generator, args=(compilers, generator, temp_dir, catch_dir, status_info, status_lock, logger, args.partial_timeout))
+            processes.append(p)
+            p.start()
+
+
+        for p in processes:
+            p.join()
+
     except KeyboardInterrupt:
         print("\nKeyboard interrupt received. Terminating all processes...")
         listener.stop()

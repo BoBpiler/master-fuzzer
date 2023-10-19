@@ -10,28 +10,29 @@ COMPILING_AND_RUNNING = "Compiling and running"
 ANALYZING = "Analyzing"
 
 # 상태 정보를 위한 데이터 구조 생성
-manager = Manager()
-status_info = manager.dict({
-    "total": {
-        "completed_tasks": 0,
-        "skipped_tasks": 0,
-        "round_number": 0,
-        "High": 0,
-        "Medium": 0,
-        "Low": 0,
-        "different_checksums": 0,
-        "compile_crashes": 0,
-        "binary_crashes": 0,
-        "partial_timeouts": 0,
-        "abnormal_compiles": 0,
-        "abnormal_binaries": 0,
-        "duplicated_counts": 0
-    }
-    # 추가적으로 각 제네레이터에 대한 정보도 저장
-    # 예: status_info['generator1'] = {"completed_tasks": 0, ...}
-})
-
-status_lock = Lock()
+def initialize_manager():
+    manager = Manager()
+    status_info = manager.dict({
+        "total": {
+            "completed_tasks": 0,
+            "skipped_tasks": 0,
+            "round_number": 0,
+            "High": 0,
+            "Medium": 0,
+            "Low": 0,
+            "different_checksums": 0,
+            "compile_crashes": 0,
+            "binary_crashes": 0,
+            "partial_timeouts": 0,
+            "abnormal_compiles": 0,
+            "abnormal_binaries": 0,
+            "duplicated_counts": 0
+        }
+        # 추가적으로 각 제네레이터에 대한 정보도 저장 가능  - 생성기 별로 정보를 저장할 예정
+        # 예: status_info['generator1'] = {"completed_tasks": 0, ...}
+    })
+    status_lock = Lock()
+    return status_info, status_lock
 
 
 # line 하나 지워주는 함수
@@ -288,7 +289,8 @@ def draw_generator_info(stdscr, y, x, gen_count, gen_width, height, generators, 
             stdscr.addstr(y + 3, x_start + 2, "Skipped Tasks : ")
             stdscr.attroff(curses.color_pair(6))
             stdscr.addstr(y + 3, x_start + 2 + len("Skipped Tasks : "), f"{temp_status[generators[i]['name']]['skipped_tasks']}")
-
+            
+            clear_line(stdscr, y + 4, x_start + 2, x_end - 1)
             stdscr.attron(curses.color_pair(6))  # 회색
             stdscr.addstr(y + 4, x_start + 2, "Current Status : ")
             stdscr.attroff(curses.color_pair(6))
@@ -298,7 +300,7 @@ def draw_generator_info(stdscr, y, x, gen_count, gen_width, height, generators, 
 
 
 # fuzzer display 함수
-def display_status(stdscr, status_info, generators, start_time):
+def display_status(stdscr, status_info, status_lock, generators, start_time):
     try:
         MIN_HEIGHT, MIN_WIDTH = 20, 80  # 적절한 최소 크기를 지정
         curses.curs_set(0)  # 커서를 숨깁니다.
