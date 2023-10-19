@@ -330,7 +330,9 @@ def display_status(stdscr, status_info, status_lock, generators, start_time):
             if height < MIN_HEIGHT or width < MIN_WIDTH:
                 stdscr.clear()
                 stdscr.attron(curses.color_pair(2))
-                stdscr.addstr(height // 2, (width - len("BoBpiler Fuzzing in Progress...")) // 2, "BoBpiler Fuzzing in Progress...")
+                message = "BoBpiler Fuzzing in Progress..."
+                y_center, x_center = height // 2, width // 2
+                stdscr.addstr(y_center, x_center - len(message) // 2, message)
                 stdscr.attroff(curses.color_pair(2))
                 stdscr.refresh()
                 curses.napms(1000)
