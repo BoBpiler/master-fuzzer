@@ -9,7 +9,9 @@ import shutil
 import platform
 import os
 from config import*
-
+import logging
+import logging.handlers
+import multiprocessing
 
 # 프로세스 종료를 위한 함수
 def terminate_process_and_children(pid):
@@ -20,6 +22,30 @@ def terminate_process_and_children(pid):
         parent.terminate()
     except psutil.NoSuchProcess:
         pass
+
+def setup_logging():
+    try:
+        queue = multiprocessing.Queue(-1)
+        qh = logging.handlers.QueueHandler(queue)
+        root = logging.getLogger()
+        root.addHandler(qh)
+        root.setLevel(logging.WARNING)
+
+        # 로깅 포맷 설정
+        log_format = "%(asctime)s [%(levelname)s]: %(message)s"
+        formatter = logging.Formatter(log_format)
+
+        # 로그 파일 핸들러 추가
+        file_handler = logging.FileHandler(os.path.join(BASE_DIR, 'fuzzer.log'))
+        file_handler.setFormatter(formatter)
+
+        listener = logging.handlers.QueueListener(queue, file_handler)
+        listener.start()
+
+        return root, listener
+    except Exception as e:
+        print(f"Logging setup error occurs: {e}")
+        raise
 
 # zip 파일 압축 함수
 def zip_src_files(filenames, output_filename):
@@ -182,7 +208,7 @@ def create_directory(dir_name, sub_dirs=None):
             os.mkdir(dir_name)
             #print(f"Directory {dir_name} created successfully.")
     except (FileExistsError, PermissionError, FileNotFoundError) as e:
-        print(f"An error occurred while creating {dir_name}: {e}")
+        logging.error(f"An error occurred while creating {dir_name}: {e}")
         
     if sub_dirs:
         for sub_dir in sub_dirs:
@@ -192,7 +218,7 @@ def create_directory(dir_name, sub_dirs=None):
                     os.mkdir(sub_dir_path)
                     #print(f"Sub-directory {sub_dir_path} created successfully.")
             except (FileExistsError, PermissionError, FileNotFoundError) as e:
-                print(f"An error occurred while creating sub-directory {sub_dir_path}: {e}")
+                logging.error(f"An error occurred while creating sub-directory {sub_dir_path}: {e}")
 
 # setup_output_dirs 함수: 전체 디렉토리 구조 생성
 # argv: None
@@ -208,7 +234,7 @@ def setup_output_dirs():
 # cleanup_temp 함수: temp 내부 파일들을 삭제하는 함수
 # argv: generator - 어떤 생성기의 temp 폴더일지 판단하기 위함
 # return: None
-def cleanup_temp(temp_dir):
+def cleanup_temp(temp_dir, logger):
     try:
         for filename in os.listdir(temp_dir):
             full_path = os.path.join(temp_dir, filename)
@@ -221,13 +247,13 @@ def cleanup_temp(temp_dir):
 
             #print(f"Successfully deleted {full_path}.")
     except (FileNotFoundError, PermissionError, OSError) as e:
-        print(f"An error occurred while deleting {full_path}: {e}")
+        logger.error(f"An error occurred while deleting {full_path}: {e}")
 
 
 # get_machine_info 함수: 해당 머신의 정보를 가져오는 함수
 # argv: None
 # return: info_dict - OS, hostname, IP, whoami, ssh pub key hash 값을 담고 있음
-def get_machine_info():
+def get_machine_info(logger):
     info_dict = {}
     
     # os, hostname 저장
@@ -235,7 +261,7 @@ def get_machine_info():
         info_dict['os'] = platform.system()
         info_dict['hostname'] = socket.gethostname()
     except Exception as e:
-        print(f"Error getting OS or hostname: {e}")
+        logger.error(f"Error getting OS or hostname: {e}")
         sys.exit(1)
     
     # IP 주소 저장
@@ -245,7 +271,7 @@ def get_machine_info():
         info_dict['ip'] = s.getsockname()[0]
         s.close()
     except Exception as e:
-        print(f"Error getting IP address: {e}")
+        logger.error(f"Error getting IP address: {e}")
         sys.exit(1)  # IP 주소를 가져오는 데 실패하면 프로그램을 종료합니다.
 
     if platform.system() == 'Linux':
@@ -257,7 +283,7 @@ def get_machine_info():
             info_dict['ssh_pub_key_hash'] = hashlib.sha256(ssh_key.encode()).hexdigest()    # 해싱
 
         except Exception as e:
-            print(f"Error in Linux: {e}")
+            logger.error(f"Error in Linux: {e}")
 
     elif platform.system() == 'Windows':
         # Windows
@@ -268,6 +294,6 @@ def get_machine_info():
                 ssh_key = f.read().strip()
             info_dict['ssh_pub_key_hash'] = hashlib.sha256(ssh_key.encode()).hexdigest()    # 해싱
         except Exception as e:
-            print(f"Error in Windows: {e}")
+            logger.error(f"Error in Windows: {e}")
 
     return info_dict

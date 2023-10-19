@@ -2,58 +2,97 @@
 # 테스트 케이스가 분석되면 적용해서 발전시켜보겠습니다.
 from utils import*
 from validator import check_for_duplicated_bug
+from fuzzer_display import*
 import shutil
 import os
 import json
-import logging
-logging.basicConfig(level=logging.INFO)
 
 # compare_results 함수: 실행 결과를 비교 로직에 따라서 분석하는 함수
 # argv: generator - 코드 생성기 종류/ id - 소스코드 번호/ results - 바이너리 실행 결과들/ comparison_strategy - 비교 로직
-def analyze_results(compilers, dir_path, temp_dirs, catch_dirs, generator_config, id, random_seed, results, machine_info, partial_timeout=True):
+def analyze_results(compilers, dir_path, temp_dirs, catch_dirs, generator_config, id, random_seed, results, machine_info, logger, partial_timeout=True):
     # 해당 결과들을 대상으로 비교
     generator_name = generator_config['name']
     try:
         if compare_execution_results(results):  # 실행 결과가 다른 경우
-            if check_for_duplicated_bug(compilers, dir_path, temp_dirs, catch_dirs, generator_config, id, random_seed):
+            if check_for_duplicated_bug(compilers, dir_path, temp_dirs, catch_dirs, generator_config, id, logger, random_seed):
+                with status_lock:
+                    temp_status = dict(status_info)
+                    temp_status[generator_name]["duplicated_counts"] += 1
+                    temp_status["total"]["duplicated_counts"] += 1
+                    status_info.update(temp_status)
                 return False
             msg = f"Different results(checksum) detected for generator {generator_name}, source code ID: {id}"
-            print(msg)
-            id_folder_path = save_to_folder(temp_dirs, catch_dirs, generator_name, id, results, "checksum")
+            #print(msg)
+            id_folder_path = save_to_folder(temp_dirs, catch_dirs, generator_name, id, results, "checksum", logger)
             send_telegram_message(machine_info, generator_config, id, random_seed, "Different Checksum", msg, id_folder_path, "high")
+            with status_lock:
+                temp_status = dict(status_info)
+                temp_status[generator_name]["different_checksums"] += 1
+                temp_status["total"]["different_checksums"] += 1
+                temp_status[generator_name]["High"] += 1
+                temp_status["total"]["High"] += 1
+                status_info.update(temp_status)
             return True
         else:
             crash_exists, crash_type = detect_crashes(results)  
             if crash_exists:                                    # 크래시가 있는 경우
                 msg = f"{crash_type} Crash detected for generator {generator_name}, source code ID: {id}"
-                print(msg)
-                id_folder_path = save_to_folder(temp_dirs, catch_dirs, generator_name, id, results, f"{crash_type.lower()}_crash")
+                #print(msg)
+                id_folder_path = save_to_folder(temp_dirs, catch_dirs, generator_name, id, results, f"{crash_type.lower()}_crash", logger)
                 send_telegram_message(machine_info, generator_config, id, random_seed, f"{crash_type} Crash", msg, id_folder_path, "medium")
+                with status_lock:
+                    temp_status = dict(status_info)
+                    temp_status[generator_name][f"{crash_type.lower()}_crashes"] += 1
+                    temp_status["total"][f"{crash_type.lower()}_crashes"] += 1
+                    temp_status[generator_name]["Medium"] += 1
+                    temp_status["total"]["Medium"] += 1
+                    status_info.update(temp_status)
                 return True
 
             elif partial_timeout and detect_partial_timeout(results):               # 부분적으로 타임아웃이 있는 경우 (어떻게 보면 결과가 다르다고 볼 수 있습니다.)
-                print(f"Binary Execution Partial timeout detected for generator {generator_name}, source code ID: {id}")
-                save_to_folder(temp_dirs, catch_dirs, generator_name, id, results, "partial_timeout")
+                #print(f"Binary Execution Partial timeout detected for generator {generator_name}, source code ID: {id}")
+                save_to_folder(temp_dirs, catch_dirs, generator_name, id, results, "partial_timeout", logger)
+                with status_lock:
+                    temp_status = dict(status_info)
+                    temp_status[generator_name]["partial_timeouts"] += 1
+                    temp_status["total"]["partial_timeouts"] += 1
+                    temp_status[generator_name]["Low"] += 1
+                    temp_status["total"]["Low"] += 1
+                    status_info.update(temp_status)
                 return True
             
             elif detect_abnormal_compile(results):              # 비정상적으로 컴파일이 수행되는 경우 (컴파일 타임아웃, 크래시 등...)
                 msg = f"Abnormal compile detected for generator {generator_name}, source code ID: {id}"
-                print(msg)
-                id_folder_path = save_to_folder(temp_dirs, catch_dirs, generator_name, id, results, "abnormal_compile")
+                #print(msg)
+                id_folder_path = save_to_folder(temp_dirs, catch_dirs, generator_name, id, results, "abnormal_compile", logger)
                 send_telegram_message(machine_info, generator_config, id, random_seed, "Abnormal Compile", msg, id_folder_path)
+                with status_lock:
+                    temp_status = dict(status_info)
+                    temp_status[generator_name]["abnormal_compiles"] += 1
+                    temp_status["total"]["abnormal_compiles"] += 1
+                    temp_status[generator_name]["Low"] += 1
+                    temp_status["total"]["Low"] += 1
+                    status_info.update(temp_status)
                 return True
             
             elif detect_abnormal_binary(results):  # 바이너리 returncode가 0이 아닌 경우가 하나라도 있는 경우 
                 msg = f"Abnormal binary detected for generator {generator_name}, source code ID: {id}"
-                print(msg)
-                id_folder_path = save_to_folder(temp_dirs, catch_dirs, generator_name, id, results, "abnormal_binary")
+                #print(msg)
+                id_folder_path = save_to_folder(temp_dirs, catch_dirs, generator_name, id, results, "abnormal_binary", logger)
                 send_telegram_message(machine_info, generator_config, id, random_seed, "Abnormal Binary", msg, id_folder_path)
+                with status_lock:
+                    temp_status = dict(status_info)
+                    temp_status[generator_name]["abnormal_binaries"] += 1
+                    temp_status["total"]["abnormal_binaries"] += 1
+                    temp_status[generator_name]["Low"] += 1
+                    temp_status["total"]["Low"] += 1
+                    status_info.update(temp_status)
                 return True
             else:
                 return False
 
     except Exception as e:
-        logging.error(f"An unexpected error occurred in analyze_results for generator {generator_name} and task {id}: {e}")
+        logger.error(f"An unexpected error occurred in analyze_results for generator {generator_name} and task {id}: {e}")
 
 # compare_execution_results 함수: 컴파일 성공하고 잘 실행된 바이너리의 결과들을 비교하는 함수
 # argv: results - 모든 결과가 담겨 있는 리스트
@@ -183,7 +222,7 @@ def retry_move(src, dest, retries=3, delay=1):
 
 
 # Analyzer 로직에 따라서 탐지된 파일을 저장하는 함수
-def save_to_folder(temp_dirs, catch_dirs, generator_name, id, results, folder_name):
+def save_to_folder(temp_dirs, catch_dirs, generator_name, id, results, folder_name, logger):
     id_folder_path = os.path.join(catch_dirs, folder_name, str(id))
     if not os.path.exists(id_folder_path):
         os.makedirs(id_folder_path, exist_ok=True)
@@ -196,15 +235,15 @@ def save_to_folder(temp_dirs, catch_dirs, generator_name, id, results, folder_na
         try:
             retry_move(source_path, dest_path)
         except Exception as e:
-            logging.error(f"Error moving {source_path} to {dest_path}. Exception: {e}")
+            logger.error(f"Error moving {source_path} to {dest_path}. Exception: {e}")
 
     # 결과를 txt 파일에 저장 - 한 눈에 보기 좋습니다.
-    save_results_to_file(id_folder_path, id, results)
+    save_results_to_file(id_folder_path, id, results, logger)
     return id_folder_path
 
 
 # result_dict 딕셔너리를 가독성 좋게 txt 파일에 저장하는 함수입니다.
-def save_results_to_file(id_folder_path, id, results):
+def save_results_to_file(id_folder_path, id, results, logger):
     try:
         # txt 파일에 저장하는 부분
         result_files = get_result_file_names(id)
@@ -241,10 +280,10 @@ def save_results_to_file(id_folder_path, id, results):
                     else:
                         f.write(f"\t{key.capitalize()}: {value}\n")
     except Exception as e:
-        print(f"An error occurred while writing txt file: {e}")
+        logger.error(f"An error occurred while writing txt file: {e}")
     # JSON 파일에 저장하는 부분
     try:
         with open(os.path.join(id_folder_path, f"{result_files['json']}"), 'w') as f:
             json.dump(results, f, indent=4, default=str)    # uuid serialized 문제 -> default = str
     except Exception as e:
-        print(f"An error occurred while writing the json file: {e}")
+        logger.error(f"An error occurred while writing the json file: {e}")

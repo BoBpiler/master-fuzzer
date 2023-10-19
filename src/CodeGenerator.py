@@ -4,14 +4,12 @@
 from config import generator_time_out
 import os
 import subprocess
-import logging
-logging.basicConfig(level=logging.INFO) 
 import secrets
 
 # generate_c_code 함수: Csmith와 yarpgen을 통해서 C 코드를 랜덤으로 생성
 # argv: id - 소스코드 번호
 # return: filepath - 생성된 파일 이름 및 경로
-def generate_c_code(id, generator_config, temp_dirs):
+def generate_c_code(id, generator_config, temp_dirs, logger):
     try:
         
         dir_path = os.path.join(temp_dirs, f'{id}')
@@ -41,13 +39,13 @@ def generate_c_code(id, generator_config, temp_dirs):
 
         result = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=generator_time_out, text=True)
         if result.returncode != 0:
-            logging.warning(f"{generator_config['name']} code generation failed for {path_value} with return code {result.returncode}, error message: {result.stdout + result.stderr}")
+            logger.warning(f"{generator_config['name']} code generation failed for {path_value} with return code {result.returncode}, error message: {result.stdout + result.stderr}")
             return (None, None)
         
         return (dir_path, random_seed)
     except subprocess.TimeoutExpired:
-        logging.warning(f"Code generation timed out for generator {generator_config['name']} and task {id}")
+        logger.warning(f"Code generation timed out for generator {generator_config['name']} and task {id}")
         return (None, None)
     except Exception as e:
-        logging.error(f"An unexpected error occurred in generate_c_code for generator {generator_config['name']} and task {id}: {e}")
+        logger.error(f"An unexpected error occurred in generate_c_code for generator {generator_config['name']} and task {id}: {e}")
         return (None, None)

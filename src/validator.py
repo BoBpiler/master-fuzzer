@@ -4,9 +4,8 @@ from utils import get_machine_info
 import os 
 import platform
 import re
-import logging
 
-def check_for_duplicated_bug(compilers, dir_path, temp_dirs, catch_dirs, generator_config, id, random_seed):
+def check_for_duplicated_bug(compilers, dir_path, temp_dirs, catch_dirs, generator_config, id, logger, random_seed):
     # LL을 ULL로 변경하는 방식으로 중복된 버그인지 판단
     generator_name = generator_config["name"]
     
@@ -14,9 +13,9 @@ def check_for_duplicated_bug(compilers, dir_path, temp_dirs, catch_dirs, generat
     is_duplicated_by_long = False
 
     if platform.system() == 'Windows':  # Windows
-        is_duplicated_by_ULL = detect_bug_type_ULL(compilers, dir_path, temp_dirs, catch_dirs, generator_config, id, random_seed)
+        is_duplicated_by_ULL = detect_bug_type_ULL(compilers, dir_path, temp_dirs, catch_dirs, generator_config, id, logger, random_seed)
     elif platform.system() == 'Linux':  # Linux
-        is_duplicated_by_long = detect_emcc_issue_type_long(compilers, dir_path, temp_dirs, catch_dirs, generator_config, id, random_seed)
+        is_duplicated_by_long = detect_emcc_issue_type_long(compilers, dir_path, temp_dirs, catch_dirs, generator_config, id, logger, random_seed)
     
 
     # TODO: 앞으로 추가될 다른 판단 로직들도 여기에서 호출
@@ -27,15 +26,15 @@ def check_for_duplicated_bug(compilers, dir_path, temp_dirs, catch_dirs, generat
 
     is_duplicated = is_duplicated_by_ULL or is_duplicated_by_long  # 둘 중 하나라도 True이면 중복으로 판단
     
-    if is_duplicated:
-        print(f"Bug in source code (generator: {generator_name}, source code ID: {id}) is DUPLICATED.")
-    else:
-        print(f"Bug in source code (generator: {generator_name}, source code ID: {id}) is NOT duplicated.")
+    # if is_duplicated:
+    #     print(f"Bug in source code (generator: {generator_name}, source code ID: {id}) is DUPLICATED.")
+    # else:
+    #     print(f"Bug in source code (generator: {generator_name}, source code ID: {id}) is NOT duplicated.")
     
     return is_duplicated
 
 
-def analyze_results_for_duplicate(temp_dirs, catch_dirs, generator_config, id, random_seed, results, machine_info, partial_timeout=True):
+def analyze_results_for_duplicate(temp_dirs, catch_dirs, generator_config, id, random_seed, results, machine_info, logger, partial_timeout=True):
     # 해당 결과들을 대상으로 비교
     from Analyzer import compare_execution_results
     generator_name = generator_config['name']
@@ -45,10 +44,10 @@ def analyze_results_for_duplicate(temp_dirs, catch_dirs, generator_config, id, r
         else:
             return False
     except Exception as e:
-        logging.error(f"An unexpected error occurred in analyze_results_for_duplicate for generator {generator_name} and task {id}: {e}")
+        logger.error(f"An unexpected error occurred in analyze_results_for_duplicate for generator {generator_name} and task {id}: {e}")
 
 
-def fuzz(compilers, dir_path, temp_dirs, catch_dirs, generator_config, id, random_seed, partial_timeout=True):
+def fuzz(compilers, dir_path, temp_dirs, catch_dirs, generator_config, id, logger, random_seed, partial_timeout=True):
     machine_info = get_machine_info()
     generator_name = generator_config["name"]
     with ProcessPoolExecutor() as executor:
@@ -57,13 +56,13 @@ def fuzz(compilers, dir_path, temp_dirs, catch_dirs, generator_config, id, rando
         for compiler_info in compilers.values():
             for opt_level in compiler_info['options']:
                 if 'runners' not in compiler_info['language'][generator_config['language']]: # 일반 컴파일러의 경우
-                    futures.append(executor.submit(compile_and_run, dir_path, temp_dirs, generator_config, id, compiler_info, opt_level, random_seed))
+                    futures.append(executor.submit(compile_and_run, dir_path, temp_dirs, generator_config, id, compiler_info, opt_level, logger, random_seed))
                 else:
                     binary_name = os.path.join(temp_dirs, f'{id}', f"{compiler_info['file_name']}_{opt_level[1:]}")
-                    compile_result = compile(binary_name, dir_path, generator_config, id, compiler_info, opt_level)
+                    compile_result = compile(binary_name, dir_path, generator_config, id, compiler_info, opt_level, logger)
                     if compile_result['status']: # 컴파일이 성공한 경우에만 실행
                         for runner_name, runner_command in compiler_info['language'][generator_config['language']]['runners'].items():
-                            futures.append(executor.submit(run_binary_for_wasm, runner_name, runner_command, compile_result, binary_name, generator_config, id, compiler_info, opt_level, random_seed))
+                            futures.append(executor.submit(run_binary_for_wasm, runner_name, runner_command, compile_result, binary_name, generator_config, id, compiler_info, opt_level, logger, random_seed))
                     else:
                         result_dict = {
                             'id': str(id),
@@ -100,9 +99,9 @@ def fuzz(compilers, dir_path, temp_dirs, catch_dirs, generator_config, id, rando
             results[key] = result_dict
     
     if len(results) > 0: 
-        result = analyze_results_for_duplicate(temp_dirs, catch_dirs, generator_config, id, random_seed, results, machine_info, partial_timeout)
+        result = analyze_results_for_duplicate(temp_dirs, catch_dirs, generator_config, id, random_seed, results, machine_info, logger, partial_timeout)
     else:
-        logging.critical(f"CRITICAL ERROR: This is an exceptional case which means impossible and requires immediate attention.")
+        logger.critical(f"CRITICAL ERROR: This is an exceptional case which means impossible and requires immediate attention.")
     return result
 
 
@@ -148,38 +147,38 @@ def modify_source_long_to_longlong(source_code_path):
     return source_code_path
 
 # long에서 발생하는 emcc issue 중복 validate 함수 (long -> long long 변환 후 다시 테스트)
-def detect_emcc_issue_type_long(compilers, dir_path, temp_dirs, catch_dirs, generator_config, id, random_seed):
+def detect_emcc_issue_type_long(compilers, dir_path, temp_dirs, catch_dirs, generator_config, id, logger, random_seed):
     generator_name = generator_config["name"]
     src_files = [file.format(path=dir_path, id=id) for file in generator_config['src_files_to_send']]
     
     for src_file in src_files:
         modify_source_long_to_longlong(src_file)  # long을 long long으로 변환하는 함수를 사용
 
-    result = fuzz(compilers, dir_path, temp_dirs, catch_dirs, generator_config, id, random_seed)
+    result = fuzz(compilers, dir_path, temp_dirs, catch_dirs, generator_config, id, logger, random_seed)
     if result:
         # True인 경우 중복된 버그가 아님
-        print(f"`long` type related emcc issue NOT found in modified source code (generator: {generator_name}, source code ID: {id}).")
+        # print(f"`long` type related emcc issue NOT found in modified source code (generator: {generator_name}, source code ID: {id}).")
         return False
     else:
         # False인 경우 중복된 버그로 판단
-        print(f"`long` type related emcc issue found: Mistakenly recognizing `long` as a different size in source code (generator: {generator_name}, source code ID: {id}).")
+        # print(f"`long` type related emcc issue found: Mistakenly recognizing `long` as a different size in source code (generator: {generator_name}, source code ID: {id}).")
         return True
 
 
 # cl에서 발생하는 LL 처리에 대한 버그 중복 validate 함수 LL -> ULL 로 변환 후 다시 테스트 
-def detect_bug_type_ULL(compilers, dir_path, temp_dirs, catch_dirs, generator_config, id, random_seed):
+def detect_bug_type_ULL(compilers, dir_path, temp_dirs, catch_dirs, generator_config, id, logger, random_seed):
     generator_name = generator_config["name"]
     src_files = [file.format(path=dir_path, id=id) for file in generator_config['src_files_to_send']]
     
     for src_file in src_files:
         modify_source_LL_to_ULL(src_file)
 
-    result = fuzz(compilers, dir_path, temp_dirs, catch_dirs, generator_config, id, random_seed)
+    result = fuzz(compilers, dir_path, temp_dirs, catch_dirs, generator_config, id, logger, random_seed)
     if result:
         # True인 경우 중복된 버그가 아님
-        print(f"Unsigned long long (ULL) related bug NOT found in modified source code (generator: {generator_name}, source code ID: {id}).")
+        # print(f"Unsigned long long (ULL) related bug NOT found in modified source code (generator: {generator_name}, source code ID: {id}).")
         return False
     else:
         # False인 경우 중복된 버그로 판단
-        print(f"Unsigned long long (ULL) related bug found: Mistakenly recognizing unsigned as signed in source code (generator: {generator_name}, source code ID: {id}).")
+        # print(f"Unsigned long long (ULL) related bug found: Mistakenly recognizing unsigned as signed in source code (generator: {generator_name}, source code ID: {id}).")
         return True
