@@ -187,18 +187,27 @@ def main():
 
         generators = list(generators_config.values())
         
+        print("[+] BoBpiler-fuzzer: 원하는 컴파일러의 이름을 입력해주세요. (다 선택했으면 q를 입력해주세요)")
         if platform.system() == 'Linux':
             if args.endian == 'big':
-                compilers = linux_big_endian_compilers
+                print_compilers("linux_big_endian_compilers", linux_big_endian_compilers)
+                select_compilers = input_compilers()
+                compilers = dict_compilers(select_compilers, linux_big_endian_compilers)
             else:
-                compilers = linux_little_endian_compilers
+                print_compilers("linux_little_endian_compilers", linux_little_endian_compilers)
+                select_compilers = input_compilers()
+                compilers = dict_compilers(select_compilers, linux_little_endian_compilers)
         elif platform.system() == 'Windows':
-            compilers = window_compilers
+            print_compilers("window_compilers", window_compilers)
+            select_compilers = input_compilers()
+            compilers = dict_compilers(select_compilers, window_compilers)
         else:
-            compilers = linux_little_endian_compilers
+            print_compilers("linux_little_endian_compilers",linux_little_endian_compilers)
+            select_compilers = input_compilers()
+            compilers = dict_compilers(select_compilers, linux_little_endian_compilers)
         
-        temp_dirs_list = [TEMP_DIRS[generator["name"]] for generator in generators]
-        catch_dirs_list = [CATCH_DIRS[generator["name"]] for generator in generators]
+        temp_dirs_list = [TEMP_DIRS[generator["name"]] for generator in generators] # temp 디렉토리 경로
+        catch_dirs_list = [CATCH_DIRS[generator["name"]] for generator in generators] # catch 디렉토리 경로
 
         # 1. display_status 함수를 별도의 프로세스로 시작
         start_time = datetime.now()

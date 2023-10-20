@@ -297,3 +297,20 @@ def get_machine_info(logger):
             logger.error(f"Error in Windows: {e}")
 
     return info_dict
+
+def print_compilers(name, compilers):
+    print(f"{name} list")
+    for idx, compiler in enumerate(compilers.keys()):
+        print(f"{idx+1}: {compiler}")
+
+def input_compilers():
+    select_compilers_string = input("문자열을 입력하세요: ")
+    select_compilers = select_compilers_string.split()
+    return select_compilers
+
+def dict_compilers(select_compilers, compilers):
+    temp_compilers = {}
+    for select_compiler in select_compilers:
+        if select_compiler in compilers:
+            temp_compilers[select_compiler] = compilers[select_compiler]
+    return temp_compilers
