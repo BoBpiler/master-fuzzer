@@ -346,7 +346,7 @@ def input_compilers(total_compilers):
             return total_compilers
         else:
             try:
-                # 사용자가 입력한 숫자들을 파싱하고 유니크하게 만든다.
+                # 사용자가 입력한 숫자들을 파싱하고 유니크하게 만든다.(중복 제거 by set)
                 selected_indices = list(set(map(int, user_input.split())))
                 if all(1 <= idx <= len(total_compilers) for idx in selected_indices):
                     return [list(total_compilers.keys())[idx - 1] for idx in selected_indices]
