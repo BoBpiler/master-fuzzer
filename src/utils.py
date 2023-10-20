@@ -223,13 +223,28 @@ def create_directory(dir_name, sub_dirs=None):
 # setup_output_dirs 함수: 전체 디렉토리 구조 생성
 # argv: None
 # return: None
-def setup_output_dirs():
-    create_directory(BASE_DIR)
+def setup_output_dirs(generators_config, base_dir):
+    create_directory(base_dir)
+    
+    generator_dirs = {}
+    catch_dirs = {}
+    temp_dirs = {}
+    
+    for generator_key, config in generators_config.items():
+        generator_dir = os.path.join(base_dir, config['name'])
+        generator_dirs[generator_key] = generator_dir
+        create_directory(generator_dir)
 
-    for generator_key in generators_config.keys():
-        create_directory(GENERATOR_DIRS[generator_key])
-        create_directory(CATCH_DIRS[generator_key])  
-        create_directory(TEMP_DIRS[generator_key])
+        catch_dir = os.path.join(generator_dir, 'catch')
+        catch_dirs[generator_key] = catch_dir
+        create_directory(catch_dir)
+
+        temp_dir = os.path.join(generator_dir, 'temp')
+        temp_dirs[generator_key] = temp_dir
+        create_directory(temp_dir)
+
+    return generator_dirs, catch_dirs, temp_dirs
+
 
 # cleanup_temp 함수: temp 내부 파일들을 삭제하는 함수
 # argv: generator - 어떤 생성기의 temp 폴더일지 판단하기 위함
@@ -298,19 +313,66 @@ def get_machine_info(logger):
 
     return info_dict
 
-def print_compilers(name, compilers):
-    print(f"{name} list")
-    for idx, compiler in enumerate(compilers.keys()):
-        print(f"{idx+1}: {compiler}")
+# 플랫폼에 따른 컴파일러를 선택하는 함수
+def get_compilers_by_platform(args):
+    if platform.system() == 'Linux':
+        return linux_big_endian_compilers if args.endian == 'big' else linux_little_endian_compilers
+    elif platform.system() == 'Windows':
+        return window_compilers
+    else:
+        return linux_little_endian_compilers
+    
 
-def input_compilers():
-    select_compilers_string = input("문자열을 입력하세요: ")
-    select_compilers = select_compilers_string.split()
-    return select_compilers
+# 플랫폼에 따른 생성기를 선택하는 함수
+def get_generators_by_platform():
+    if platform.system() == 'Linux':
+        return linux_generators_config
+    elif platform.system() == 'Windows':
+        return window_generators_config
+    else:
+        return linux_generators_config
 
-def dict_compilers(select_compilers, compilers):
-    temp_compilers = {}
-    for select_compiler in select_compilers:
-        if select_compiler in compilers:
-            temp_compilers[select_compiler] = compilers[select_compiler]
-    return temp_compilers
+
+# 사용자에게 컴파일러를 선택하도록 요청하는 함수
+def input_compilers(total_compilers):
+    print("Available compilers:")
+    for idx, compiler in enumerate(total_compilers.keys(), start=1):
+        print(f"{idx}. {compiler}")
+    print("Enter the number of the compiler(s) you want to use, or 'all' for all compilers.")
+
+    while True:
+        user_input = input("Select compiler(s): by number (e.g., '1 2'): ")
+        if user_input == "all":
+            return total_compilers
+        else:
+            try:
+                # 사용자가 입력한 숫자들을 파싱하고 유니크하게 만든다.
+                selected_indices = list(set(map(int, user_input.split())))
+                if all(1 <= idx <= len(total_compilers) for idx in selected_indices):
+                    return [list(total_compilers.keys())[idx - 1] for idx in selected_indices]
+                else:
+                    print("Invalid selection. Please try again.")
+            except ValueError:
+                print("Invalid input. Please enter the number(s) corresponding to the compilers.")
+
+
+# 사용자에게 생성기를 선택하도록 요청하는 함수
+def input_generators(generators_config):
+    print("Available generators:")
+    for idx, key in enumerate(generators_config.keys(), 1):
+        print(f"{idx}. {key}")
+    print("Enter the number of the generator(s) you want to use, or 'all' for all generators.")
+
+    while True:
+        user_input = input("Select generator(s) by number (e.g., '1 2'): ")
+        if user_input == "all":
+            return generators_config
+        try:
+            selected_indices = list(set(map(int, user_input.split())))
+            if all(1 <= idx <= len(generators_config) for idx in selected_indices):
+                return [list(generators_config.keys())[idx - 1] for idx in selected_indices]
+            else:
+                print("Invalid selection. Please try again.")
+        except ValueError:
+            print("Invalid input. Please enter the number(s) corresponding to the generators.")
+

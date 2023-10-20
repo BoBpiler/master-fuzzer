@@ -581,16 +581,3 @@ linux_big_endian_compilers = {
         }
     }
 }
-
-# platform에 따라서 생성기 설정 결정
-if platform.system() == 'Linux':
-    generators_config = linux_generators_config
-elif platform.system() == 'Windows':
-    generators_config = window_generators_config
-else:
-    generators_config = linux_generators_config
-
-# 결정된 생성기에 따라서 output 디렉토리의 트리 구조 결정
-GENERATOR_DIRS = {key: os.path.join(BASE_DIR, config['name']) for key, config in generators_config.items()}
-CATCH_DIRS = {key: os.path.join(GENERATOR_DIRS[key], 'catch') for key in generators_config.keys()}
-TEMP_DIRS = {key: os.path.join(GENERATOR_DIRS[key], 'temp') for key in generators_config.keys()}

@@ -185,30 +185,23 @@ def main():
         parser.add_argument('--endian', type=str, choices=['big', 'little'], default='little', help='Choose endian type')
         args = parser.parse_args()
 
-        generators = list(generators_config.values())
-        
-        print("[+] BoBpiler-fuzzer: 원하는 컴파일러의 이름을 입력해주세요. (다 선택했으면 q를 입력해주세요)")
-        if platform.system() == 'Linux':
-            if args.endian == 'big':
-                print_compilers("linux_big_endian_compilers", linux_big_endian_compilers)
-                select_compilers = input_compilers()
-                compilers = dict_compilers(select_compilers, linux_big_endian_compilers)
-            else:
-                print_compilers("linux_little_endian_compilers", linux_little_endian_compilers)
-                select_compilers = input_compilers()
-                compilers = dict_compilers(select_compilers, linux_little_endian_compilers)
-        elif platform.system() == 'Windows':
-            print_compilers("window_compilers", window_compilers)
-            select_compilers = input_compilers()
-            compilers = dict_compilers(select_compilers, window_compilers)
-        else:
-            print_compilers("linux_little_endian_compilers",linux_little_endian_compilers)
-            select_compilers = input_compilers()
-            compilers = dict_compilers(select_compilers, linux_little_endian_compilers)
-        
-        temp_dirs_list = [TEMP_DIRS[generator["name"]] for generator in generators] # temp 디렉토리 경로
-        catch_dirs_list = [CATCH_DIRS[generator["name"]] for generator in generators] # catch 디렉토리 경로
+        # 생성기와 컴파일러 선택
+        all_generators_config = get_generators_by_platform()
+        selected_generator_keys = input_generators(all_generators_config)
+        selected_generators = {key: all_generators_config[key] for key in selected_generator_keys}
+        generators = list(selected_generators.values())
 
+        all_compilers = get_compilers_by_platform(args)
+        selected_compiler_names = input_compilers(all_compilers)
+        selected_compilers = {name: all_compilers[name] for name in selected_compiler_names}
+        compilers = selected_compilers
+
+        # 디렉토리 구조 설정
+        generator_dirs, catch_dirs, temp_dirs = setup_output_dirs(selected_generators, BASE_DIR) # 생성기 디렉토리 설정
+        
+        temp_dirs_list = list(temp_dirs.values()) # 생성기 별 temp 디렉토리 경로
+        catch_dirs_list = list(catch_dirs.values()) # 생성기 별 catch 디렉토리 경로
+        
         # 1. display_status 함수를 별도의 프로세스로 시작
         start_time = datetime.now()
         status_info, status_lock = initialize_manager()
@@ -235,8 +228,6 @@ def main():
         terminate_process_and_children(os.getpid())
 
 if __name__ == "__main__":
-    # 디렉토리 초기화
-    setup_output_dirs()
     main()
 
 
