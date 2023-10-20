@@ -335,7 +335,7 @@ def display_status(stdscr, status_info, status_lock, generators, start_time):
                 stdscr.addstr(y_center, x_center - len(message) // 2, message)
                 stdscr.attroff(curses.color_pair(2))
                 stdscr.refresh()
-                curses.napms(1000)
+                curses.napms(500)
                 continue
             gen_width = (width - 6) // gen_count
 
@@ -364,8 +364,7 @@ def display_status(stdscr, status_info, status_lock, generators, start_time):
             key = stdscr.getch()
             if key == curses.KEY_RESIZE:
                 stdscr.clear()  # 화면을 클리어합니다.
-                continue  # 화면 크기가 변경되면 다음 반복으로 넘어가서 다시 그립니다.            
-            curses.napms(1000)
+                continue  # 화면 크기가 변경되면 다음 반복으로 넘어가서 다시 그립니다.
 
     except KeyboardInterrupt:
         pass
