@@ -239,9 +239,9 @@ linux_little_endian_compilers = {
             "c": {
                 "binary_path": "emcc",
                 "runners": {
-                    "wasmer_singlepass": "wasmer run --backend=singlepass {exe_path}.wasm",
-                    "wasmer_cranelift": "wasmer run --backend=cranelift {exe_path}.wasm",
-                    "wasmer_llvm": "wasmer run --backend=llvm {exe_path}.wasm",
+                    "wasmer_singlepass": "wasmer run --singlepass {exe_path}.wasm",
+                    "wasmer_cranelift": "wasmer run --cranelift {exe_path}.wasm",
+                    "wasmer_llvm": "wasmer run --llvm {exe_path}.wasm",
                     "wasmtime": "wasmtime {exe_path}.wasm",
                     "node": "node {exe_path}.js",
                     "wasirun": "wasirun {exe_path}.wasm"
@@ -250,9 +250,9 @@ linux_little_endian_compilers = {
             "cpp": {
                 "binary_path": "em++",
                 "runners": {
-                    "wasmer_singlepass": "wasmer run --backend=singlepass {exe_path}.wasm",
-                    "wasmer_cranelift": "wasmer run --backend=cranelift {exe_path}.wasm",
-                    "wasmer_llvm": "wasmer run --backend=llvm {exe_path}.wasm",
+                    "wasmer_singlepass": "wasmer run --singlepass {exe_path}.wasm",
+                    "wasmer_cranelift": "wasmer run --cranelift {exe_path}.wasm",
+                    "wasmer_llvm": "wasmer run --llvm {exe_path}.wasm",
                     "wasmtime": "wasmtime {exe_path}.wasm",
                     "node": "node {exe_path}.js",
                     "wasirun": "wasirun {exe_path}.wasm"
@@ -269,9 +269,9 @@ linux_little_endian_compilers = {
             "c": {
                 "binary_path": "wasicc",
                 "runners": {
-                    "wasmer_singlepass": "wasmer run --backend=singlepass {exe_path}.wasm",
-                    "wasmer_cranelift": "wasmer run --backend=cranelift {exe_path}.wasm",
-                    "wasmer_llvm": "wasmer run --backend=llvm {exe_path}.wasm",
+                    "wasmer_singlepass": "wasmer run --singlepass {exe_path}.wasm",
+                    "wasmer_cranelift": "wasmer run --cranelift {exe_path}.wasm",
+                    "wasmer_llvm": "wasmer run --llvm {exe_path}.wasm",
                     "wasmtime": "wasmtime {exe_path}.wasm",
                     "wasirun": "wasirun {exe_path}.wasm"
                 }  
@@ -279,9 +279,9 @@ linux_little_endian_compilers = {
             "cpp": {
                 "binary_path": "wasic++",
                 "runners": {
-                    "wasmer_singlepass": "wasmer run --backend=singlepass {exe_path}.wasm",
-                    "wasmer_cranelift": "wasmer run --backend=cranelift {exe_path}.wasm",
-                    "wasmer_llvm": "wasmer run --backend=llvm {exe_path}.wasm",
+                    "wasmer_singlepass": "wasmer run --singlepass {exe_path}.wasm",
+                    "wasmer_cranelift": "wasmer run --cranelift {exe_path}.wasm",
+                    "wasmer_llvm": "wasmer run --llvm {exe_path}.wasm",
                     "wasmtime": "wasmtime {exe_path}.wasm",
                     "wasirun": "wasirun {exe_path}.wasm"
                 }  
