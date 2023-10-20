@@ -48,7 +48,7 @@ def analyze_results_for_duplicate(temp_dirs, catch_dirs, generator_config, id, r
 
 
 def fuzz(compilers, dir_path, temp_dirs, catch_dirs, generator_config, id, logger, random_seed, partial_timeout=True):
-    machine_info = get_machine_info()
+    machine_info = get_machine_info(logger)
     generator_name = generator_config["name"]
     with ProcessPoolExecutor() as executor:
         futures = []
