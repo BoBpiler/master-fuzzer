@@ -197,8 +197,8 @@ install_emsdk() {
     cd emsdk
 
     # 최신 버전의 Emscripten 툴체인 설치 및 활성화
-    ./emsdk install latest
-    ./emsdk activate latest
+    sudo ./emsdk install latest
+    sudo ./emsdk activate latest
 
     # 환경 설정
     EMSDK_PATH="$(pwd)/emsdk_env.sh"
