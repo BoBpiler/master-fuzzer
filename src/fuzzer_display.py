@@ -107,21 +107,21 @@ def draw_process_timing(stdscr, y, x, width, start_time, temp_status):
     clear_line(stdscr, y + 1, x + 2, width // 2 - 1)
     
     # "run time :"와 "Total Round :"를 회색으로 출력
-    stdscr.attron(curses.color_pair(6))
+    stdscr.attron(curses.color_pair(7))
     stdscr.addstr(y + 1, x + 2, "run time : ")
     offset = len("run time : ")
-    stdscr.attroff(curses.color_pair(6))
+    stdscr.attroff(curses.color_pair(7))
 
     # time_str (시간)을 하얀색으로 출력
     time_str = f"{days} days, {hours} hrs, {minutes} min, {seconds} sec"
     stdscr.addstr(y + 1, x + 2 + offset, time_str)
     offset += len(time_str)
     
-    stdscr.attron(curses.color_pair(6))
+    stdscr.attron(curses.color_pair(7))
     spacing = 4
     stdscr.addstr(y + 1, x + 2 + offset, " " * spacing + "Total Round : ")
     offset += len(" " * spacing + "Total Round : ")
-    stdscr.attroff(curses.color_pair(6))
+    stdscr.attroff(curses.color_pair(7))
     
     # Round 숫자 값을 하얀색으로 출력
     total_round = temp_status["total"]["round_number"]
@@ -140,9 +140,9 @@ def draw_overall_results(stdscr, y, x, width, temp_status):
     stdscr.addstr(y + 2, x + 2, f"Medium : {temp_status['total']['Medium']}")
     stdscr.attroff(curses.color_pair(4))
     
-    stdscr.attron(curses.color_pair(6)) # 회색
+    #stdscr.attron(curses.color_pair(6)) # 회색
     stdscr.addstr(y + 3, x + 2, f"Low : {temp_status['total']['Low']}")
-    stdscr.attroff(curses.color_pair(6))
+    #stdscr.attroff(curses.color_pair(6))
 
     detected_counts = temp_status['total']['High'] +  temp_status['total']['Medium'] + temp_status['total']['Low']
     if temp_status['total']['round_number'] != 0:
@@ -156,16 +156,16 @@ def draw_overall_results(stdscr, y, x, width, temp_status):
     else:
         progress_color = 0  # 흰색
 
-    stdscr.attron(curses.color_pair(6))  # 회색
+    stdscr.attron(curses.color_pair(7))  # 회색
     stdscr.addstr(y + 4, x + 2, "Detection rate : ")
-    stdscr.attroff(curses.color_pair(6))
+    stdscr.attroff(curses.color_pair(7))
     stdscr.attron(curses.color_pair(progress_color))
     stdscr.addstr(y + 4, x + 2 + len("Detection rate : "), f"{progress:.2f}%")
     stdscr.attroff(curses.color_pair(progress_color))
 
-    stdscr.attron(curses.color_pair(6))  # 회색
+    stdscr.attron(curses.color_pair(7))  # 회색
     stdscr.addstr(y + 5, x + 2, "Duplication count : ")
-    stdscr.attroff(curses.color_pair(6))
+    stdscr.attroff(curses.color_pair(7))
     stdscr.addstr(y + 5, x + 2 + len("Duplication count : "), f"{temp_status['total']['duplicated_counts']}")
 
     # 메모리 사용량
@@ -181,9 +181,9 @@ def draw_overall_results(stdscr, y, x, width, temp_status):
         memory_color = 1  # 빨간색
 
     clear_line(stdscr, y + 6, x + 2, width - 3)
-    stdscr.attron(curses.color_pair(6))  # 회색
+    stdscr.attron(curses.color_pair(7))  # 회색
     stdscr.addstr(y + 6, x + 2, "Used Memory: ")
-    stdscr.attroff(curses.color_pair(6))
+    stdscr.attroff(curses.color_pair(7))
     stdscr.attron(curses.color_pair(memory_color))
     stdscr.addstr(y + 6, x + 2 + len("Used Memory: "), f"{used_memory:.2f} GB / {total_memory:.2f} GB")
     stdscr.attroff(curses.color_pair(memory_color))
@@ -198,9 +198,9 @@ def draw_overall_results(stdscr, y, x, width, temp_status):
         cpu_color = 1  # 빨간색
 
     clear_line(stdscr, y + 7, x + 2, width - 3)
-    stdscr.attron(curses.color_pair(6))  # 회색
+    stdscr.attron(curses.color_pair(7))  # 회색
     stdscr.addstr(y + 7, x + 2, "CPU Usage: ")
-    stdscr.attroff(curses.color_pair(6))
+    stdscr.attroff(curses.color_pair(7))
     stdscr.attron(curses.color_pair(cpu_color))
     stdscr.addstr(y + 7, x + 2 + len("CPU Usage: "), f"{cpu_usage}%")
     stdscr.attroff(curses.color_pair(cpu_color))
@@ -213,57 +213,57 @@ def draw_catch(stdscr, y, x, width, temp_status):
     # 첫 번째 줄
     clear_line(stdscr, y + 1, x + 2, width // 2 - 1)
     
-    stdscr.attron(curses.color_pair(6))  # 회색
+    stdscr.attron(curses.color_pair(7))  # 회색
     stdscr.addstr(y + 1, x + 2, "Different Checksums : ")
     offset = len("Different Checksums : ")
-    stdscr.attroff(curses.color_pair(6))
+    stdscr.attroff(curses.color_pair(7))
 
     stdscr.addstr(y + 1, x + 2 + offset, f"{temp_status['total']['different_checksums']}")
     offset += len(f"{temp_status['total']['different_checksums']}")
     
     spacing = 4
-    stdscr.attron(curses.color_pair(6))  # 회색
+    stdscr.attron(curses.color_pair(7))  # 회색
     stdscr.addstr(y + 1, x + 2 + offset, " " * spacing + "Partial Timeout : ")
     offset += len(" " * spacing + "Partial Timeout : ")
-    stdscr.attroff(curses.color_pair(6))
+    stdscr.attroff(curses.color_pair(7))
 
     stdscr.addstr(y + 1, x + 2 + offset, f"{temp_status['total']['partial_timeouts']}")
 
     # 두 번째 줄
     clear_line(stdscr, y + 2, x + 2, width // 2 - 1)
     
-    stdscr.attron(curses.color_pair(6))  # 회색
+    stdscr.attron(curses.color_pair(7))  # 회색
     stdscr.addstr(y + 2, x + 2, "Complete Crash : ")
     offset = len("Complete Crash : ")
-    stdscr.attroff(curses.color_pair(6))
+    stdscr.attroff(curses.color_pair(7))
 
     stdscr.addstr(y + 2, x + 2 + offset, f"{temp_status['total']['compile_crashes']}")
     offset += len(f"{temp_status['total']['compile_crashes']}")
 
-    stdscr.attron(curses.color_pair(6))  # 회색
+    stdscr.attron(curses.color_pair(7))  # 회색
     spacing = 9
     stdscr.addstr(y + 2, x + 2 + offset, " " * spacing + "Binary Crash : ")
     offset += len(" " * spacing + "Binary Crash : ")
-    stdscr.attroff(curses.color_pair(6))
+    stdscr.attroff(curses.color_pair(7))
 
     stdscr.addstr(y + 2, x + 2 + offset, f"{temp_status['total']['binary_crashes']}")
 
     # 세 번째 줄
     clear_line(stdscr, y + 3, x + 2, width // 2 - 1)
 
-    stdscr.attron(curses.color_pair(6))  # 회색
+    stdscr.attron(curses.color_pair(7))  # 회색
     stdscr.addstr(y + 3, x + 2, "Abnormal Compiles : ")
     offset = len("Abnormal Compiles : ")
-    stdscr.attroff(curses.color_pair(6))
+    stdscr.attroff(curses.color_pair(7))
 
     stdscr.addstr(y + 3, x + 2 + offset, f"{temp_status['total']['abnormal_compiles']}")
     offset += len(f"{temp_status['total']['abnormal_compiles']}")
 
-    stdscr.attron(curses.color_pair(6))  # 회색
+    stdscr.attron(curses.color_pair(7))  # 회색
     spacing = 6
     stdscr.addstr(y + 3, x + 2 + offset, " " * spacing + "Abnormal Binaries : ")
     offset += len(" " * spacing + "Abnormal Binaries : ")
-    stdscr.attroff(curses.color_pair(6))
+    stdscr.attroff(curses.color_pair(7))
 
     stdscr.addstr(y + 3, x + 2 + offset, f"{temp_status['total']['abnormal_binaries']}")
 
@@ -277,25 +277,25 @@ def draw_generator_info(stdscr, y, x, gen_count, gen_width, height, generators, 
         if gen_title in temp_status:
             draw_box(stdscr, y, y + 5, x_start, x_end, f"{gen_title}")
 
-            stdscr.attron(curses.color_pair(6))  # 회색
+            stdscr.attron(curses.color_pair(7))  # 회색
             stdscr.addstr(y + 1, x_start + 2, "Round : ")
-            stdscr.attroff(curses.color_pair(6))
+            stdscr.attroff(curses.color_pair(7))
             stdscr.addstr(y + 1, x_start + 2 + len("Round : "), f"{temp_status[generators[i]['name']]['round_number']}")
 
-            stdscr.attron(curses.color_pair(6))  # 회색
+            stdscr.attron(curses.color_pair(7))  # 회색
             stdscr.addstr(y + 2, x_start + 2, "Completed Tasks : ")
-            stdscr.attroff(curses.color_pair(6))
+            stdscr.attroff(curses.color_pair(7))
             stdscr.addstr(y + 2, x_start + 2 + len("Completed Tasks : "), f"{temp_status[generators[i]['name']]['completed_tasks']}")
 
-            stdscr.attron(curses.color_pair(6))  # 회색
+            stdscr.attron(curses.color_pair(7))  # 회색
             stdscr.addstr(y + 3, x_start + 2, "Skipped Tasks : ")
-            stdscr.attroff(curses.color_pair(6))
+            stdscr.attroff(curses.color_pair(7))
             stdscr.addstr(y + 3, x_start + 2 + len("Skipped Tasks : "), f"{temp_status[generators[i]['name']]['skipped_tasks']}")
             
             clear_line(stdscr, y + 4, x_start + 2, x_end - 1)
-            stdscr.attron(curses.color_pair(6))  # 회색
+            stdscr.attron(curses.color_pair(7))  # 회색
             stdscr.addstr(y + 4, x_start + 2, "Current Status : ")
-            stdscr.attroff(curses.color_pair(6))
+            stdscr.attroff(curses.color_pair(7))
             stdscr.addstr(y + 4, x_start + 2 + len("Current Status : "), f"{temp_status[generators[i]['name']]['current_status']}")
 
 
@@ -314,6 +314,8 @@ def display_status(stdscr, status_info, status_lock, generators, start_time):
         curses.init_pair(3, curses.COLOR_CYAN, -1)  # 투명한 배경에 파랑색 텍스트
         curses.init_pair(4, curses.COLOR_YELLOW, -1)  # 투명한 배경에 노랑색 텍스트
         curses.init_pair(5, curses.COLOR_BLACK, -1)  # 투명한 배경에 검정색 텍스트
+        curses.init_pair(7, curses.COLOR_MAGENTA, -1) # 투명한 배경에 마젠타 텍스트
+
         if curses.can_change_color() and curses.COLORS >= 256:
             # 회색 정의 (R, G, B 값은 0에서 1000 사이)
             curses.init_color(8, 500, 500, 500)
