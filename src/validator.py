@@ -1,22 +1,23 @@
 from concurrent.futures import ProcessPoolExecutor
 from running_system import compile_and_run, run_binary_for_wasm
-from utils import get_machine_info
+from utils import get_machine_info, TIMEOUT_ERROR
 import os 
 import platform
 import re
 
-def check_for_duplicated_bug(compilers, dir_path, temp_dirs, catch_dirs, generator_config, id, logger, random_seed):
+def check_for_duplicated_bug(compilers, results, dir_path, temp_dirs, catch_dirs, generator_config, id, logger, random_seed):
     # LL을 ULL로 변경하는 방식으로 중복된 버그인지 판단
     generator_name = generator_config["name"]
     
     is_duplicated_by_ULL = False
     is_duplicated_by_long = False
+    is_duplicated_by_infinite_loop = False
 
     if platform.system() == 'Windows':  # Windows
         is_duplicated_by_ULL = detect_bug_type_ULL(compilers, dir_path, temp_dirs, catch_dirs, generator_config, id, logger, random_seed)
     elif platform.system() == 'Linux':  # Linux
         is_duplicated_by_long = detect_emcc_issue_type_long(compilers, dir_path, temp_dirs, catch_dirs, generator_config, id, logger, random_seed)
-    
+        is_duplicated_by_infinite_loop = detect_bug_type_infinite_loop(results)
 
     # TODO: 앞으로 추가될 다른 판단 로직들도 여기에서 호출
     # 예: is_duplicated_by_another_method = detect_bug_by_another_method(source_code_path, generator, id, random_seed)
@@ -24,7 +25,7 @@ def check_for_duplicated_bug(compilers, dir_path, temp_dirs, catch_dirs, generat
     # 모든 판단 로직의 결과를 종합하여 중복된 버그인지 최종 판단
     # 현재는 is_duplicated_by_ULL만 있어서 일단 이렇게 사용
 
-    is_duplicated = is_duplicated_by_ULL or is_duplicated_by_long  # 둘 중 하나라도 True이면 중복으로 판단
+    is_duplicated = is_duplicated_by_ULL or is_duplicated_by_long or is_duplicated_by_infinite_loop  # 둘 중 하나라도 True이면 중복으로 판단
     
     # if is_duplicated:
     #     print(f"Bug in source code (generator: {generator_name}, source code ID: {id}) is DUPLICATED.")
@@ -182,3 +183,28 @@ def detect_bug_type_ULL(compilers, dir_path, temp_dirs, catch_dirs, generator_co
         # False인 경우 중복된 버그로 판단
         # print(f"Unsigned long long (ULL) related bug found: Mistakenly recognizing unsigned as signed in source code (generator: {generator_name}, source code ID: {id}).")
         return True
+
+def detect_bug_type_infinite_loop(results):
+    O0_timeout = False
+    other_level_issues = False
+
+    for key, result_dict in results.items():
+        compile_status = result_dict['compile']['status']
+        run_status = result_dict['run']['status']
+        run_error_type = result_dict['run']['error_type']
+        optimization_level = result_dict['optimization_level']
+        run_result = result_dict['run']['result']
+        
+        # 컴파일이 성공한 경우만 확인
+        if compile_status:
+            # -O0에서 타임아웃 발생 확인 (ground truth)
+            if optimization_level == "-O0" and run_status == False and run_error_type == TIMEOUT_ERROR:
+                O0_timeout = True
+
+            # -O0 이외의 최적화 레벨에서 체크섬 값의 존재나 다른 에러 존재
+            elif optimization_level != "-O0":
+                if run_result or run_error_type != TIMEOUT_ERROR:
+                    other_level_issues = True
+
+    # -O0에서 타임아웃 발생과 다른 최적화 레벨에서의 문제가 모두 발견된 경우만 True 반환 
+    return O0_timeout and other_level_issues

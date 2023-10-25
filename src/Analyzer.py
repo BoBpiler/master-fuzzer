@@ -14,7 +14,7 @@ def analyze_results(compilers, dir_path, temp_dirs, catch_dirs, generator_config
     generator_name = generator_config['name']
     try:
         if compare_execution_results(results):  # 실행 결과가 다른 경우
-            if check_for_duplicated_bug(compilers, dir_path, temp_dirs, catch_dirs, generator_config, id, logger, random_seed):
+            if check_for_duplicated_bug(compilers, results, dir_path, temp_dirs, catch_dirs, generator_config, id, logger, random_seed):
                 with status_lock:
                     temp_status = dict(status_info)
                     temp_status[generator_name]["duplicated_counts"] += 1
