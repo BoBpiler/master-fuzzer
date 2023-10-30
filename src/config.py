@@ -307,7 +307,7 @@ linux_little_endian_compilers = {
     "clang": {
         "name": "clang-18",
         "file_name": "clang",
-        "options": ["-O0", "-O1", "-O2", "-O3"],
+        "options": ["-O0", "-O1", "-O2", "-O3", "-Os", "-Oz"],
         "output_format": "{compiler_path} {src_files} -o {exe_path} {optimization} -I {include_dir}",
         "language": {
             "c": {
@@ -339,7 +339,7 @@ linux_little_endian_compilers = {
     "clang-aarch64": {
         "name": "clang-18 --target=aarch64-linux-gnu",
         "file_name": "clang-aarch64",
-        "options": ["-O0", "-O1", "-O2", "-O3"],
+        "options": ["-O0", "-O1", "-O2", "-O3", "-Os", "-Oz"],
         "output_format": "{compiler_path} {src_files} -o {exe_path} {optimization} -I {include_dir}",
         "language": {
             "c": {
@@ -371,7 +371,7 @@ linux_little_endian_compilers = {
     "clang-mips64el": {
         "name": "clang-18 --target=mips64el-linux-gnuabi64",
         "file_name": "clang-mips64el",
-        "options": ["-O0", "-O1", "-O2", "-O3"],
+        "options": ["-O0", "-O1", "-O2", "-O3", "-Os", "-Oz"],
         "output_format": "{compiler_path} {src_files} -o {exe_path} {optimization} -I {include_dir}",
         "language": {
             "c": {
@@ -403,7 +403,7 @@ linux_little_endian_compilers = {
     "clang-riscv64": {
         "name": "clang-18 --target=riscv64-unknown-elf",
         "file_name": "clang-riscv64",
-        "options": ["-O0", "-O1", "-O2", "-O3"],
+        "options": ["-O0", "-O1", "-O2", "-O3", "-Os", "-Oz"],
         "output_format": "{compiler_path} {src_files} -o {exe_path} {optimization} -I {include_dir}",
         "language": {
             "c": {
@@ -435,7 +435,7 @@ linux_little_endian_compilers = {
     "clang-powerpc64le": {
         "name": "clang-18 --target=powerpc64le-linux-gnu",
         "file_name": "clang-powerpc64le",
-        "options": ["-O0", "-O1", "-O2", "-O3"],
+        "options": ["-O0", "-O1", "-O2", "-O3", "-Os", "-Oz"],
         "output_format": "{compiler_path} {src_files} -o {exe_path} {optimization} -I {include_dir}",
         "language": {
             "c": {
@@ -471,7 +471,7 @@ linux_big_endian_compilers = {
     "clang-mips64": {
         "name": "clang-18 --target=mips64-linux-gnuabi64",
         "file_name": "clang-mips64",
-        "options": ["-O0", "-O1", "-O2", "-O3"],
+        "options": ["-O0", "-O1", "-O2", "-O3", "-Os", "-Oz"],
         "output_format": "{compiler_path} {src_files} -o {exe_path} {optimization} -I {include_dir}",
         "language": {
             "c": {
@@ -503,7 +503,7 @@ linux_big_endian_compilers = {
     "clang-powerpc64": {
         "name": "clang-18 --target=powerpc64-linux-gnu",
         "file_name": "clang-powerpc64",
-        "options": ["-O0", "-O1", "-O2", "-O3"],
+        "options": ["-O0", "-O1", "-O2", "-O3", "-Os", "-Oz"],
         "output_format": "{compiler_path} {src_files} -o {exe_path} {optimization} -I {include_dir}",
         "language": {
             "c": {
@@ -535,7 +535,7 @@ linux_big_endian_compilers = {
     "clang-s390x": {
         "name": "clang-18 --target=s390x-linux-gnu",
         "file_name": "clang-s390x",
-        "options": ["-O0", "-O1", "-O2", "-O3"],
+        "options": ["-O0", "-O1", "-O2", "-O3", "-Os", "-Oz"],
         "output_format": "{compiler_path} {src_files} -o {exe_path} {optimization} -I {include_dir}",
         "language": {
             "c": {
@@ -567,7 +567,7 @@ linux_big_endian_compilers = {
     "clang-sparc64": {
         "name": "clang-18 --target=sparc64-linux-gnu",
         "file_name": "clang-sparc64",
-        "options": ["-O0", "-O1", "-O2", "-O3"],
+        "options": ["-O0", "-O1", "-O2", "-O3", "-Os", "-Oz"],
         "output_format": "{compiler_path} {src_files} -o {exe_path} {optimization} -I {include_dir}",
         "language": {
             "c": {
