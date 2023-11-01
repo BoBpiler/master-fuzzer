@@ -13,11 +13,13 @@ def compile_and_run(dir_path, temp_dirs, generator_config, id, compiler_info, op
     # key는 바이너리 경로이자 이름으로 result_dict를 구분하는 요소로 사용합니다.
     generator_name = generator_config["name"]
     binary_name = os.path.join(temp_dirs, f'{id}', f"{compiler_info['file_name']}_{optimization_level[1:]}")
-    
+    child_ground_truth = compiler_info.get('child_ground_truth', None)
+    is_child_ground_truth = (optimization_level == child_ground_truth)  # 참 거짓 비교
     result_dict = {
         'id': str(id),
         'random_Seed': str(random_seed),
         'compiler': compiler_info['name'],
+        'child_ground_truth': is_child_ground_truth,
         'optimization_level': optimization_level,
         'generator': generator_name,
         'compile': {
@@ -187,11 +189,13 @@ def run_binary(binary_name, generator_config, compiler_info, logger):
 # argv: binary_name - 바이너리 파일 이름 및 경로/ compiler - 크로스 컴파일 확인을 위함
 # return: run_result - 바이너리 실행 결과를 담은 딕셔너리 반환
 def run_binary_for_wasm(runner_name, runner_command, compile_result, binary_name, generator_config, id, compiler_info, optimization_level, logger, random_seed):
-    
+    child_ground_truth = compiler_info.get('child_ground_truth', None)
+    is_child_ground_truth = (optimization_level == child_ground_truth)  # 참 거짓 비교
     result_dict = {
         'id': str(id),
         'random_Seed': str(random_seed),
         'compiler': f"{compiler_info['name']}_{runner_name}",
+        'child_ground_truth': is_child_ground_truth,
         'optimization_level': optimization_level,
         'generator': generator_config["name"],
         'compile': {

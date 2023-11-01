@@ -110,10 +110,13 @@ def fuzz_with_generator(compilers, generator_config, temp_dirs, catch_dirs, stat
                                     for runner_name, runner_command in compiler_info['language'][generator_config['language']]['runners'].items():
                                         futures.append(executor.submit(run_binary_for_wasm, runner_name, runner_command, compile_result, binary_name, generator_config, id, compiler_info, opt_level, logger, random_seed))
                                 else:
+                                    child_ground_truth = compiler_info.get('child_ground_truth', None)
+                                    is_child_ground_truth = (opt_level == child_ground_truth)  # 참 거짓 비교
                                     result_dict = {
                                         'id': str(id),
                                         'random_Seed': str(random_seed),
                                         'compiler': compiler_info['name'],
+                                        'child_ground_truth': is_child_ground_truth,
                                         'optimization_level': opt_level,
                                         'generator': generator_name,
                                         'compile': {

@@ -244,41 +244,27 @@ def save_to_folder(temp_dirs, catch_dirs, generator_name, id, results, folder_na
 
 # result_dict 딕셔너리를 가독성 좋게 txt 파일에 저장하는 함수입니다.
 def save_results_to_file(id_folder_path, id, results, logger):
+    def write_dict(f, data, indent=""):                         # 매번 result_dict 바뀔 때마다 하드코딩 하기 어려워서 따로 write_dict 함수 생성 
+        for key, value in data.items():
+            if isinstance(value, dict):
+                f.write(f"{indent}{key.capitalize()}:\n")
+                write_dict(f, value, indent + "\t")
+            elif key == 'error_message' and value is not None:
+                f.write(f"{indent}Error Message:\n")
+                f.write(f"{indent}-----\n")
+                for line in value.split('\n'):
+                    f.write(f"{indent}\t{line}\n")
+                f.write(f"{indent}-----\n")
+            else:
+                f.write(f"{indent}{key.capitalize()}: {value}\n")
+
     try:
-        # txt 파일에 저장하는 부분
         result_files = get_result_file_names(id)
         with open(os.path.join(id_folder_path, f"{result_files['txt']}"), 'w') as f:
             for Binary_Path, result_dict in results.items():
                 f.write("########################################################################################\n")
                 f.write(f"Binary_Path: {Binary_Path}\n")
-
-                f.write(f"\nID: {result_dict['id']}")
-                f.write(f"\nRandom Seed: {result_dict['random_Seed']}")
-                f.write(f"\nCompiler: {result_dict['compiler']}")
-                f.write(f"\nOptimization Level: {result_dict['optimization_level']}")
-                f.write(f"\nCode Generator: {result_dict['generator']}")
-                
-                f.write("\n\nCompile:\n")
-                for key, value in result_dict['compile'].items():
-                    if key == 'error_message' and value is not None:
-                        f.write("\tError Message:\n")
-                        f.write("\t-----\n")
-                        for line in value.split('\n'):
-                            f.write(f"\t\t{line}\n")
-                        f.write("\t-----\n")
-                    else:
-                        f.write(f"\t{key.capitalize()}: {value}\n")
-                    
-                f.write("\nRun:\n")
-                for key, value in result_dict['run'].items():
-                    if key == 'error_message' and value is not None:
-                        f.write("\tError Message:\n")
-                        f.write("\t-----\n")
-                        for line in value.split('\n'):
-                            f.write(f"\t\t{line}\n")
-                        f.write("\t-----\n")
-                    else:
-                        f.write(f"\t{key.capitalize()}: {value}\n")
+                write_dict(f, result_dict)
     except Exception as e:
         logger.error(f"An error occurred while writing txt file: {e}")
     # JSON 파일에 저장하는 부분

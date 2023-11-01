@@ -13,11 +13,19 @@ def check_for_duplicated_bug(compilers, results, dir_path, temp_dirs, catch_dirs
     is_duplicated_by_long = False
     is_duplicated_by_infinite_loop = False
 
+    # 여러 번 fuzzing을 통해 중복된 버그를 확인
+    is_bug_by_multiple_fuzz = validate_bug_by_multiple_fuzz(compilers, dir_path, temp_dirs, catch_dirs, generator_config, id, logger, random_seed)
+
+    # 여러 번 fuzzing에서 버그가 일관되게 확인되지 않으면, 바로 중복되지 않은 버그로 판단 즉, 버그가 아님
+    if not is_bug_by_multiple_fuzz:
+        return False
+    
     if platform.system() == 'Windows':  # Windows
         is_duplicated_by_ULL = detect_bug_type_ULL(compilers, dir_path, temp_dirs, catch_dirs, generator_config, id, logger, random_seed)
     elif platform.system() == 'Linux':  # Linux
         is_duplicated_by_long = detect_emcc_issue_type_long(compilers, dir_path, temp_dirs, catch_dirs, generator_config, id, logger, random_seed)
         is_duplicated_by_infinite_loop = detect_bug_type_infinite_loop(results)
+
 
     # TODO: 앞으로 추가될 다른 판단 로직들도 여기에서 호출
     # 예: is_duplicated_by_another_method = detect_bug_by_another_method(source_code_path, generator, id, random_seed)
@@ -25,7 +33,7 @@ def check_for_duplicated_bug(compilers, results, dir_path, temp_dirs, catch_dirs
     # 모든 판단 로직의 결과를 종합하여 중복된 버그인지 최종 판단
     # 현재는 is_duplicated_by_ULL만 있어서 일단 이렇게 사용
 
-    is_duplicated = is_duplicated_by_ULL or is_duplicated_by_long or is_duplicated_by_infinite_loop  # 둘 중 하나라도 True이면 중복으로 판단
+    is_duplicated = is_duplicated_by_ULL or is_duplicated_by_long or is_duplicated_by_infinite_loop # 둘 중 하나라도 True이면 중복으로 판단
     
     # if is_duplicated:
     #     print(f"Bug in source code (generator: {generator_name}, source code ID: {id}) is DUPLICATED.")
@@ -33,6 +41,24 @@ def check_for_duplicated_bug(compilers, results, dir_path, temp_dirs, catch_dirs
     #     print(f"Bug in source code (generator: {generator_name}, source code ID: {id}) is NOT duplicated.")
     
     return is_duplicated
+
+# 주어진 소스코드에 대해 여러 번 fuzz를 실행하여 버그를 검증합니다.
+# num_trials: fuzz를 실행할 횟수 (기본값: 3)
+# return: 모든 시도에서 버그가 확인되면 True, 그렇지 않으면 False
+def validate_bug_by_multiple_fuzz(compilers, dir_path, temp_dirs, catch_dirs, generator_config, id, logger, random_seed, num_trials=3):
+    
+    is_bug_confirmed = True  # 버그 확인 여부
+
+    for i in range(num_trials):
+        # fuzz 함수를 호출하여 결과를 가져옵니다.
+        result = fuzz(compilers, dir_path, temp_dirs, catch_dirs, generator_config, id, logger, random_seed)
+
+        # 만약 한 번이라도 result가 True가 아니면, 버그가 아닌 것으로 판단합니다.
+        if not result:
+            is_bug_confirmed = False
+            break
+    
+    return is_bug_confirmed
 
 
 def analyze_results_for_duplicate(temp_dirs, catch_dirs, generator_config, id, random_seed, results, machine_info, logger, partial_timeout=True):
@@ -65,10 +91,13 @@ def fuzz(compilers, dir_path, temp_dirs, catch_dirs, generator_config, id, logge
                         for runner_name, runner_command in compiler_info['language'][generator_config['language']]['runners'].items():
                             futures.append(executor.submit(run_binary_for_wasm, runner_name, runner_command, compile_result, binary_name, generator_config, id, compiler_info, opt_level, logger, random_seed))
                     else:
+                        child_ground_truth = compiler_info.get('child_ground_truth', None)
+                        is_child_ground_truth = (opt_level == child_ground_truth)  # 참 거짓 비교
                         result_dict = {
                             'id': str(id),
                             'random_Seed': str(random_seed),
                             'compiler': compiler_info['name'],
+                            'child_ground_truth': is_child_ground_truth,
                             'optimization_level': opt_level,
                             'generator': generator_name,
                             'compile': {
@@ -185,26 +214,30 @@ def detect_bug_type_ULL(compilers, dir_path, temp_dirs, catch_dirs, generator_co
         return True
 
 def detect_bug_type_infinite_loop(results):
-    O0_timeout = False
+    ground_truth_timeout = True  # 기본값을 True로 설정
     other_level_issues = False
 
     for key, result_dict in results.items():
         compile_status = result_dict['compile']['status']
         run_status = result_dict['run']['status']
         run_error_type = result_dict['run']['error_type']
-        optimization_level = result_dict['optimization_level']
+        #optimization_level = result_dict['optimization_level']
         run_result = result_dict['run']['result']
+        is_child_ground_truth = result_dict['child_ground_truth']  # child_ground_truth 정보 가져오기
         
         # 컴파일이 성공한 경우만 확인
         if compile_status:
-            # -O0에서 타임아웃 발생 확인 (ground truth)
-            if optimization_level == "-O0" and run_status == False and run_error_type == TIMEOUT_ERROR:
-                O0_timeout = True
+            # child_ground_truth에서 타임아웃 발생 확인 (ground truth)
+            if is_child_ground_truth:
+                # 하나라도 타임아웃이 아닌 경우가 있으면 ground_truth_timeout를 False로 설정
+                if run_status == True or run_error_type != TIMEOUT_ERROR:
+                    ground_truth_timeout = False
 
-            # -O0 이외의 최적화 레벨에서 체크섬 값의 존재나 다른 에러 존재
-            elif optimization_level != "-O0":
+            # child_ground_truth 이외의 최적화 레벨에서 체크섬 값의 존재나 다른 에러 존재
+            elif not is_child_ground_truth:
                 if run_result or run_error_type != TIMEOUT_ERROR:
                     other_level_issues = True
 
-    # -O0에서 타임아웃 발생과 다른 최적화 레벨에서의 문제가 모두 발견된 경우만 True 반환 
-    return O0_timeout and other_level_issues
+    # 모든 ground_truth에서 타임아웃 발생과 더불어 다른 최적화 레벨에서의 타임아웃이 아닌 경우만 True 반환 
+    return ground_truth_timeout and other_level_issues
+
