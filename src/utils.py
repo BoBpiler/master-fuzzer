@@ -316,10 +316,20 @@ def get_machine_info(logger):
 # 플랫폼에 따른 컴파일러를 선택하는 함수
 def get_compilers_by_platform(args):
     if platform.system() == 'Linux':
+        # 리눅스의 경우 빅 엔디안과 리틀 엔디안 구분 
         return linux_big_endian_compilers if args.endian == 'big' else linux_little_endian_compilers
     elif platform.system() == 'Windows':
-        return window_compilers
+        if platform.machine().endswith('64'):
+            # 기존의 x86_64 아키텍처용 컴파일러 설정을 반환
+            return window_compilers
+        elif platform.machine().lower() == 'arm64':
+            # ARM 아키텍처용 컴파일러 설정을 반환
+            return windows_arm_compilers
+        else:
+            # 기본으로 윈도우 x86-64 아키텍처용 컴파일러 설정을 반환
+            return window_compilers
     else:
+        # 기본으로 리눅스 little endian 설정을 반환
         return linux_little_endian_compilers
     
 

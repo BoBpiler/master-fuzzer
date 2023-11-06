@@ -208,8 +208,15 @@ def main():
         # 1. display_status 함수를 별도의 프로세스로 시작
         start_time = datetime.now()
         status_info, status_lock = initialize_manager()
-        display_process = Process(target=curses.wrapper, args=(display_status, status_info, status_lock, generators, start_time))
-        display_process.start()
+        # ARM64 아키텍처가 아니라면 display_process를 시작합니다.
+        is_windows = platform.system() == 'Windows'
+        is_arm64 = platform.machine().lower() == 'arm64'
+        if not (is_arm64 and is_windows):
+            display_process = Process(target=curses.wrapper, args=(display_status, status_info, status_lock, generators, start_time))
+            display_process.start()
+        else:
+            # ARM64 아키텍처의 경우 display_process를 시작하지 않습니다.
+            print("Windows ARM64 architecture detected. Skipping 'curses' based UI.")
         
         # logging 정보 모든 프로세스 통합
         logger, listener = setup_logging()
@@ -227,7 +234,8 @@ def main():
     except KeyboardInterrupt:
         print("\nKeyboard interrupt received. Terminating all processes...")
         listener.stop()
-        display_process.terminate()  # 화면 출력 프로세스 종료
+        if not (is_arm64 and is_windows) and 'display_process' in locals():
+            display_process.terminate()  # 화면 출력 프로세스 종료
         terminate_process_and_children(os.getpid())
 
 if __name__ == "__main__":

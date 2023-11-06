@@ -175,7 +175,7 @@ def cl_prepare(dir_path, optimization_level):
         os.makedirs(obj_folder)
     return obj_folder
 
-# 윈도우 컴파일러 설정
+# 기본 윈도우 컴파일러 설정 (x86-64)
 window_compilers = {
     "cl": {
         "name": "CL",
@@ -225,6 +225,44 @@ window_compilers = {
             },
             "cpp": {
                 "binary_path": "C:\\Program Files\\llvm-mingw-64\\bin\\clang++.exe",
+                "execute": "{exe_path}.exe"  
+            }
+        }
+    }
+}
+
+# 윈도우 컴파일러 설정 (arm64)
+windows_arm_compilers = {
+    "cl": {
+        "name": "CL",
+        "file_name": "cl",
+        "options": ["/O1", "/O2", "/Od", "/Ox", "/Ot"],
+        "prepare_command": cl_prepare,
+        "output_format": "\"{compiler_path}\" {optimization} /I {include_dir} {src_files} /Fo:{obj_path}\\ /Fe:\"{exe_path}.exe\"",
+        "language": {
+            "c": {
+                "binary_path": "C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC\\14.37.32822\\bin\\Hostarm64\\arm64\\cl.exe",
+                "execute": "{exe_path}.exe"  
+            },
+            "cpp": {
+                "binary_path": "C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC\\14.37.32822\\bin\\Hostarm64\\arm64\\cl.exe",
+                "execute": "{exe_path}.exe"  
+            }
+        }
+    },
+    "clang-cl": {
+        "name": "Clang-CL",
+        "file_name": "clang-cl",
+        "options": ["/O1", "/O2", "/Od", "/Ox", "/Ot"],
+        "child_ground_truth": "/Od",
+        "output_format": "\"{compiler_path}\" {optimization} /I {include_dir} {src_files} -o \"{exe_path}.exe\"",
+        "language": {
+            "c": {
+                "binary_path": "C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\Llvm\\ARM64\\bin\\clang-cl.exe",
+                "execute": "{exe_path}.exe"  
+            },
+            "cpp": {
+                "binary_path": "C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\Llvm\\ARM64\\bin\\clang-cl.exe",
                 "execute": "{exe_path}.exe"  
             }
         }
