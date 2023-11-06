@@ -338,7 +338,15 @@ def get_generators_by_platform():
     if platform.system() == 'Linux':
         return linux_generators_config
     elif platform.system() == 'Windows':
-        return window_generators_config
+        if platform.machine().lower() == ('x86_64'):
+            # 기존의 x86_64 아키텍처용 generator 설정을 반환
+            return window_generators_config
+        elif platform.machine().lower() == 'arm64':
+            # ARM 아키텍처용 generator 설정을 반환
+            return window_arm_generators_config
+        else:
+            # 기본으로 윈도우 x86-64 아키텍처용 generator 설정을 반환
+            return window_generators_config
     else:
         return linux_generators_config
 

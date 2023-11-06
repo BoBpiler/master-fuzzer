@@ -168,6 +168,79 @@ window_generators_config = {
     }
 }
 
+# 윈도우 arm 아키텍처 생성기 설정
+window_arm_generators_config = {
+    'csmith': {
+        'name': 'csmith',
+        'binary_path': "..\\csmith\\csmith_arm.exe",
+        'language': 'c',
+        'options': [
+            "--max-array-dim 3", 
+            "--max-array-len-per-dim 10",
+            "--max-block-depth 3",
+            "--max-block-size 5",
+            "--max-expr-complexity 10",
+            "--max-funcs 4",
+            "--max-pointer-depth 3",
+            "--max-struct-fields 10",
+            "--max-union-fields 10",
+            "--muls",
+            "--safe-math",
+            "--no-packed-struct",
+            "--pointers",
+            "--structs",
+            "--unions",
+            "--volatiles",
+            "--volatile-pointers",
+            "--const-pointers",
+            "--global-variables",
+            "--no-builtins",
+            "--inline-function",
+            "--inline-function-prob 50"
+        ],
+        'output_format': '{generator} {options} -o {filepath} --seed {random_seed}',
+        'src_files': ['{path}\\random_program_{id}.c'],
+        'src_files_to_send': ['{path}\\random_program_{id}.c'],
+        'zip_required': False,
+        'zip_name': None,
+        'include_dir': '..\\runtime',
+        'path_type': 'filepath'
+    },
+    'yarpgen': {
+        'name': 'yarpgen',
+        'binary_path': "..\\yarpgen\\yarpgen_arm.exe",
+        'language': 'cpp',
+        'options': [
+            "--emit-pragmas=none",
+            "--std=c++",
+            "--mutate=all"
+        ],
+        'output_format': '{generator} {options} -o {dir_path} --seed={random_seed} --mutation-seed={random_seed}',
+        'src_files': ['{path}\\driver.cpp', '{path}\\func.cpp'],
+        'src_files_to_send': ['{path}\\driver.cpp', '{path}\\func.cpp', '{path}\\init.h'],
+        'zip_required': True,
+        'zip_name': "yarpgen_{id}.zip",
+        'include_dir': '{path}',
+        'path_type': 'dirpath'
+    },
+    'yarpgen_scalar': {
+        'name': 'yarpgen_scalar',
+        'binary_path': "..\\yarpgen\\yarpgen_scalar_arm.exe",
+        'language': 'cpp',
+        'options': [
+            "--std=c++17"
+        ],
+        'output_format': '{generator} {options} -d {dir_path} --seed={random_seed}',
+        'src_files': ['{path}\\driver.cpp', '{path}\\func.cpp'],
+        'src_files_to_send': ['{path}\\driver.cpp', '{path}\\func.cpp', '{path}\\init.h'],
+        'zip_required': True,
+        'zip_name': "yarpgen_scalar_{id}.zip",
+        'include_dir': '{path}',
+        'path_type': 'dirpath'
+    }
+}
+
+
 # cl 컴파일러 obj 구분을 위한 폴더
 def cl_prepare(dir_path, optimization_level):
     obj_folder = os.path.join(dir_path, f"obj_{optimization_level[1:]}")
