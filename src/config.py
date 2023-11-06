@@ -170,8 +170,8 @@ window_generators_config = {
 
 # 윈도우 arm 아키텍처 생성기 설정
 window_arm_generators_config = {
-    'csmith': {
-        'name': 'csmith',
+    'csmith_arm': {
+        'name': 'csmith_arm',
         'binary_path': "..\\csmith\\csmith_arm.exe",
         'language': 'c',
         'options': [
@@ -206,8 +206,8 @@ window_arm_generators_config = {
         'include_dir': '..\\runtime',
         'path_type': 'filepath'
     },
-    'yarpgen': {
-        'name': 'yarpgen',
+    'yarpgen_arm': {
+        'name': 'yarpgen_arm',
         'binary_path': "..\\yarpgen\\yarpgen_arm.exe",
         'language': 'cpp',
         'options': [
@@ -223,8 +223,8 @@ window_arm_generators_config = {
         'include_dir': '{path}',
         'path_type': 'dirpath'
     },
-    'yarpgen_scalar': {
-        'name': 'yarpgen_scalar',
+    'yarpgen_scalar_arm': {
+        'name': 'yarpgen_scalar_arm',
         'binary_path': "..\\yarpgen\\yarpgen_scalar_arm.exe",
         'language': 'cpp',
         'options': [
