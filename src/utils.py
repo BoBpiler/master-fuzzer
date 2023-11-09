@@ -264,6 +264,18 @@ def cleanup_temp(temp_dir, logger):
     except (FileNotFoundError, PermissionError, OSError) as e:
         logger.error(f"An error occurred while deleting {full_path}: {e}")
 
+def cleanup_wasmer_cache(logger):
+    # wasmer 캐시 디렉토리의 경로
+    wasmer_cache_dir = os.path.expanduser('~/.wasmer/cache')
+
+    try:
+        # wasmer 캐시 디렉토리가 존재하는지 확인하고, 있다면 삭제
+        if os.path.exists(wasmer_cache_dir):
+            shutil.rmtree(wasmer_cache_dir)
+
+    except Exception as e:
+        logger.error(f"An error occurred while deleting the Wasmer cache directory: {e}")
+
 
 # get_machine_info 함수: 해당 머신의 정보를 가져오는 함수
 # argv: None
