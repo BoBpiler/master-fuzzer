@@ -256,7 +256,7 @@ window_compilers = {
         "options": ["/O1", "/O2", "/Od", "/Ox", "/Ot"],
         "child_ground_truth": "/Od",
         "prepare_command": cl_prepare,
-        "output_format": "\"{compiler_path}\" {optimization} /I {include_dir} {src_files} /Fo:{obj_path}\\ /Fe:\"{exe_path}.exe\"",
+        "output_format": "\"{compiler_path}\" /GL {optimization} /I {include_dir} {src_files} /Fo:{obj_path}\\ /Fe:\"{exe_path}.exe\"",
         "language": {
             "c": {
                 "binary_path": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.37.32822\\bin\\Hostx64\\x64\\cl.exe",
@@ -311,7 +311,7 @@ windows_arm_compilers = {
         "file_name": "cl",
         "options": ["/O1", "/O2", "/Od", "/Ox", "/Ot"],
         "prepare_command": cl_prepare,
-        "output_format": "\"{compiler_path}\" {optimization} /I {include_dir} {src_files} /Fo:{obj_path}\\ /Fe:\"{exe_path}.exe\"",
+        "output_format": "\"{compiler_path}\" /GL {optimization} /I {include_dir} {src_files} /Fo:{obj_path}\\ /Fe:\"{exe_path}.exe\"",
         "language": {
             "c": {
                 "binary_path": "C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC\\14.37.32822\\bin\\Hostarm64\\arm64\\cl.exe",
