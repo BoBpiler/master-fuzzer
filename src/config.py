@@ -342,7 +342,8 @@ windows_arm_compilers = {
     }
 }
 
-# 리눅스 리틀 엔디안 컴파일러 설정
+# 리눅스 리틀 엔디안 컴파일러 설정 
+# 주의 사항: x86_64-apple-darwin23-clang은 x86_64 아키텍처에서만, arm64-apple-darwin23-clang은 arm64 아키텍처에서만 사용할 것
 linux_little_endian_compilers = {
     "emcc": {
         "name": "emscription",
