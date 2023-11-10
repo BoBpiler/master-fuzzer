@@ -16,19 +16,20 @@ echo "Compilers"
 echo "  1) GCC"
 echo "  2) Clang"
 echo "  3) RISC-V GCC"
-echo "  4) Cross compilers"
+echo "  4) Mac OsxCross"
+echo "  5) Cross compilers"
 echo "Code Generators"
-echo "  5) Csmith"
-echo "  6) YARPGEN"
-echo "  7) YARPGEN_SCALAR"
+echo "  6) Csmith"
+echo "  7) YARPGEN"
+echo "  8) YARPGEN_SCALAR"
 echo "Wasm Dependencies"
-echo "  8) Wasmer"
-echo "  9) Wasmtime"
-echo "  10) node"
-echo "  11) emsdk"
-echo "  12) wasienv"
+echo "  9) Wasmer"
+echo "  10) Wasmtime"
+echo "  11) node"
+echo "  12) emsdk"
+echo "  13) wasienv"
 echo "Utility"
-echo "  13) QEMU"
+echo "  14) QEMU"
 read -p "Enter the numbers (e.g. 1 2 3 or 0 for all): " selection
 
 # 필수 패키지 업데이트
@@ -100,6 +101,44 @@ install_riscv_gcc() {
   ln -s $INSTALL_DIR/bin/riscv64-unknown-elf-gcc $current_path/riscv64-unknown-elf-gcc || { echo "Failed to create symbolic link for RISC-V GCC"; exit 1; }
   ln -s $INSTALL_DIR/bin/riscv64-unknown-elf-g++ $current_path/riscv64-unknown-elf-g++ || { echo "Failed to create symbolic link for RISC-V G++"; exit 1; }
 
+}
+
+# Darling과 OsxCross 설치
+install_darling_and_osxcross() {
+    # 필요한 패키지들을 업데이트하고 설치합니다.
+    sudo apt-get update
+    sudo apt-get install -y clang cmake git patch python libssl-dev lzma-dev libxml2-dev xz-utils bzip2 cpio zlib1g-dev libbz2-dev
+
+    # Darling 설치
+    wget https://github.com/darlinghq/darling/releases/download/v0.1.20230310_update_sources_11_5/darling_0.1.20230310.jammy_amd64.deb
+    sudo apt install ./darling_0.1.20220704.focal_amd64.deb
+
+    # OsxCross 저장소 클론 및 설치
+    git clone https://github.com/tpoechtrager/osxcross.git
+    cd osxcross
+    mv ../MacOSX14.0.sdk.tar.xz tarballs/MacOSX14.0.sdk.tar.xz
+    # cd osxcross/tools
+
+    # # Xcode와 필요한 SDK 다운로드 및 패키징
+    # wget https://download.developer.apple.com/Developer_Tools/Xcode_15_beta_6/Xcode_15_beta_6.xip
+    # ./gen_sdk_package_pbzx.sh $PWD/Xcode_15_beta_6.xip
+    # cd ../
+
+    # # 패키징된 SDK를 tarballs 디렉토리로 이동
+    # mv MacOSX14.0.sdk.tar.xz tarballs/MacOSX14.0.sdk.tar.xz
+    # mv MacOSX14.sdk.tar.xz tarballs/MacOSX14.sdk.tar.xz
+
+    # SDK 버전 설정 및 OsxCross 빌드
+    export SDK_VERSION=14.0
+    ./build.sh
+
+    # PATH 환경 변수에 OsxCross의 bin 디렉토리 추가
+    echo "export PATH=\$PATH:$PWD/target/bin" >> ~/.bashrc
+    echo "export PATH=\$PATH:$PWD/target/bin" >> ~/.zshrc
+
+    # .bashrc 및 .zshrc 재로드
+    source ~/.bashrc
+    source ~/.zshrc
 }
 
 # Csmith 설치 스크립트
@@ -252,6 +291,7 @@ for choice in $selection; do
       install_gcc
       install_clang
       install_riscv_gcc
+      install_darling_and_osxcross
       install_cross_compilers
       install_csmith
       install_yarpgen
@@ -260,22 +300,24 @@ for choice in $selection; do
       install_wasmtime
       install_node_with_nvm
       install_emsdk
+      install_wasienv
       install_qemu
       break
       ;;
   1) install_gcc;;
   2) install_clang;;
   3) install_riscv_gcc;;
-  4) install_cross_compilers;;
-  5) install_csmith;;
-  6) install_yarpgen;;
-  7) install_yarpgen_scalar;;
-  8) install_wasmer;;
-  9) install_wasmtime;;
-  10) install_node_with_nvm;;
-  11) install_emsdk;;
-  12) install_wasienv;;
-  13) install_qemu;;
+  4) install_darling_and_osxcross;;
+  5) install_cross_compilers;;
+  6) install_csmith;;
+  7) install_yarpgen;;
+  8) install_yarpgen_scalar;;
+  9) install_wasmer;;
+  10) install_wasmtime;;
+  11) install_node_with_nvm;;
+  12) install_emsdk;;
+  13) install_wasienv;;
+  14) install_qemu;;
   *) echo "Invalid choice: $choice";;
   esac
 done
