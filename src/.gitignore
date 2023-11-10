@@ -19,3 +19,6 @@ emsdk
 emscripten
 osxcross
 tmp
+.gdb_history
+core
+MacOSX14.0.sdk.tar.xz
