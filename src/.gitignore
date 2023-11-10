@@ -17,3 +17,5 @@ binutils-gdb
 BoBpiler_yarpgen
 emsdk
 emscripten
+osxcross
+tmp
