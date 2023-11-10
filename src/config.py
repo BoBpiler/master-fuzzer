@@ -438,6 +438,23 @@ linux_little_endian_compilers = {
             }
         }
     },
+    "arm64-apple-darwin23-clang": {
+        "name": "arm64-apple-darwin23-clang",
+        "file_name": "arm64-apple-darwin23-clang",
+        "options": ["-O0", "-O1", "-O2", "-O3", "-Os"],
+        "child_ground_truth": "-O0",
+        "output_format": "{compiler_path} {src_files} -o {exe_path} {optimization} -I {include_dir}",
+        "language": {
+            "c": {
+                "binary_path": "arm64-apple-darwin23-clang",
+                "execute": "darling shell ./{exe_path}"  
+            },
+            "cpp": {
+                "binary_path": "arm64-apple-darwin23-clang++",
+                "execute": "darling shell ./{exe_path}"  
+            }
+        }
+    },
     "gcc": {
         "name": "gcc-trunk",
         "file_name": "gcc",
