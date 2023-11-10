@@ -145,7 +145,7 @@ install_darling() {
 install_darling_and_osxcross() {
     # 필요한 패키지들을 업데이트하고 설치합니다.
     sudo apt-get update
-    sudo apt-get install -y clang cmake git patch python libssl-dev lzma-dev libxml2-dev xz-utils bzip2 cpio zlib1g-dev libbz2-dev
+    sudo apt-get install -y clang cmake git patch python3 libssl-dev lzma-dev libxml2-dev xz-utils bzip2 cpio zlib1g-dev libbz2-dev
 
     # Darling 설치
     # wget https://github.com/darlinghq/darling/releases/download/v0.1.20230310_update_sources_11_5/darling_0.1.20230310.jammy_amd64.deb
