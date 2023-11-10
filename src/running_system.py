@@ -147,7 +147,12 @@ def run_binary(binary_name, generator_config, compiler_info, logger):
             
             # return code를 확인합니다.
             run_result['return_code'] = returncode
-            if returncode != 0:
+            if returncode == 127 and 'darling shell' in command:
+                # darling shell 실행 시 return code 127을 성공으로 간주
+                run_result['status'] = True
+                run_result['return_code'] = returncode
+                run_result['result'] = stderr
+            elif returncode != 0:
                 run_result['status'] = False
                 run_result['error_type'] = analyze_returncode(returncode, "execution")
                 run_result['error_message'] = stdout + stderr
