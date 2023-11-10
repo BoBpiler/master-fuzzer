@@ -154,8 +154,8 @@ install_darling_and_osxcross() {
 
     # OsxCross 저장소 클론 및 설치
     git clone https://github.com/tpoechtrager/osxcross.git
+    mv MacOSX14.0.sdk.tar.xz osxcross/tarballs/MacOSX14.0.sdk.tar.xz
     cd osxcross
-    mv ../MacOSX14.0.sdk.tar.xz tarballs/MacOSX14.0.sdk.tar.xz
     # cd osxcross/tools
 
     # # Xcode와 필요한 SDK 다운로드 및 패키징
