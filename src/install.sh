@@ -120,31 +120,24 @@ check_architecture() {
 
 # Darling 설치 함수
 install_darling() {
-    # 시스템 아키텍처가 x86_64인 경우
-    if check_architecture; then
-        echo "Installing Darling for x86_64 architecture..."
-        wget https://github.com/darlinghq/darling/releases/download/v0.1.20230310_update_sources_11_5/darling_0.1.20230310.jammy_amd64.deb
-        sudo apt install -y ./darling_0.1.20230310.jammy_amd64.deb
-    else
-        echo "Building Darling from source for non-x86_64 architecture..."
-        sudo apt install -y libbz2-dev cmake automake clang-15 bison flex libfuse-dev libudev-dev pkg-config libc6-dev-i386 gcc-multilib libcairo2-dev libgl1-mesa-dev curl libglu1-mesa-dev libtiff5-dev libfreetype6-dev git git-lfs libelf-dev libxml2-dev libegl1-mesa-dev libfontconfig1-dev libbsd-dev libxrandr-dev libxcursor-dev libgif-dev libavutil-dev libpulse-dev libavformat-dev libavcodec-dev libswresample-dev libdbus-1-dev libxkbfile-dev libssl-dev libstdc++-12-dev git-lfs python2 python3
-        git clone --recursive https://github.com/darlinghq/darling.git
-        cd darling
-        git lfs install
-        git pull
-        git submodule update --init --recursive
-        tools/uninstall
-        mkdir build && cd build
-        cmake ..
-        make -j 8
-        sudo make install
-        sudo chmod +s src/startup/darling
-        sudo cp src/startup/darling /usr/local/bin/
-        sudo cp src/startup/darling /usr/bin/
-        sudo chmod +s /usr/local/bin/darling
-        sudo chmod +s /usr/bin/darling
-        cd ../../
-    fi
+    echo "Building Darling from source for all architectures..."
+    sudo apt install -y libbz2-dev cmake automake clang-15 bison flex libfuse-dev libudev-dev pkg-config libc6-dev-i386 gcc-multilib libcairo2-dev libgl1-mesa-dev curl libglu1-mesa-dev libtiff5-dev libfreetype6-dev git git-lfs libelf-dev libxml2-dev libegl1-mesa-dev libfontconfig1-dev libbsd-dev libxrandr-dev libxcursor-dev libgif-dev libavutil-dev libpulse-dev libavformat-dev libavcodec-dev libswresample-dev libdbus-1-dev libxkbfile-dev libssl-dev libstdc++-12-dev git-lfs python2 python3
+    git clone --recursive https://github.com/darlinghq/darling.git
+    cd darling
+    git lfs install
+    git pull
+    git submodule update --init --recursive
+    tools/uninstall
+    mkdir build && cd build
+    cmake ..
+    make -j 8
+    sudo make install
+    sudo chmod +s src/startup/darling
+    sudo cp src/startup/darling /usr/local/bin/
+    sudo cp src/startup/darling /usr/bin/
+    sudo chmod +s /usr/local/bin/darling
+    sudo chmod +s /usr/bin/darling
+    cd ../../
 }
 
 # Darling과 OsxCross 설치 함수
