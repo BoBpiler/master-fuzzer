@@ -138,6 +138,12 @@ install_darling() {
         cmake ..
         make -j 8
         sudo make install
+        sudo chmod +s src/startup/darling
+        sudo cp src/startup/darling /usr/local/bin/
+        sudo cp src/startup/darling /usr/bin/
+        sudo chmod +s /usr/local/bin/darling
+        sudo chmod +s /usr/bin/darling
+        cd ../../
     fi
 }
 
@@ -178,6 +184,7 @@ install_darling_and_osxcross() {
     # .bashrc 및 .zshrc 재로드
     . ~/.bashrc
     . ~/.zshrc
+    cd ../
 }
 
 # Csmith 설치 스크립트
