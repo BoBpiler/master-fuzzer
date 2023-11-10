@@ -127,7 +127,7 @@ install_darling() {
         sudo apt install -y ./darling_0.1.20230310.jammy_amd64.deb
     else
         echo "Building Darling from source for non-x86_64 architecture..."
-        sudo apt install -y libbz2-dev cmake automake clang-15 bison flex libfuse-dev libudev-dev pkg-config libc6-dev-i386 gcc-multilib libcairo2-dev libgl1-mesa-dev curl libglu1-mesa-dev libtiff5-dev libfreetype6-dev git git-lfs libelf-dev libxml2-dev libegl1-mesa-dev libfontconfig1-dev libbsd-dev libxrandr-dev libxcursor-dev libgif-dev libavutil-dev libpulse-dev libavformat-dev libavcodec-dev libswresample-dev libdbus-1-dev libxkbfile-dev libssl-dev libstdc++-12-dev
+        sudo apt install -y libbz2-dev cmake automake clang-15 bison flex libfuse-dev libudev-dev pkg-config libc6-dev-i386 gcc-multilib libcairo2-dev libgl1-mesa-dev curl libglu1-mesa-dev libtiff5-dev libfreetype6-dev git git-lfs libelf-dev libxml2-dev libegl1-mesa-dev libfontconfig1-dev libbsd-dev libxrandr-dev libxcursor-dev libgif-dev libavutil-dev libpulse-dev libavformat-dev libavcodec-dev libswresample-dev libdbus-1-dev libxkbfile-dev libssl-dev libstdc++-12-dev git-lfs python2 python3
         git clone --recursive https://github.com/darlinghq/darling.git
         cd darling
         git lfs install
@@ -151,7 +151,7 @@ install_darling() {
 install_darling_and_osxcross() {
     # 필요한 패키지들을 업데이트하고 설치합니다.
     sudo apt-get update
-    sudo apt-get install -y clang cmake git patch python3 libssl-dev lzma-dev libxml2-dev xz-utils bzip2 cpio zlib1g-dev libbz2-dev
+    sudo apt-get install -y clang cmake git patch python3 python2 git-lfs libssl-dev lzma-dev libxml2-dev xz-utils bzip2 cpio zlib1g-dev libbz2-dev
 
     # Darling 설치
     # wget https://github.com/darlinghq/darling/releases/download/v0.1.20230310_update_sources_11_5/darling_0.1.20230310.jammy_amd64.deb
