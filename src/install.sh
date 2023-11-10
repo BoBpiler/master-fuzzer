@@ -176,8 +176,8 @@ install_darling_and_osxcross() {
     echo "export PATH=\$PATH:$PWD/target/bin" >> ~/.zshrc
 
     # .bashrc 및 .zshrc 재로드
-    source ~/.bashrc
-    source ~/.zshrc
+    . ~/.bashrc
+    . ~/.zshrc
 }
 
 # Csmith 설치 스크립트
