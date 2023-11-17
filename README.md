@@ -3,7 +3,7 @@
 BoBpiler-fuzzer는 Windows 및 Linux 환경 모두에서 사용 가능한 범용 퍼저입니다. 이 도구는 다양한 아키텍처와 컴파일러를 지원하며, 복잡한 코드 생성을 위한 여러 코드 생성기를 포함하고 있습니다.
 
 ### Fuzzer Display
-![Fuzzer Display](Fuzzer_Display.png)
+![Fuzzer Display](png/Fuzzer_Display_2.png)
 
 [Detected and Reported Bugs By BoBpiler-Fuzzer](https://github.com/BoBpiler/BoBpiler-BugTracker)
 
