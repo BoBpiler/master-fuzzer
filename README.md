@@ -56,8 +56,7 @@ BoBpiler-fuzzer는 Windows 및 Linux 환경 모두에서 사용 가능한 범용
 ### 1. 필수 설치
 
 ```bash
-chmod +x install.sh
-sh ./install.sh
+sudo ./install.sh
 ```
 
 ```sh
