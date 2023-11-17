@@ -86,7 +86,6 @@ python fuzzer.py
 
 이 옵션을 사용하여 퍼저를 실행하면, partial_timeout을 무시합니다.
 
-예시:
 ```bash
 python3 fuzzer.py --no-timeout
 ```
