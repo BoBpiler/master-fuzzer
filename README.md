@@ -61,30 +61,32 @@ c:\{REPO}> INST_DEPS.bat
 ```
 
 
-Linux - `install.sh` 스크립트를 실행하면 필요한 모든 설정과 파일들이 자동으로 설치되며, 선택을 통해서 원하는 것만 설치가 가능합니다.
+Linux - `install.sh` 스크립트를 실행하면 필요한 모든 설정과 파일들이 자동으로 설치되며, `선택`을 통해서 원하는 것만 설치가 가능합니다.
 
 Window - `INST_DEPS.bat` 배치 파일을 실행하면 필요한 설치가 이루어집니다. 
 
 ### 2. 퍼저 실행
-실행 방법
+**실행 방법**
 
-Linux 환경:
+**Linux 환경:**
 ```bash
 python3 fuzzer.py
 ```
-Windows 환경:
+**Windows 환경:**
 ```bash
 python fuzzer.py
 ```
-옵션 설명
-1. --no-timeout:
+**옵션 설명**
+1. `--no-timeout`:
+
 이 옵션을 사용하여 퍼저를 실행하면, partial_timeout을 무시합니다.
 
 예시:
 ```bash
 python3 fuzzer.py --no-timeout
 ```
-2. --endian:
+2. `--endian`:
+
 이 옵션은 아키텍처의 엔디언 타입을 지정합니다. big 또는 little 값 중 하나를 선택할 수 있습니다.
 
 - big: 빅 엔디안 아키텍처에 대해서 퍼저를 실행합니다.
@@ -98,7 +100,8 @@ python3 fuzzer.py --endian big
 ```bash
 python3 fuzzer.py --endian little
 ```
-3. No option:
+3. `No option`:
+
 옵션을 지정하지 않고 퍼저를 실행하면, 기본적으로 partial_timeout을 탐지하며 리틀엔디안 아키텍처에 대해서 퍼저를 실행합니다.
 
 
