@@ -90,13 +90,11 @@ python3 fuzzer.py --no-timeout
 이 옵션은 아키텍처의 엔디언 타입을 지정합니다. big 또는 little 값 중 하나를 선택할 수 있습니다.
 
 - big: 빅 엔디안 아키텍처에 대해서 퍼저를 실행합니다.
-예시:
 ```bash
 python3 fuzzer.py --endian big
 ```
 
 - little: 리틀 엔디안 아키텍처에 대해서 퍼저를 실행합니다.
-예시:
 ```bash
 python3 fuzzer.py --endian little
 ```
