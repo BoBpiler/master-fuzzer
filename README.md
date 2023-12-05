@@ -55,10 +55,12 @@ BoBpiler-fuzzer는 Windows 및 Linux 환경 모두에서 사용 가능한 범용
 
 ## 사용법
 
-### 1. 필수 설치
+### 1. 필수 설치 및 업데이트
+
+**필수 설치**
 
 ```bash
-sudo ./install.sh
+sudo -E ./install.sh
 ```
 
 ```sh
@@ -69,6 +71,13 @@ c:\{REPO}> INST_DEPS.bat
 Linux - `install.sh` 스크립트를 실행하면 필요한 모든 설정과 파일들이 자동으로 설치되며, `선택`을 통해서 원하는 것만 설치가 가능합니다.
 
 Window - `INST_DEPS.bat` 배치 파일을 실행하면 필요한 설치가 이루어집니다. 
+
+**업데이트**
+
+```bash
+sudo -E ./update.sh
+```
+최신 버전의 GCC, RISC-V GCC Toolchain 및 LLVM을 업데이트하고 재빌드하기 위해, update.sh 스크립트를 sudo -E 옵션과 함께 실행합니다.
 
 ### 2. 퍼저 실행
 **실행 방법**
