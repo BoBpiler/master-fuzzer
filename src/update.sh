@@ -21,8 +21,14 @@ update_and_rebuild_gcc() {
     cd "$current_path/gcc"
     git stash
     git pull || { echo "Failed to update GCC"; return 1; }
-    [ -d build ] && sudo rm -rf build
-    [ -d $HOME/gcc-trunk ] && sudo rm -rf $HOME/gcc-trunk
+    if [ -d build ]; then
+      sudo rm -rf build
+      echo "Deleted existing GCC build directory."
+    fi
+    if [ -d $HOME/gcc-trunk ]; then
+      sudo rm -rf $HOME/gcc-trunk
+      echo "Deleted existing GCC installation directory."
+    fi
     mkdir build && cd build || { echo "Failed to enter build directory"; return 1; }
     ../configure --prefix=$HOME/gcc-trunk \
                --enable-languages=c,c++ \
@@ -54,8 +60,14 @@ update_and_rebuild_riscv_gcc() {
     git stash
     git pull || { echo "Failed to update RISC-V GCC"; return 1; }
     cd ..
-    [ -d gcc-build ] && sudo rm -rf gcc-build
-    [ -d $INSTALL_DIR ] && sudo rm -rf $INSTALL_DIR
+    if [ -d gcc-build ]; then
+      sudo rm -rf gcc-build
+      echo "Deleted existing RISC-V GCC build directory."
+    fi
+    if [ -d $INSTALL_DIR ]; then
+      sudo rm -rf $INSTALL_DIR
+      echo "Deleted existing RISC-V GCC installation directory."
+    fi
     mkdir gcc-build && cd gcc-build
     ../configure --prefix=$INSTALL_DIR || { echo "Configure failed"; return 1; }
     sudo make -j $(nproc) || { echo "Make failed"; return 1; }
@@ -77,7 +89,10 @@ update_and_rebuild_llvm() {
     cd "$current_path/llvm-project"
     git stash
     git pull || { echo "Failed to update LLVM"; return 1; }
-    [ -d build ] && sudo rm -rf build
+    if [ -d build ]; then
+      sudo rm -rf build
+      echo "Deleted existing LLVM build directory."
+    fi
     mkdir build && cd build || { echo "Failed to enter build directory"; return 1; }
     cmake -DLLVM_ENABLE_PROJECTS=clang -DCMAKE_BUILD_TYPE=Release -G "Unix Makefiles" ../llvm || { echo "CMake failed"; return 1; }
     sudo make -j $(nproc) || { echo "Make failed"; return 1; }
