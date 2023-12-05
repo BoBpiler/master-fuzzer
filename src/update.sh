@@ -5,7 +5,8 @@ current_path=$PWD
 # Check if script is run as root
 if [ "$(id -u)" != "0" ]; then
     echo "This script requires superuser access for some operations."
-    echo "Please run with 'sudo' when prompted."
+    echo "Please run with 'sudo -E' when prompted."
+    exit 1
 fi
 
 if [ ! -z "$SUDO_USER" ]; then
