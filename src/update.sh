@@ -104,9 +104,9 @@ for choice in $selection; do
        fi
        ;;
     2) if update_and_rebuild_riscv_gcc; then
-         success_list="$success_list RISC-V GCC"
+         success_list="$success_list RISC-V_GCC"
        else
-         failure_list="$failure_list RISC-V GCC"
+         failure_list="$failure_list RISC-V_GCC"
        fi
        ;;
     3) if update_and_rebuild_llvm; then
@@ -131,6 +131,3 @@ if [ -n "$failure_list" ]; then
   failure_list_formatted=$(echo $failure_list | sed 's/ /, /g')
   echo "Failed to update: $failure_list_formatted"
 fi
-
-
-
