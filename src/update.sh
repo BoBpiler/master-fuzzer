@@ -19,8 +19,12 @@ update_and_rebuild_gcc() {
   echo "Updating and rebuilding GCC..."
   if [ -d "$current_path/gcc" ]; then
     cd "$current_path/gcc" && git stash && git checkout trunk && git pull || { echo "Failed to update GCC"; return 1; }
-    [ -d build ] && sudo rm -rf build || { echo "Failed to delete existing GCC build directory"; return 1; }
-    [ -d $HOME/gcc-trunk ] && sudo rm -rf $HOME/gcc-trunk || { echo "Failed to delete existing GCC installation directory"; return 1; }
+    if [ -d build ]; then
+      sudo rm -rf build || { echo "Failed to delete existing GCC build directory"; return 1; }
+    fi
+    if [ -d $HOME/gcc-trunk ]; then
+      sudo rm -rf $HOME/gcc-trunk || { echo "Failed to delete existing GCC installation directory"; return 1; }
+    fi
     mkdir build && cd build || { echo "Failed to enter build directory"; return 1; }
     ../configure --prefix=$HOME/gcc-trunk \
                  --enable-languages=c,c++ \
@@ -50,8 +54,14 @@ update_and_rebuild_riscv_gcc() {
     cd "$current_path/riscv-gnu-toolchain" && git stash && git submodule update --init gcc && git pull || { echo "Failed to update RISC-V GCC"; return 1; }
     cd gcc && git stash && git checkout trunk && git pull || { echo "Failed to update RISC-V GCC"; return 1; }
     cd ..
-    [ -d gcc-build ] && sudo rm -rf gcc-build || { echo "Failed to delete existing RISC-V GCC build directory"; return 1; }
-    [ -d $INSTALL_DIR ] && sudo rm -rf $INSTALL_DIR || { echo "Failed to delete existing RISC-V GCC installation directory"; return 1; }
+    if [ -d gcc-build ]; then
+      sudo rm -rf gcc-build || { echo "Failed to delete existing RISC-V GCC build directory"; return 1; }
+    fi
+
+    if [ -d $INSTALL_DIR ]; then
+      sudo rm -rf $INSTALL_DIR || { echo "Failed to delete existing RISC-V GCC installation directory"; return 1; }
+    fi
+
     mkdir gcc-build && cd gcc-build || { echo "Failed to enter gcc-build directory"; return 1; }
     ../configure --prefix=$INSTALL_DIR || { echo "Configure failed"; return 1; }
     sudo make -j $(nproc) || { echo "Make failed"; return 1; }
@@ -74,7 +84,9 @@ update_and_rebuild_llvm() {
   echo "Updating and rebuilding LLVM..."
   if [ -d "$current_path/llvm-project" ]; then
     cd "$current_path/llvm-project" && git stash && git checkout main && git pull || { echo "Failed to update LLVM"; return 1; }
-    [ -d build ] && sudo rm -rf build || { echo "Failed to delete existing LLVM build directory"; return 1; }
+    if [ -d build ]; then
+      sudo rm -rf build || { echo "Failed to delete existing LLVM build directory"; return 1; }
+    fi
     mkdir build && cd build || { echo "Failed to enter build directory"; return 1; }
     cmake -DLLVM_ENABLE_PROJECTS=clang -DCMAKE_BUILD_TYPE=Release -G "Unix Makefiles" ../llvm || { echo "CMake failed"; return 1; }
     sudo make -j $(nproc) || { echo "Make failed"; return 1; }
