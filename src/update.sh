@@ -92,27 +92,27 @@ update_and_rebuild_llvm() {
 
 
 # Process user selection and collect results
-success_list=()
-failure_list=()
+success_list=""
+failure_list=""
 
 for choice in $selection; do
   case $choice in
     1) if update_and_rebuild_gcc; then
-         success_list+=("GCC")
+         success_list="$success_list GCC"
        else
-         failure_list+=("GCC")
+         failure_list="$failure_list GCC"
        fi
        ;;
     2) if update_and_rebuild_riscv_gcc; then
-         success_list+=("RISC-V GCC")
+         success_list="$success_list RISC-V GCC"
        else
-         failure_list+=("RISC-V GCC")
+         failure_list="$failure_list RISC-V GCC"
        fi
        ;;
     3) if update_and_rebuild_llvm; then
-         success_list+=("LLVM")
+         success_list="$success_list LLVM"
        else
-         failure_list+=("LLVM")
+         failure_list="$failure_list LLVM"
        fi
        ;;
     *) echo "Invalid choice: $choice";;
@@ -121,10 +121,16 @@ done
 
 # Print summary of results
 echo "Update Summary:"
-if [ ${#success_list[@]} -ne 0 ]; then
-  echo "Successfully updated: ${success_list[*]}"
+if [ -n "$success_list" ]; then
+  # Replace spaces with commas for a cleaner list
+  success_list_formatted=$(echo $success_list | sed 's/ /, /g')
+  echo "Successfully updated: $success_list_formatted"
 fi
-if [ ${#failure_list[@]} -ne 0 ]; then
-  echo "Failed to update: ${failure_list[*]}"
+if [ -n "$failure_list" ]; then
+  # Replace spaces with commas for a cleaner list
+  failure_list_formatted=$(echo $failure_list | sed 's/ /, /g')
+  echo "Failed to update: $failure_list_formatted"
 fi
+
+
 
