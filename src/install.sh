@@ -9,6 +9,15 @@ if [ "$(id -u)" != "0" ]; then
     exit 1
 fi
 
+if [ ! -z "$SUDO_USER" ]; then
+    # SUDO_USER가 설정되어 있으면, 원래 사용자의 홈 디렉토리를 찾습니다.
+    USER_HOME=$(getent passwd "$SUDO_USER" | cut -d: -f6)
+else
+    # SUDO_USER가 설정되어 있지 않으면, 현재 환경의 HOME을 사용합니다.
+    USER_HOME=$HOME
+fi
+
+
 # 메뉴 선택 부분
 echo "Select the packages you want to install:"
 echo "0) Install all"
@@ -53,7 +62,7 @@ install_gcc() {
   sudo apt install -y gnat libmpfr-dev libmpfr-doc libgmp-dev libmpc3 libmpc-dev flex g++-multilib || { echo "Failed to install dependencies"; return 1; }
   contrib/download_prerequisites || { echo "Failed to download prerequisites"; return 1; }
   mkdir build && cd build || { echo "Failed to enter build directory"; return 1; }
-  ../configure --prefix=$HOME/gcc-trunk \
+  ../configure --prefix=$USER_HOME/gcc-trunk \
                --enable-languages=c,c++ \
                --disable-multilib \
                --program-suffix=-trunk \
@@ -61,8 +70,8 @@ install_gcc() {
   make -j 4 || { echo "Make failed"; return 1; }
   make install
   cd "$current_path"
-  ln -s $HOME/gcc-trunk/bin/gcc-trunk gcc-trunk || { echo "Failed to create symbolic link for gcc-trunk"; exit 1; }
-  ln -s $HOME/gcc-trunk/bin/g++-trunk g++-trunk || { echo "Failed to create symbolic link for gcc-trunk"; exit 1; }
+  ln -s $USER_HOME/gcc-trunk/bin/gcc-trunk gcc-trunk || { echo "Failed to create symbolic link for gcc-trunk"; exit 1; }
+  ln -s $USER_HOME/gcc-trunk/bin/g++-trunk g++-trunk || { echo "Failed to create symbolic link for gcc-trunk"; exit 1; }
 }
 
 # Clang 설치
@@ -80,7 +89,7 @@ install_clang() {
 
 install_riscv_gcc() {
   # 설치 디렉터리 설정
-  INSTALL_DIR=$HOME/riscv
+  INSTALL_DIR=$USER_HOME/riscv
 
   git clone https://github.com/riscv/riscv-gnu-toolchain || { echo "Failed to clone riscv-gnu-toolchain"; return 1; }
   cd riscv-gnu-toolchain || { echo "Failed to enter riscv-gnu-toolchain directory"; return 1; }
@@ -237,7 +246,7 @@ install_wasmer() {
     curl https://get.wasmer.io -sSfL | sh
 
     echo "Copying Wasmer binary to /usr/bin..."
-    sudo cp "$HOME/.wasmer/bin/wasmer" /usr/bin/wasmer
+    sudo cp "$USER_HOME/.wasmer/bin/wasmer" /usr/bin/wasmer
 }
 
 # wasmtime 설치 
@@ -246,20 +255,20 @@ install_wasmtime() {
     curl https://wasmtime.dev/install.sh -sSf | bash
 
     echo "Copying Wasmtime binary to /usr/bin..."
-    sudo cp "$HOME/.wasmtime/bin/wasmtime" /usr/bin/wasmtime
+    sudo cp "$USER_HOME/.wasmtime/bin/wasmtime" /usr/bin/wasmtime
 }
 
 # node 설치
 install_node_with_nvm() {
     echo "Installing node..."
-    if [ ! -d "$HOME/.nvm" ]; then
+    if [ ! -d "$USER_HOME/.nvm" ]; then
         curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
     else
         echo "nvm already installed!"
     fi
 
     # nvm 환경 설정 불러오기
-    export NVM_DIR="$HOME/.nvm"
+    export NVM_DIR="$USER_HOME/.nvm"
     [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
     nvm install node  # 최신 버전 설치
@@ -302,7 +311,7 @@ install_emsdk() {
 
 # wasienv 설치
 install_wasienv() {
-    local WASIENV_DIR="$HOME/.wasienv"
+    local WASIENV_DIR="$USER_HOME/.wasienv"
 
     echo "Installing wasienv..."
 

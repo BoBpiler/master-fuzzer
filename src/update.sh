@@ -8,6 +8,14 @@ if [ "$(id -u)" != "0" ]; then
     echo "Please run with 'sudo' when prompted."
 fi
 
+if [ ! -z "$SUDO_USER" ]; then
+    # SUDO_USER가 설정되어 있으면, 원래 사용자의 홈 디렉토리를 찾습니다.
+    USER_HOME=$(getent passwd "$SUDO_USER" | cut -d: -f6)
+else
+    # SUDO_USER가 설정되어 있지 않으면, 현재 환경의 HOME을 사용합니다.
+    USER_HOME=$HOME
+fi
+
 echo "Select the projects you want to update and rebuild:"
 echo "  1) GCC"
 echo "  2) RISC-V GCC"
@@ -22,11 +30,11 @@ update_and_rebuild_gcc() {
     if [ -d build ]; then
       sudo rm -rf build || { echo "Failed to delete existing GCC build directory"; return 1; }
     fi
-    if [ -d $HOME/gcc-trunk ]; then
-      sudo rm -rf $HOME/gcc-trunk || { echo "Failed to delete existing GCC installation directory"; return 1; }
+    if [ -d $USER_HOME/gcc-trunk ]; then
+      sudo rm -rf $USER_HOME/gcc-trunk || { echo "Failed to delete existing GCC installation directory"; return 1; }
     fi
     mkdir build && cd build || { echo "Failed to enter build directory"; return 1; }
-    ../configure --prefix=$HOME/gcc-trunk \
+    ../configure --prefix=$USER_HOME/gcc-trunk \
                  --enable-languages=c,c++ \
                  --disable-multilib \
                  --program-suffix=-trunk \
@@ -36,8 +44,8 @@ update_and_rebuild_gcc() {
     cd "$current_path"
     [ -L gcc-trunk ] && rm gcc-trunk
     [ -L g++-trunk ] && rm g++-trunk
-    ln -s $HOME/gcc-trunk/bin/gcc-trunk gcc-trunk || { echo "Failed to create symbolic link for gcc-trunk"; return 1; }
-    ln -s $HOME/gcc-trunk/bin/g++-trunk g++-trunk || { echo "Failed to create symbolic link for g++-trunk"; return 1; }
+    ln -s $USER_HOME/gcc-trunk/bin/gcc-trunk gcc-trunk || { echo "Failed to create symbolic link for gcc-trunk"; return 1; }
+    ln -s $USER_HOME/gcc-trunk/bin/g++-trunk g++-trunk || { echo "Failed to create symbolic link for g++-trunk"; return 1; }
     echo "GCC successfully updated and rebuilt."
   else
     echo "GCC directory does not exist."
@@ -49,7 +57,7 @@ update_and_rebuild_gcc() {
 # Update and Rebuild RISC-V GCC
 update_and_rebuild_riscv_gcc() {
   echo "Updating and rebuilding RISC-V GCC..."
-  INSTALL_DIR=$HOME/riscv
+  INSTALL_DIR=$USER_HOME/riscv
   if [ -d "$current_path/riscv-gnu-toolchain" ]; then
     cd "$current_path/riscv-gnu-toolchain" && sudo git reset --hard && sudo git clean -fdx && sudo git pull && sudo git submodule update --init --recursive || { echo "Failed to update RISC-V GCC"; return 1; }
     cd gcc && git stash && git checkout trunk && git pull || { echo "Failed to update RISC-V GCC"; return 1; }
