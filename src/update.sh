@@ -29,7 +29,7 @@ update_and_rebuild_gcc() {
                --disable-multilib \
                --program-suffix=-trunk \
                --disable-bootstrap || { echo "Configure failed"; return 1; }
-    make -j $(nproc) || { echo "Make failed"; return 1; }
+    sudo make -j $(nproc) || { echo "Make failed"; return 1; }
     sudo make install
     cd "$current_path"
     [ -L gcc-trunk ] && rm gcc-trunk
@@ -58,8 +58,8 @@ update_and_rebuild_riscv_gcc() {
     [ -d $INSTALL_DIR ] && sudo rm -rf $INSTALL_DIR
     mkdir gcc-build && cd gcc-build
     ../configure --prefix=$INSTALL_DIR || { echo "Configure failed"; return 1; }
-    make -j $(nproc) || { echo "Make failed"; return 1; }
-    make install || { echo "Make install failed"; return 1; }
+    sudo make -j $(nproc) || { echo "Make failed"; return 1; }
+    sudo make install || { echo "Make install failed"; return 1; }
     cd "$current_path"
     [ -L riscv64-unknown-elf-gcc ] && rm riscv64-unknown-elf-gcc
     [ -L riscv64-unknown-elf-g++ ] && rm riscv64-unknown-elf-g++
@@ -80,7 +80,7 @@ update_and_rebuild_llvm() {
     [ -d build ] && sudo rm -rf build
     mkdir build && cd build || { echo "Failed to enter build directory"; return 1; }
     cmake -DLLVM_ENABLE_PROJECTS=clang -DCMAKE_BUILD_TYPE=Release -G "Unix Makefiles" ../llvm || { echo "CMake failed"; return 1; }
-    make -j $(nproc) || { echo "Make failed"; return 1; }
+    sudo make -j $(nproc) || { echo "Make failed"; return 1; }
     cd "$current_path"
     [ -L clang-18 ] && rm clang-18
     [ -L clang++-18 ] && rm clang++-18
