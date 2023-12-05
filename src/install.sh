@@ -69,7 +69,7 @@ install_gcc() {
 install_clang() {
   git clone https://github.com/llvm/llvm-project.git || { echo "Failed to clone llvm-project"; return 1; }
   cd llvm-project || { echo "Failed to enter llvm-project directory"; return 1; }
-  git checkout llvmorg-18-init || { echo "Failed to checkout llvmorg-18-init"; return 1; }
+  git checkout main || { echo "Failed to checkout main"; return 1; }
   mkdir build && cd build || { echo "Failed to enter build directory"; return 1; }
   cmake -DLLVM_ENABLE_PROJECTS=clang -DCMAKE_BUILD_TYPE=Release -G "Unix Makefiles" ../llvm || { echo "CMake failed"; return 1; }
   make -j 4 || { echo "Make failed"; return 1; }
