@@ -51,7 +51,7 @@ update_and_rebuild_riscv_gcc() {
   echo "Updating and rebuilding RISC-V GCC..."
   INSTALL_DIR=$HOME/riscv
   if [ -d "$current_path/riscv-gnu-toolchain" ]; then
-    cd "$current_path/riscv-gnu-toolchain" && git stash && git submodule update --init gcc && git pull || { echo "Failed to update RISC-V GCC"; return 1; }
+    cd "$current_path/riscv-gnu-toolchain" && sudo git reset --hard && sudo git clean -fdx && sudo git pull && sudo git submodule update --init --recursive || { echo "Failed to update RISC-V GCC"; return 1; }
     cd gcc && git stash && git checkout trunk && git pull || { echo "Failed to update RISC-V GCC"; return 1; }
     cd ..
     if [ -d gcc-build ]; then
