@@ -94,11 +94,15 @@ install_riscv_gcc() {
   git clone https://github.com/riscv/riscv-gnu-toolchain || { echo "Failed to clone riscv-gnu-toolchain"; return 1; }
   cd riscv-gnu-toolchain || { echo "Failed to enter riscv-gnu-toolchain directory"; return 1; }
   git submodule update --init gcc
+  git submodule update --init newlib
 
   # 원하는 브랜치로 체크아웃
   cd gcc && git checkout trunk || { echo "Failed to checkout gcc trunk"; return 1; }
   cd "$current_path"
-
+  
+  cd newlib && git checkout trunk || { echo "Failed to checkout newlib trunk"; return 1; }
+  cd "$current_path"
+  
   cd riscv-gnu-toolchain
   mkdir gcc-build && cd gcc-build
   ../configure --prefix=$INSTALL_DIR || { echo "Configure failed"; return 1; }
