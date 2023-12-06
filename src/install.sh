@@ -100,7 +100,7 @@ install_riscv_gcc() {
   cd gcc && git checkout trunk || { echo "Failed to checkout gcc trunk"; return 1; }
   cd "$current_path"
   
-  cd newlib && git checkout trunk || { echo "Failed to checkout newlib trunk"; return 1; }
+  cd newlib && git checkout master || { echo "Failed to checkout newlib master"; return 1; }
   cd "$current_path"
   
   cd riscv-gnu-toolchain
