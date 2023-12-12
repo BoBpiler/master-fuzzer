@@ -5,9 +5,11 @@ BoBpiler-fuzzer는 Windows 및 Linux 환경 모두에서 사용 가능한 범용
 ### Fuzzer Display
 ![Fuzzer Display](png/Fuzzer_Display_3.png)
 
-[Detected and Reported Bugs By BoBpiler-Fuzzer](https://github.com/BoBpiler/BoBpiler-BugTracker)
+[Detected and Reported Bugs By BoBpiler-Fuzzer](https://github.com/BoBpiler/bug-list)
+- A repository dedicated to documenting and detailing bugs discovered by the BoBpiler fuzzer. It includes comprehensive reports and analyses of compiler optimization bugs identified across different architectures and compilers.
 
 [Compiler Bug vulnerable PoCs and Stealth Backdoor Scenarios](https://github.com/BoBpiler/CompilerBug-Exploits) 
+- This repository showcases Proof of Concepts (PoCs) and stealth backdoor scenarios developed from the bugs reported in the BoBpiler/bug-list. It illustrates how compiler optimization bugs can be exploited to create vulnerabilities and stealth backdoors in software.
 
 **지원 OS 및 환경**
 - Ubuntu 22.04.2 LTS (WSL2, Native)
