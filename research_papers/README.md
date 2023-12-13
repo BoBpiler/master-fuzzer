@@ -20,6 +20,6 @@
 ### 이메일
 - 김동건: 201811420@pukyong.ac.kr
 - 김대영: 22s302h0659@sonline20.sen.go.kr
-- 백규민: guminb@ajou.ac.kr
+- 백규민(퍼저 관련 문의): guminb@ajou.ac.kr
 - 신재형: shinwogud12@naver.com
 
