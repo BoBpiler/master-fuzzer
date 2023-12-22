@@ -48,8 +48,15 @@ sudo apt-get update || { echo "Failed to update packages"; exit 1; }
 sudo apt-get install -y autoconf automake autotools-dev curl python3 python3-pip libmpc-dev libmpfr-dev libgmp-dev gawk build-essential bison flex texinfo gperf libtool patchutils bc zlib1g-dev libexpat-dev ninja-build git cmake libglib2.0-dev || { echo "Failed to install dependencies"; exit 1; }
 pip3 install requests psutil
 
-# SSH 키 생성
-ssh-keygen -t rsa -b 4096 -f "./BoBpiler" -N "BoBpiler BoBpiler"
+# SSH 키가 이미 존재하는지 확인
+SSH_KEY_PATH="./BoBpiler"
+if [ ! -f "$SSH_KEY_PATH" ]; then
+    # SSH 키 생성
+    ssh-keygen -t rsa -b 4096 -f "$SSH_KEY_PATH" -N "BoBpiler BoBpiler"
+else
+    # realpath를 사용하여 절대 경로 표시
+    echo "SSH key already exists at $(realpath "$SSH_KEY_PATH")"
+fi
 
 
 
